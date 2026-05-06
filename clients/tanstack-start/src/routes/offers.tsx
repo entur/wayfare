@@ -9,9 +9,23 @@ import PageShell from "../components/layout/PageShell";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
 import { readSearchSession, type SearchContext } from "../lib/search-session";
-import type { IndividualTraveller, OfferCollection } from "../types/search";
+import type { OfferCollection, UserProfile } from "../types/search";
 
 export const Route = createFileRoute("/offers")({ component: OffersPage });
+
+const AGE_GROUP_LABELS: Record<string, string> = {
+	adult: "Adult",
+	child: "Child",
+	youth: "Youth",
+	senior: "Senior",
+	infant: "Infant",
+	anyone: "Traveller",
+};
+
+function profileLabel(p: UserProfile): string {
+	const base = AGE_GROUP_LABELS[p.ageGroup ?? "anyone"] ?? p.id;
+	return p.count && p.count > 1 ? `${base} × ${p.count}` : base;
+}
 
 function OffersPage() {
 	return (
@@ -66,7 +80,7 @@ function OffersScreen() {
 		setHydrated(true);
 	}, []);
 
-	const travellers: IndividualTraveller[] = context?.travellers ?? [];
+	const profiles: UserProfile[] = context?.profiles ?? [];
 	const bundles: OfferBundle[] = buildBundles(collection?.offers ?? []);
 
 	// Detect multi-leg journeys and split bundles into tiers
@@ -211,11 +225,11 @@ function OffersScreen() {
 								{formattedDate}
 							</p>
 						)}
-						{travellers.length > 0 && (
+						{profiles.length > 0 && (
 							<div className="mt-2 flex flex-wrap gap-1.5">
-								{travellers.map((t) => (
+								{profiles.map((p) => (
 									<span
-										key={t.id}
+										key={p.id}
 										className="inline-flex items-center rounded-full px-2 py-0.5 text-xs"
 										style={{
 											background: "var(--wayfare-bg)",
@@ -223,7 +237,7 @@ function OffersScreen() {
 											border: "1px solid var(--wayfare-line)",
 										}}
 									>
-										{t.age != null ? `${t.age} yrs` : t.id}
+										{profileLabel(p)}
 									</span>
 								))}
 							</div>
@@ -240,7 +254,7 @@ function OffersScreen() {
 						<BundleCard
 							key={String(bundle.groupKey)}
 							bundle={bundle}
-							travellers={travellers}
+							profiles={profiles}
 							selected={selectedFullKey === bundle.groupKey}
 							onSelect={() => handleSelectFull(bundle.groupKey)}
 						/>
@@ -262,7 +276,7 @@ function OffersScreen() {
 											<BundleCard
 												key={String(bundle.groupKey)}
 												bundle={bundle}
-												travellers={travellers}
+												profiles={profiles}
 												selected={
 													canMixAndMatch
 														? selectedLegKeys[seq] === bundle.groupKey

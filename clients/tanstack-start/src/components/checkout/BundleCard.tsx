@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { formatPrice } from "../../lib/format-price";
-import type { IndividualTraveller, Offer } from "../../types/search";
+import type { Offer, UserProfile } from "../../types/search";
 
 export interface OfferBundle {
 	groupKey: number | string;
@@ -11,9 +11,23 @@ export interface OfferBundle {
 	sequences: number[];
 }
 
+const AGE_GROUP_LABELS: Record<string, string> = {
+	adult: "Adult",
+	child: "Child",
+	youth: "Youth",
+	senior: "Senior",
+	infant: "Infant",
+	anyone: "Traveller",
+};
+
+function profileLabel(p: UserProfile): string {
+	const base = AGE_GROUP_LABELS[p.ageGroup ?? "anyone"] ?? p.id;
+	return p.count && p.count > 1 ? `${base} × ${p.count}` : base;
+}
+
 interface BundleCardProps {
 	bundle: OfferBundle;
-	travellers?: IndividualTraveller[];
+	profiles?: UserProfile[];
 	selected?: boolean;
 	onSelect?: () => void;
 }
@@ -88,7 +102,7 @@ export function buildBundles(offers: Offer[]): OfferBundle[] {
 
 export default function BundleCard({
 	bundle,
-	travellers = [],
+	profiles = [],
 	selected = false,
 	onSelect,
 }: BundleCardProps) {
@@ -101,12 +115,8 @@ export default function BundleCard({
 
 	const offerCount = bundle.offers.length;
 
-	const bundleTravellerIds = new Set(
-		bundle.offers.flatMap(getOfferTravellerIds),
-	);
-	const coveredTravellers = travellers.filter((t) =>
-		bundleTravellerIds.has(t.id),
-	);
+	const bundleProfileIds = new Set(bundle.offers.flatMap(getOfferTravellerIds));
+	const coveredProfiles = profiles.filter((p) => bundleProfileIds.has(p.id));
 
 	return (
 		<label
@@ -180,11 +190,11 @@ export default function BundleCard({
 					</div>
 
 					{/* Traveller pills — only those covered by this bundle */}
-					{coveredTravellers.length > 0 && (
+					{coveredProfiles.length > 0 && (
 						<div className="mt-2 flex flex-wrap gap-1.5">
-							{coveredTravellers.map((t) => (
+							{coveredProfiles.map((p) => (
 								<span
-									key={t.id}
+									key={p.id}
 									className="inline-flex items-center rounded-full px-2 py-0.5 text-xs"
 									style={{
 										background: "var(--wayfare-bg)",
@@ -192,7 +202,7 @@ export default function BundleCard({
 										border: "1px solid var(--wayfare-line)",
 									}}
 								>
-									{t.age != null ? `${t.age} yrs` : t.id}
+									{profileLabel(p)}
 								</span>
 							))}
 						</div>
@@ -233,13 +243,13 @@ export default function BundleCard({
 									"Travel offer";
 								const price = offer.properties?.price;
 								const ids = getOfferTravellerIds(offer);
-								const offerTravellers = travellers.filter((t) =>
-									ids.includes(t.id),
+								const offerProfiles = profiles.filter((p) =>
+									ids.includes(p.id),
 								);
 
 								const travellerText =
-									offerTravellers.length > 0
-										? `${offerTravellers.length} traveller${offerTravellers.length !== 1 ? "s" : ""} (${offerTravellers.map((t) => (t.age != null ? `${t.age} yrs` : t.id)).join(", ")})`
+									offerProfiles.length > 0
+										? offerProfiles.map(profileLabel).join(", ")
 										: ids.length > 0
 											? `${ids.length} traveller${ids.length !== 1 ? "s" : ""}`
 											: null;

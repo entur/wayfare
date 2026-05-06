@@ -17,7 +17,7 @@ export interface UserProfile {
 	id: string;
 	type: "user_profile";
 	count?: number;
-	ageGroup?: "ANYONE" | "INFANT" | "CHILD" | "YOUTH" | "ADULT" | "SENIOR";
+	ageGroup?: "anyone" | "infant" | "child" | "youth" | "adult" | "senior";
 	minimumAge?: number;
 	maximumAge?: number;
 }

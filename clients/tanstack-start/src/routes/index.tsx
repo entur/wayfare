@@ -11,7 +11,7 @@ import { SearchFormProvider, useSearchForm } from "../context/search-form";
 import { useSearchOffers } from "../hooks/use-search-offers";
 import { useTripPlanner } from "../hooks/use-trip-planner";
 import { writeSearchSession } from "../lib/search-session";
-import type { TripPatternLeg } from "../types/search";
+import type { TripPatternLeg, UserProfile } from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
 
 export const Route = createFileRoute("/")({ component: SearchPage });
@@ -24,22 +24,15 @@ function SearchPage() {
 	);
 }
 
-function buildTravellers(travelers: TravelerGroup[]) {
-	return travelers.flatMap((t, i) =>
-		Array.from({ length: t.count }, (_, j) => ({
-			id: `t${i}_${j}`,
-			type: "individual_traveller" as const,
-			age:
-				t.minAge ??
-				(t.ageGroup === "ADULT"
-					? 30
-					: t.ageGroup === "CHILD"
-						? 10
-						: t.ageGroup === "SENIOR"
-							? 70
-							: 16),
-		})),
-	);
+function buildProfiles(travelers: TravelerGroup[]): UserProfile[] {
+	return travelers.map((t) => ({
+		id: t.id,
+		type: "user_profile" as const,
+		count: t.count,
+		ageGroup: t.ageGroup.toLowerCase() as UserProfile["ageGroup"],
+		...(t.minAge != null ? { minimumAge: t.minAge } : {}),
+		...(t.maxAge != null ? { maximumAge: t.maxAge } : {}),
+	}));
 }
 
 function SearchScreen() {
@@ -65,12 +58,12 @@ function SearchScreen() {
 			return;
 		}
 
-		const travellers = buildTravellers(state.travelers);
+		const profiles = buildProfiles(state.travelers);
 
 		const result = await mutateAsync({
 			inputs: {
 				type: "search_offer",
-				travellers,
+				profiles,
 				specification: {
 					from,
 					to,
@@ -84,7 +77,7 @@ function SearchScreen() {
 			to,
 			travelDate,
 			searchType,
-			travellers,
+			profiles,
 		});
 		navigate({ to: "/offers" });
 	}
@@ -95,7 +88,7 @@ function SearchScreen() {
 		const to = state.to;
 		const travelDate = state.travelDate;
 		const searchType = state.searchType;
-		const travellers = buildTravellers(state.travelers);
+		const profiles = buildProfiles(state.travelers);
 
 		const omsaPattern: TripPatternLeg[] = pattern.legs.flatMap((leg) => {
 			if (!leg.serviceJourney) return [];
@@ -116,7 +109,7 @@ function SearchScreen() {
 		const result = await mutateAsync({
 			inputs: {
 				type: "search_offer",
-				travellers,
+				profiles,
 				pattern: omsaPattern,
 			},
 		});
@@ -126,7 +119,7 @@ function SearchScreen() {
 			to,
 			travelDate,
 			searchType,
-			travellers,
+			profiles,
 		});
 		navigate({ to: "/offers" });
 	}
