@@ -17,7 +17,7 @@ Homepage = "https://github.com/entur/omsa-example-clients"
 
 [dependency-groups]
 dev = [
-    "pytest>=8.2.0,<9.0.0",
+    "pytest>=9.0.3,<10.0.0",
     "anyio>=4.4.0,<5.0.0",
 ]
 
