@@ -8,7 +8,7 @@ export interface TripPatternLeg {
 }
 
 interface TravelPartyEntitlements {
-	entitlementsGiven?: { entitlementType: string }[];
+	entitlementsGiven?: { type: "entitlement"; entitlementType: string }[];
 }
 
 export interface IndividualTraveller {

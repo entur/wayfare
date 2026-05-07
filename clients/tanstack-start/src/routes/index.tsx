@@ -39,7 +39,7 @@ function buildRequest(travelers: TravelerGroup[]): {
 					? "MILITARY"
 					: undefined;
 		const entitlements = entitlementType
-			? { entitlements: { entitlementsGiven: [{ entitlementType }] } }
+			? { entitlements: { entitlementsGiven: [{ type: "entitlement", entitlementType }] } }
 			: {};
 		// STUDENT and MILITARY don't map to a UserProfile ageGroup
 		const profileAgeGroup =
