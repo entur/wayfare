@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { formatPrice } from "../../lib/format-price";
-import { partyLabel, type TravelParty } from "../../routes/offers";
+import { partyLabel, type TravelParty } from "../../lib/travel-party";
 import type { Offer } from "../../types/search";
 
 export interface OfferBundle {

@@ -9,34 +9,12 @@ import PageShell from "../components/layout/PageShell";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
 import { readSearchSession, type SearchContext } from "../lib/search-session";
-import type { IndividualTraveller, OfferCollection, UserProfile } from "../types/search";
+import { partyLabel, type TravelParty } from "../lib/travel-party";
+import type { OfferCollection } from "../types/search";
+
+export type { TravelParty };
 
 export const Route = createFileRoute("/offers")({ component: OffersPage });
-
-const AGE_GROUP_LABELS: Record<string, string> = {
-	ADULT: "Adult",
-	CHILD: "Child",
-	YOUTH: "Youth",
-	SENIOR: "Senior",
-	INFANT: "Infant",
-	ANYONE: "Traveller",
-};
-
-export type TravelParty = UserProfile | IndividualTraveller;
-
-export function partyLabel(p: TravelParty): string {
-	if (p.type === "user_profile") {
-		const base = AGE_GROUP_LABELS[p.ageGroup ?? "anyone"] ?? p.id;
-		return p.count && p.count > 1 ? `${base} × ${p.count}` : base;
-	}
-	if (p.fullName) return p.fullName;
-	const entitlements = p.entitlements?.entitlementsGiven?.map((e) => e.entitlementType) ?? [];
-	if (entitlements.length > 0) {
-		const label = entitlements.join(", ");
-		return p.age != null ? `${label} (${p.age} yrs)` : label;
-	}
-	return p.age != null ? `${p.age} yrs` : p.id;
-}
 
 function OffersPage() {
 	return (

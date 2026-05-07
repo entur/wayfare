@@ -73,7 +73,7 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 		if (!perPerson && existing === undefined) return undefined;
 		const base = existing ?? [];
 		if (count > base.length) {
-			return [...base, ...Array<TravelerIndividual>(count - base.length).fill({})];
+			return [...base, ...Array.from({ length: count - base.length }, (): TravelerIndividual => ({}))];
 		}
 		return base.slice(0, count);
 	}
@@ -94,8 +94,7 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 				id: ag.toLowerCase(),
 				ageGroup: ag,
 				count,
-				...(meta.subtitle ? {} : {}), // no minAge/maxAge for STUDENT/MILITARY
-				...(ag === "ADULT" ? { minAge: 18 } : {}),
+...(ag === "ADULT" ? { minAge: 18 } : {}),
 				...(ag === "YOUTH" ? { minAge: 16, maxAge: 17 } : {}),
 				...(ag === "CHILD" ? { minAge: 6, maxAge: 15 } : {}),
 				...(ag === "SENIOR" ? { minAge: 67 } : {}),
@@ -111,7 +110,7 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 			ag,
 			group.individuals !== undefined
 				? { individuals: undefined }
-				: { individuals: Array<TravelerIndividual>(group.count).fill({}) },
+				: { individuals: Array.from({ length: group.count }, (): TravelerIndividual => ({})) },
 		);
 	}
 
