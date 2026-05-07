@@ -7,10 +7,16 @@ export interface TripPatternLeg {
 	to?: PlaceReference;
 }
 
+interface TravelPartyEntitlements {
+	entitlementsGiven?: { entitlementType: string }[];
+}
+
 export interface IndividualTraveller {
 	id: string;
 	type: "individual_traveller";
 	age?: number;
+	fullName?: string;
+	entitlements?: TravelPartyEntitlements;
 }
 
 export interface UserProfile {
@@ -20,6 +26,7 @@ export interface UserProfile {
 	ageGroup?: "anyone" | "infant" | "child" | "youth" | "adult" | "senior";
 	minimumAge?: number;
 	maximumAge?: number;
+	entitlements?: TravelPartyEntitlements;
 }
 
 export interface SearchSpecification {

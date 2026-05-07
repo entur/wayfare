@@ -1,6 +1,6 @@
 import type { SearchType } from "../context/search-form";
 import type { PlaceReference } from "../types/common";
-import type { OfferCollection, UserProfile } from "../types/search";
+import type { IndividualTraveller, OfferCollection, UserProfile } from "../types/search";
 
 const OFFER_COLLECTION_KEY = "offerCollection";
 const SEARCH_CONTEXT_KEY = "searchContext";
@@ -11,6 +11,7 @@ export interface SearchContext {
 	travelDate: string;
 	searchType: SearchType;
 	profiles?: UserProfile[];
+	travellers?: IndividualTraveller[];
 }
 
 interface SearchSession {

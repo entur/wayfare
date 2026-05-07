@@ -9,7 +9,7 @@ import PageShell from "../components/layout/PageShell";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
 import { readSearchSession, type SearchContext } from "../lib/search-session";
-import type { OfferCollection, UserProfile } from "../types/search";
+import type { IndividualTraveller, OfferCollection, UserProfile } from "../types/search";
 
 export const Route = createFileRoute("/offers")({ component: OffersPage });
 
@@ -22,9 +22,14 @@ const AGE_GROUP_LABELS: Record<string, string> = {
 	anyone: "Traveller",
 };
 
-function profileLabel(p: UserProfile): string {
-	const base = AGE_GROUP_LABELS[p.ageGroup ?? "anyone"] ?? p.id;
-	return p.count && p.count > 1 ? `${base} × ${p.count}` : base;
+export type TravelParty = UserProfile | IndividualTraveller;
+
+export function partyLabel(p: TravelParty): string {
+	if (p.type === "user_profile") {
+		const base = AGE_GROUP_LABELS[p.ageGroup ?? "anyone"] ?? p.id;
+		return p.count && p.count > 1 ? `${base} × ${p.count}` : base;
+	}
+	return p.fullName ?? (p.age != null ? `${p.age} yrs` : p.id);
 }
 
 function OffersPage() {
@@ -80,7 +85,10 @@ function OffersScreen() {
 		setHydrated(true);
 	}, []);
 
-	const profiles: UserProfile[] = context?.profiles ?? [];
+	const allParties: TravelParty[] = [
+		...(context?.profiles ?? []),
+		...(context?.travellers ?? []),
+	];
 	const bundles: OfferBundle[] = buildBundles(collection?.offers ?? []);
 
 	// Detect multi-leg journeys and split bundles into tiers
@@ -225,9 +233,9 @@ function OffersScreen() {
 								{formattedDate}
 							</p>
 						)}
-						{profiles.length > 0 && (
+						{allParties.length > 0 && (
 							<div className="mt-2 flex flex-wrap gap-1.5">
-								{profiles.map((p) => (
+								{allParties.map((p) => (
 									<span
 										key={p.id}
 										className="inline-flex items-center rounded-full px-2 py-0.5 text-xs"
@@ -237,7 +245,7 @@ function OffersScreen() {
 											border: "1px solid var(--wayfare-line)",
 										}}
 									>
-										{profileLabel(p)}
+										{partyLabel(p)}
 									</span>
 								))}
 							</div>
@@ -254,7 +262,7 @@ function OffersScreen() {
 						<BundleCard
 							key={String(bundle.groupKey)}
 							bundle={bundle}
-							profiles={profiles}
+							parties={allParties}
 							selected={selectedFullKey === bundle.groupKey}
 							onSelect={() => handleSelectFull(bundle.groupKey)}
 						/>
@@ -276,7 +284,7 @@ function OffersScreen() {
 											<BundleCard
 												key={String(bundle.groupKey)}
 												bundle={bundle}
-												profiles={profiles}
+												parties={allParties}
 												selected={
 													canMixAndMatch
 														? selectedLegKeys[seq] === bundle.groupKey

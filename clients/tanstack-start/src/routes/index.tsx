@@ -11,7 +11,7 @@ import { SearchFormProvider, useSearchForm } from "../context/search-form";
 import { useSearchOffers } from "../hooks/use-search-offers";
 import { useTripPlanner } from "../hooks/use-trip-planner";
 import { writeSearchSession } from "../lib/search-session";
-import type { TripPatternLeg, UserProfile } from "../types/search";
+import type { IndividualTraveller, TripPatternLeg, UserProfile } from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
 
 export const Route = createFileRoute("/")({ component: SearchPage });
@@ -24,15 +24,61 @@ function SearchPage() {
 	);
 }
 
-function buildProfiles(travelers: TravelerGroup[]): UserProfile[] {
-	return travelers.map((t) => ({
-		id: t.id,
-		type: "user_profile" as const,
-		count: t.count,
-		ageGroup: t.ageGroup.toLowerCase() as UserProfile["ageGroup"],
-		...(t.minAge != null ? { minimumAge: t.minAge } : {}),
-		...(t.maxAge != null ? { maximumAge: t.maxAge } : {}),
-	}));
+function buildRequest(travelers: TravelerGroup[]): {
+	profiles: UserProfile[];
+	travellers: IndividualTraveller[];
+} {
+	const profiles: UserProfile[] = [];
+	const travellers: IndividualTraveller[] = [];
+
+	for (const t of travelers) {
+		const entitlements = t.entitlement
+			? { entitlements: { entitlementsGiven: [{ entitlementType: t.entitlement }] } }
+			: {};
+
+		const named = t.individuals?.filter((i) => i.name || i.age != null) ?? [];
+
+		if (named.length > 0) {
+			named.forEach((person, j) => {
+				travellers.push({
+					id: `${t.id}_${j}`,
+					type: "individual_traveller",
+					...(person.age != null ? { age: person.age } : {}),
+					...(person.name ? { fullName: person.name } : {}),
+					...entitlements,
+				});
+			});
+			const unnamedCount = t.count - named.length;
+			if (unnamedCount > 0) {
+				profiles.push({
+					id: `${t.id}_anon`,
+					type: "user_profile",
+					count: unnamedCount,
+					ageGroup: t.ageGroup.toLowerCase() as UserProfile["ageGroup"],
+					...(t.minAge != null ? { minimumAge: t.minAge } : {}),
+					...(t.maxAge != null ? { maximumAge: t.maxAge } : {}),
+					...entitlements,
+				});
+			}
+		} else {
+			const age = t.profileAge;
+			profiles.push({
+				id: t.id,
+				type: "user_profile",
+				count: t.count,
+				ageGroup: t.ageGroup.toLowerCase() as UserProfile["ageGroup"],
+				...(age != null
+					? { minimumAge: age, maximumAge: age }
+					: {
+							...(t.minAge != null ? { minimumAge: t.minAge } : {}),
+							...(t.maxAge != null ? { maximumAge: t.maxAge } : {}),
+						}),
+				...entitlements,
+			});
+		}
+	}
+
+	return { profiles, travellers };
 }
 
 function SearchScreen() {
@@ -58,12 +104,13 @@ function SearchScreen() {
 			return;
 		}
 
-		const profiles = buildProfiles(state.travelers);
+		const { profiles, travellers } = buildRequest(state.travelers);
 
 		const result = await mutateAsync({
 			inputs: {
 				type: "search_offer",
-				profiles,
+				...(profiles.length > 0 ? { profiles } : {}),
+				...(travellers.length > 0 ? { travellers } : {}),
 				specification: {
 					from,
 					to,
@@ -78,6 +125,7 @@ function SearchScreen() {
 			travelDate,
 			searchType,
 			profiles,
+			travellers,
 		});
 		navigate({ to: "/offers" });
 	}
@@ -88,7 +136,7 @@ function SearchScreen() {
 		const to = state.to;
 		const travelDate = state.travelDate;
 		const searchType = state.searchType;
-		const profiles = buildProfiles(state.travelers);
+		const { profiles, travellers } = buildRequest(state.travelers);
 
 		const omsaPattern: TripPatternLeg[] = pattern.legs.flatMap((leg) => {
 			if (!leg.serviceJourney) return [];
@@ -109,7 +157,8 @@ function SearchScreen() {
 		const result = await mutateAsync({
 			inputs: {
 				type: "search_offer",
-				profiles,
+				...(profiles.length > 0 ? { profiles } : {}),
+				...(travellers.length > 0 ? { travellers } : {}),
 				pattern: omsaPattern,
 			},
 		});
@@ -120,6 +169,7 @@ function SearchScreen() {
 			travelDate,
 			searchType,
 			profiles,
+			travellers,
 		});
 		navigate({ to: "/offers" });
 	}
