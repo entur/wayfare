@@ -14,12 +14,12 @@ import type { IndividualTraveller, OfferCollection, UserProfile } from "../types
 export const Route = createFileRoute("/offers")({ component: OffersPage });
 
 const AGE_GROUP_LABELS: Record<string, string> = {
-	adult: "Adult",
-	child: "Child",
-	youth: "Youth",
-	senior: "Senior",
-	infant: "Infant",
-	anyone: "Traveller",
+	ADULT: "Adult",
+	CHILD: "Child",
+	YOUTH: "Youth",
+	SENIOR: "Senior",
+	INFANT: "Infant",
+	ANYONE: "Traveller",
 };
 
 export type TravelParty = UserProfile | IndividualTraveller;

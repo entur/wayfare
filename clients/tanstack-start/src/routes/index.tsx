@@ -54,7 +54,7 @@ function buildRequest(travelers: TravelerGroup[]): {
 					id: `${t.id}_anon`,
 					type: "user_profile",
 					count: unnamedCount,
-					ageGroup: t.ageGroup.toLowerCase() as UserProfile["ageGroup"],
+					ageGroup: t.ageGroup,
 					...(t.minAge != null ? { minimumAge: t.minAge } : {}),
 					...(t.maxAge != null ? { maximumAge: t.maxAge } : {}),
 					...entitlements,
@@ -66,7 +66,7 @@ function buildRequest(travelers: TravelerGroup[]): {
 				id: t.id,
 				type: "user_profile",
 				count: t.count,
-				ageGroup: t.ageGroup.toLowerCase() as UserProfile["ageGroup"],
+				ageGroup: t.ageGroup,
 				...(age != null
 					? { minimumAge: age, maximumAge: age }
 					: {

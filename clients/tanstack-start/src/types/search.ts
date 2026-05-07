@@ -23,7 +23,7 @@ export interface UserProfile {
 	id: string;
 	type: "user_profile";
 	count?: number;
-	ageGroup?: "anyone" | "infant" | "child" | "youth" | "adult" | "senior";
+	ageGroup?: "ANYONE" | "INFANT" | "CHILD" | "YOUTH" | "ADULT" | "SENIOR";
 	minimumAge?: number;
 	maximumAge?: number;
 	entitlements?: TravelPartyEntitlements;
