@@ -32,9 +32,20 @@ function buildRequest(travelers: TravelerGroup[]): {
 	const travellers: IndividualTraveller[] = [];
 
 	for (const t of travelers) {
-		const entitlements = t.entitlement
-			? { entitlements: { entitlementsGiven: [{ entitlementType: t.entitlement }] } }
+		const entitlementType =
+			t.ageGroup === "STUDENT"
+				? "STUDENT"
+				: t.ageGroup === "MILITARY"
+					? "MILITARY"
+					: undefined;
+		const entitlements = entitlementType
+			? { entitlements: { entitlementsGiven: [{ entitlementType }] } }
 			: {};
+		// STUDENT and MILITARY don't map to a UserProfile ageGroup
+		const profileAgeGroup =
+			t.ageGroup !== "STUDENT" && t.ageGroup !== "MILITARY"
+				? t.ageGroup
+				: undefined;
 
 		const named = t.individuals?.filter((i) => i.name || i.age != null) ?? [];
 
@@ -54,25 +65,20 @@ function buildRequest(travelers: TravelerGroup[]): {
 					id: `${t.id}_anon`,
 					type: "user_profile",
 					count: unnamedCount,
-					ageGroup: t.ageGroup,
+					...(profileAgeGroup != null ? { ageGroup: profileAgeGroup } : {}),
 					...(t.minAge != null ? { minimumAge: t.minAge } : {}),
 					...(t.maxAge != null ? { maximumAge: t.maxAge } : {}),
 					...entitlements,
 				});
 			}
 		} else {
-			const age = t.profileAge;
 			profiles.push({
 				id: t.id,
 				type: "user_profile",
 				count: t.count,
-				ageGroup: t.ageGroup,
-				...(age != null
-					? { minimumAge: age, maximumAge: age }
-					: {
-							...(t.minAge != null ? { minimumAge: t.minAge } : {}),
-							...(t.maxAge != null ? { maximumAge: t.maxAge } : {}),
-						}),
+				...(profileAgeGroup != null ? { ageGroup: profileAgeGroup } : {}),
+				...(t.minAge != null ? { minimumAge: t.minAge } : {}),
+				...(t.maxAge != null ? { maximumAge: t.maxAge } : {}),
 				...entitlements,
 			});
 		}

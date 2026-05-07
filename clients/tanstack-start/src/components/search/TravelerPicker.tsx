@@ -1,184 +1,178 @@
 import { DownArrowIcon, UsersIcon } from "@entur/icons";
 import { useEffect, useRef, useState } from "react";
-import type {
-	Entitlement,
-	TravelerGroup,
-	TravelerIndividual,
-} from "../../context/search-form";
+import type { TravelerGroup, TravelerIndividual } from "../../context/search-form";
 
 const GROUPS: {
 	id: TravelerGroup["ageGroup"];
 	label: string;
-	minAge?: number;
-	maxAge?: number;
+	subtitle?: string;
+	// When true: per-person rows (age + name) always visible when count > 0, no expand toggle
+	perPerson?: boolean;
 }[] = [
-	{ id: "ADULT", label: "Adult", minAge: 18 },
-	{ id: "YOUTH", label: "Youth", minAge: 16, maxAge: 17 },
-	{ id: "CHILD", label: "Child", minAge: 6, maxAge: 15 },
-	{ id: "SENIOR", label: "Senior", minAge: 67 },
+	{ id: "ADULT", label: "Adult", subtitle: "18+ yrs" },
+	{ id: "YOUTH", label: "Youth", subtitle: "16–17 yrs" },
+	{ id: "CHILD", label: "Child", subtitle: "6–15 yrs" },
+	{ id: "SENIOR", label: "Senior", subtitle: "67+ yrs", perPerson: true },
+	{ id: "STUDENT", label: "Student", perPerson: true },
+	{ id: "MILITARY", label: "Military" },
 ];
 
-const ENTITLEMENT_OPTIONS: { value: Entitlement; label: string }[] = [
-	{ value: "STUDENT", label: "Student" },
-	{ value: "MILITARY", label: "Military" },
-];
+const ringStyle = {
+	"--tw-ring-color": "color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
+} as React.CSSProperties;
 
-const ENTITLEMENT_GROUPS: TravelerGroup["ageGroup"][] = [
-	"ADULT",
-	"YOUTH",
-	"SENIOR",
-];
+const inputStyle: React.CSSProperties = {
+	borderColor: "var(--wayfare-line)",
+	background: "var(--wayfare-bg)",
+	color: "var(--wayfare-text)",
+	...ringStyle,
+};
+
+const inputCls = "rounded-lg border px-2 py-1.5 text-xs outline-none focus:ring-1";
 
 interface TravelerPickerProps {
 	travelers: TravelerGroup[];
 	onChange: (travelers: TravelerGroup[]) => void;
 }
 
-export default function TravelerPicker({
-	travelers,
-	onChange,
-}: TravelerPickerProps) {
+export default function TravelerPicker({ travelers, onChange }: TravelerPickerProps) {
 	const [open, setOpen] = useState(false);
-	const [expandedId, setExpandedId] = useState<
-		TravelerGroup["ageGroup"] | null
-	>(null);
+	const [expandedId, setExpandedId] = useState<TravelerGroup["ageGroup"] | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const total = travelers.reduce((sum, t) => sum + t.count, 0);
-	const summary =
-		total === 0
-			? "Add travelers"
-			: `${total} traveler${total !== 1 ? "s" : ""}`;
+	const summary = total === 0 ? "Add travelers" : `${total} traveler${total !== 1 ? "s" : ""}`;
 
 	useEffect(() => {
-		function handlePointerDown(e: PointerEvent) {
-			if (
-				containerRef.current &&
-				!containerRef.current.contains(e.target as Node)
-			) {
+		function onPointerDown(e: PointerEvent) {
+			if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
 				setOpen(false);
 			}
 		}
-		document.addEventListener("pointerdown", handlePointerDown);
-		return () => document.removeEventListener("pointerdown", handlePointerDown);
+		document.addEventListener("pointerdown", onPointerDown);
+		return () => document.removeEventListener("pointerdown", onPointerDown);
 	}, []);
 
-	function getGroup(
-		ageGroup: TravelerGroup["ageGroup"],
-	): TravelerGroup | undefined {
-		return travelers.find((t) => t.ageGroup === ageGroup);
+	function getGroup(ag: TravelerGroup["ageGroup"]) {
+		return travelers.find((t) => t.ageGroup === ag);
 	}
 
-	function getCount(ageGroup: TravelerGroup["ageGroup"]): number {
-		return getGroup(ageGroup)?.count ?? 0;
+	function getCount(ag: TravelerGroup["ageGroup"]) {
+		return getGroup(ag)?.count ?? 0;
 	}
 
-	function updateGroup(
-		ageGroup: TravelerGroup["ageGroup"],
-		updates: Partial<TravelerGroup>,
-	) {
-		onChange(
-			travelers.map((t) =>
-				t.ageGroup === ageGroup ? { ...t, ...updates } : t,
-			),
-		);
+	function updateGroup(ag: TravelerGroup["ageGroup"], updates: Partial<TravelerGroup>) {
+		onChange(travelers.map((t) => (t.ageGroup === ag ? { ...t, ...updates } : t)));
 	}
 
-	function setCount(ageGroup: TravelerGroup["ageGroup"], count: number) {
+	function syncIndividuals(
+		existing: TravelerIndividual[] | undefined,
+		count: number,
+		perPerson: boolean,
+	): TravelerIndividual[] | undefined {
+		if (!perPerson && existing === undefined) return undefined;
+		const base = existing ?? [];
+		if (count > base.length) {
+			return [...base, ...Array<TravelerIndividual>(count - base.length).fill({})];
+		}
+		return base.slice(0, count);
+	}
+
+	function setCount(ag: TravelerGroup["ageGroup"], count: number) {
 		if (count < 0) return;
-		const existing = travelers.filter((t) => t.ageGroup !== ageGroup);
-		const meta = GROUPS.find((g) => g.id === ageGroup) ?? GROUPS[0];
+		const existing = travelers.filter((t) => t.ageGroup !== ag);
 		if (count === 0) {
-			if (expandedId === ageGroup) setExpandedId(null);
+			if (expandedId === ag) setExpandedId(null);
 			onChange(existing);
 			return;
 		}
-		const current = getGroup(ageGroup);
-		let individuals = current?.individuals;
-		if (individuals !== undefined) {
-			if (count > individuals.length) {
-				individuals = [
-					...individuals,
-					...Array<TravelerIndividual>(count - individuals.length).fill({}),
-				];
-			} else {
-				individuals = individuals.slice(0, count);
-			}
-		}
+		const meta = GROUPS.find((g) => g.id === ag)!;
+		const current = getGroup(ag);
 		onChange([
 			...existing,
 			{
-				id: ageGroup.toLowerCase(),
-				ageGroup,
+				id: ag.toLowerCase(),
+				ageGroup: ag,
 				count,
-				minAge: meta.minAge,
-				maxAge: meta.maxAge,
-				...(current?.entitlement != null
-					? { entitlement: current.entitlement }
-					: {}),
-				...(current?.profileAge != null
-					? { profileAge: current.profileAge }
-					: {}),
-				...(individuals !== undefined ? { individuals } : {}),
+				...(meta.subtitle ? {} : {}), // no minAge/maxAge for STUDENT/MILITARY
+				...(ag === "ADULT" ? { minAge: 18 } : {}),
+				...(ag === "YOUTH" ? { minAge: 16, maxAge: 17 } : {}),
+				...(ag === "CHILD" ? { minAge: 6, maxAge: 15 } : {}),
+				...(ag === "SENIOR" ? { minAge: 67 } : {}),
+				individuals: syncIndividuals(current?.individuals, count, !!meta.perPerson),
 			},
 		]);
 	}
 
-	function setEntitlement(
-		ageGroup: TravelerGroup["ageGroup"],
-		value: Entitlement | "",
-	) {
-		const updates: Partial<TravelerGroup> =
-			value === "" ? { entitlement: undefined } : { entitlement: value };
-		// Clear profileAge when switching away from entitlements that need it
-		if (
-			value !== "STUDENT" &&
-			ageGroup !== "SENIOR" &&
-			getGroup(ageGroup)?.profileAge != null
-		) {
-			updates.profileAge = undefined;
-		}
-		updateGroup(ageGroup, updates);
-	}
-
-	function setProfileAge(
-		ageGroup: TravelerGroup["ageGroup"],
-		raw: string,
-	) {
-		const age = raw === "" ? undefined : Number(raw);
-		updateGroup(ageGroup, { profileAge: age });
-	}
-
-	function toggleNamedMode(ageGroup: TravelerGroup["ageGroup"]) {
-		const group = getGroup(ageGroup);
+	function toggleNamedMode(ag: TravelerGroup["ageGroup"]) {
+		const group = getGroup(ag);
 		if (!group) return;
-		if (group.individuals !== undefined) {
-			updateGroup(ageGroup, { individuals: undefined });
-		} else {
-			updateGroup(ageGroup, {
-				individuals: Array<TravelerIndividual>(group.count).fill({}),
-			});
-		}
+		updateGroup(
+			ag,
+			group.individuals !== undefined
+				? { individuals: undefined }
+				: { individuals: Array<TravelerIndividual>(group.count).fill({}) },
+		);
 	}
 
 	function updateIndividual(
-		ageGroup: TravelerGroup["ageGroup"],
+		ag: TravelerGroup["ageGroup"],
 		index: number,
 		patch: Partial<TravelerIndividual>,
 	) {
-		const group = getGroup(ageGroup);
+		const group = getGroup(ag);
 		if (!group?.individuals) return;
-		const individuals = group.individuals.map((ind, i) =>
-			i === index ? { ...ind, ...patch } : ind,
-		);
-		updateGroup(ageGroup, { individuals });
+		updateGroup(ag, {
+			individuals: group.individuals.map((ind, i) =>
+				i === index ? { ...ind, ...patch } : ind,
+			),
+		});
 	}
 
-	const inputStyle = {
-		borderColor: "var(--wayfare-line)",
-		background: "var(--wayfare-bg)",
-		color: "var(--wayfare-text)",
-	};
+	function renderIndividualRows(ag: TravelerGroup["ageGroup"], showAge: boolean) {
+		const group = getGroup(ag);
+		if (!group?.individuals) return null;
+		return (
+			<div className="flex flex-col gap-2 pb-3 pl-1">
+				{group.individuals.map((person, i) => (
+					<div key={i} className="flex items-center gap-2">
+						<span
+							className="w-16 shrink-0 text-xs"
+							style={{ color: "var(--wayfare-text-secondary)" }}
+						>
+							{group.count === 1 ? "" : `Person ${i + 1}`}
+						</span>
+						{showAge && (
+							<input
+								type="number"
+								placeholder="Age"
+								min={1}
+								max={130}
+								value={person.age ?? ""}
+								onChange={(e) =>
+									updateIndividual(ag, i, {
+										age: e.target.value === "" ? undefined : Number(e.target.value),
+									})
+								}
+								className={`w-20 shrink-0 ${inputCls}`}
+								style={inputStyle}
+							/>
+						)}
+						<input
+							type="text"
+							placeholder="Name (optional)"
+							value={person.name ?? ""}
+							onChange={(e) =>
+								updateIndividual(ag, i, { name: e.target.value || undefined })
+							}
+							className={`min-w-0 flex-1 ${inputCls}`}
+							style={inputStyle}
+						/>
+					</div>
+				))}
+			</div>
+		);
+	}
 
 	return (
 		<div ref={containerRef} className="relative w-full">
@@ -189,22 +183,14 @@ export default function TravelerPicker({
 				style={{
 					borderColor: "var(--wayfare-line)",
 					background: "var(--wayfare-surface-strong)",
-					color:
-						total === 0
-							? "var(--wayfare-text-secondary)"
-							: "var(--wayfare-text)",
-					// @ts-expect-error - css custom prop
-					"--tw-ring-color":
-						"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
+					color: total === 0 ? "var(--wayfare-text-secondary)" : "var(--wayfare-text)",
+					...ringStyle,
 				}}
 				aria-haspopup="dialog"
 				aria-expanded={open}
 			>
 				<span className="flex items-center gap-2">
-					<UsersIcon
-						aria-hidden="true"
-						style={{ color: "var(--wayfare-text-secondary)" }}
-					/>
+					<UsersIcon aria-hidden="true" style={{ color: "var(--wayfare-text-secondary)" }} />
 					{summary}
 				</span>
 				<DownArrowIcon
@@ -228,18 +214,13 @@ export default function TravelerPicker({
 						const count = getCount(group.id);
 						const current = getGroup(group.id);
 						const isExpanded = expandedId === group.id;
-						const showEntitlementRow = ENTITLEMENT_GROUPS.includes(group.id);
-						const shouldShowAgeRow =
-							current?.entitlement === "STUDENT" || group.id === "SENIOR";
 
 						return (
 							<div
 								key={group.id}
-								style={{
-									borderBottom: "1px solid var(--wayfare-line)",
-								}}
+								style={{ borderBottom: "1px solid var(--wayfare-line)" }}
 							>
-								{/* Main row */}
+								{/* Count row */}
 								<div className="flex items-center justify-between py-2.5">
 									<div>
 										<span
@@ -248,67 +229,55 @@ export default function TravelerPicker({
 										>
 											{group.label}
 										</span>
-										{(group.minAge !== undefined ||
-											group.maxAge !== undefined) && (
+										{group.subtitle && (
 											<span
 												className="ml-2 text-xs"
 												style={{ color: "var(--wayfare-text-secondary)" }}
 											>
-												{group.minAge && group.maxAge
-													? `${group.minAge}–${group.maxAge} yrs`
-													: group.minAge
-														? `${group.minAge}+ yrs`
-														: ""}
+												{group.subtitle}
 											</span>
 										)}
 									</div>
 									<div className="flex items-center gap-2">
-										<div className="flex items-center gap-2">
+										<button
+											type="button"
+											onClick={() => setCount(group.id, count - 1)}
+											disabled={count === 0}
+											aria-label={`Remove ${group.label}`}
+											className="flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+											style={{
+												borderColor: "var(--wayfare-line)",
+												color: "var(--wayfare-text)",
+												background: "transparent",
+											}}
+										>
+											−
+										</button>
+										<span
+											className="w-4 text-center text-sm font-semibold tabular-nums"
+											style={{ color: "var(--wayfare-text)" }}
+										>
+											{count}
+										</span>
+										<button
+											type="button"
+											onClick={() => setCount(group.id, count + 1)}
+											aria-label={`Add ${group.label}`}
+											className="flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-semibold transition-colors"
+											style={{
+												borderColor: "var(--wayfare-line)",
+												color: "var(--wayfare-text)",
+												background: "transparent",
+											}}
+										>
+											+
+										</button>
+										{/* Expand toggle — only for non-perPerson groups */}
+										{!group.perPerson && count > 0 && (
 											<button
 												type="button"
-												onClick={() => setCount(group.id, count - 1)}
-												disabled={count === 0}
-												aria-label={`Remove ${group.label}`}
-												className="flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-												style={{
-													borderColor: "var(--wayfare-line)",
-													color: "var(--wayfare-text)",
-													background: "transparent",
-												}}
-											>
-												−
-											</button>
-											<span
-												className="w-4 text-center text-sm font-semibold tabular-nums"
-												style={{ color: "var(--wayfare-text)" }}
-											>
-												{count}
-											</span>
-											<button
-												type="button"
-												onClick={() => setCount(group.id, count + 1)}
-												aria-label={`Add ${group.label}`}
-												className="flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-semibold transition-colors"
-												style={{
-													borderColor: "var(--wayfare-line)",
-													color: "var(--wayfare-text)",
-													background: "transparent",
-												}}
-											>
-												+
-											</button>
-										</div>
-										{count > 0 && (
-											<button
-												type="button"
-												onClick={() =>
-													setExpandedId(isExpanded ? null : group.id)
-												}
-												aria-label={
-													isExpanded
-														? `Collapse ${group.label} options`
-														: `Expand ${group.label} options`
-												}
+												onClick={() => setExpandedId(isExpanded ? null : group.id)}
+												aria-label={`${isExpanded ? "Collapse" : "Expand"} ${group.label} options`}
 												className="flex h-7 w-7 items-center justify-center rounded-lg border text-xs transition-colors"
 												style={{
 													borderColor: isExpanded
@@ -326,83 +295,16 @@ export default function TravelerPicker({
 									</div>
 								</div>
 
-								{/* Expanded panel */}
-								{isExpanded && count > 0 && (
+								{/* perPerson groups: always-visible individual rows */}
+								{group.perPerson && count > 0 &&
+									renderIndividualRows(group.id, true)}
+
+								{/* Non-perPerson groups: collapsible names panel */}
+								{!group.perPerson && isExpanded && count > 0 && (
 									<div className="mb-3 flex flex-col gap-3 pl-1">
-										{/* Entitlement selector */}
-										{showEntitlementRow && (
-											<div className="flex items-center gap-3">
-												<span
-													className="w-24 shrink-0 text-xs"
-													style={{ color: "var(--wayfare-text-secondary)" }}
-												>
-													Entitlement
-												</span>
-												<select
-													value={current?.entitlement ?? ""}
-													onChange={(e) =>
-														setEntitlement(
-															group.id,
-															e.target.value as Entitlement | "",
-														)
-													}
-													className="flex-1 rounded-lg border px-2 py-1.5 text-xs outline-none focus:ring-1"
-													style={{
-														...inputStyle,
-														// @ts-expect-error css custom prop
-														"--tw-ring-color":
-															"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
-													}}
-												>
-													<option value="">None</option>
-													{ENTITLEMENT_OPTIONS.map((opt) => (
-														<option key={opt.value} value={opt.value}>
-															{opt.label}
-														</option>
-													))}
-												</select>
-											</div>
-										)}
-
-										{/* Age input (STUDENT or SENIOR anonymous profile) */}
-										{shouldShowAgeRow && (
-											<div className="flex items-center gap-3">
-												<span
-													className="w-24 shrink-0 text-xs"
-													style={{ color: "var(--wayfare-text-secondary)" }}
-												>
-													Age
-													<span
-														className="ml-1"
-														style={{ color: "var(--wayfare-text-secondary)", opacity: 0.6 }}
-													>
-														(optional)
-													</span>
-												</span>
-												<input
-													type="number"
-													min={1}
-													max={130}
-													placeholder="e.g. 25"
-													value={current?.profileAge ?? ""}
-													onChange={(e) =>
-														setProfileAge(group.id, e.target.value)
-													}
-													className="w-24 rounded-lg border px-2 py-1.5 text-xs outline-none focus:ring-1"
-													style={{
-														...inputStyle,
-														// @ts-expect-error css custom prop
-														"--tw-ring-color":
-															"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
-													}}
-												/>
-											</div>
-										)}
-
-										{/* Named mode toggle */}
 										<div className="flex items-center gap-3">
 											<span
-												className="w-24 shrink-0 text-xs"
+												className="w-16 shrink-0 text-xs"
 												style={{ color: "var(--wayfare-text-secondary)" }}
 											>
 												Names
@@ -428,64 +330,8 @@ export default function TravelerPicker({
 													: "Add names"}
 											</button>
 										</div>
-
-										{/* Individual rows */}
-										{current?.individuals !== undefined && (
-											<div className="flex flex-col gap-2 pl-1">
-												{current.individuals.map((person, i) => (
-													<div
-														key={i}
-														className="flex items-center gap-2"
-													>
-														<span
-															className="w-16 shrink-0 text-xs"
-															style={{ color: "var(--wayfare-text-secondary)" }}
-														>
-															Person {i + 1}
-														</span>
-														<input
-															type="text"
-															placeholder="Name"
-															value={person.name ?? ""}
-															onChange={(e) =>
-																updateIndividual(group.id, i, {
-																	name: e.target.value || undefined,
-																})
-															}
-															className="min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-xs outline-none focus:ring-1"
-															style={{
-																...inputStyle,
-																// @ts-expect-error css custom prop
-																"--tw-ring-color":
-																	"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
-															}}
-														/>
-														<input
-															type="number"
-															placeholder="Age"
-															min={1}
-															max={130}
-															value={person.age ?? ""}
-															onChange={(e) =>
-																updateIndividual(group.id, i, {
-																	age:
-																		e.target.value === ""
-																			? undefined
-																			: Number(e.target.value),
-																})
-															}
-															className="w-16 shrink-0 rounded-lg border px-2 py-1.5 text-xs outline-none focus:ring-1"
-															style={{
-																...inputStyle,
-																// @ts-expect-error css custom prop
-																"--tw-ring-color":
-																	"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
-															}}
-														/>
-													</div>
-												))}
-											</div>
-										)}
+										{current?.individuals !== undefined &&
+											renderIndividualRows(group.id, false)}
 									</div>
 								)}
 							</div>

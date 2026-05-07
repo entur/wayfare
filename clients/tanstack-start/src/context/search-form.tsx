@@ -1,8 +1,6 @@
 import { createContext, useContext, useEffect, useReducer } from "react";
 import type { PlaceReference } from "../types/common";
 
-export type Entitlement = "STUDENT" | "MILITARY";
-
 export interface TravelerIndividual {
 	name?: string;
 	age?: number;
@@ -10,12 +8,10 @@ export interface TravelerIndividual {
 
 export interface TravelerGroup {
 	id: string;
-	ageGroup: "ADULT" | "CHILD" | "YOUTH" | "SENIOR" | "INFANT";
+	ageGroup: "ADULT" | "CHILD" | "YOUTH" | "SENIOR" | "INFANT" | "STUDENT" | "MILITARY";
 	count: number;
 	minAge?: number;
 	maxAge?: number;
-	entitlement?: Entitlement;
-	profileAge?: number;
 	individuals?: TravelerIndividual[];
 }
 
