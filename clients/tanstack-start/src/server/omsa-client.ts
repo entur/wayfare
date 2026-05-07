@@ -213,10 +213,7 @@ async function handleResponse<T>(
 }
 
 function getJourneyPlannerUrl(): string {
-	return (
-		process.env.JOURNEY_PLANNER_URL ??
-		"https://api.entur.io/journey-planner/v3/graphql"
-	);
+	return getRuntimeConfig().journeyPlannerUrl;
 }
 
 export const journeyPlanner = {

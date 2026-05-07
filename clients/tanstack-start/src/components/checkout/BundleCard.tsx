@@ -67,7 +67,14 @@ export function buildBundles(offers: Offer[]): OfferBundle[] {
 				),
 			),
 		].sort((a, b) => a - b);
-		bundles.push({ groupKey, recommendationType, offers: sorted, totalPrice, currency, sequences });
+		bundles.push({
+			groupKey,
+			recommendationType,
+			offers: sorted,
+			totalPrice,
+			currency,
+			sequences,
+		});
 	}
 
 	return bundles.sort((a, b) => {
@@ -94,8 +101,12 @@ export default function BundleCard({
 
 	const offerCount = bundle.offers.length;
 
-	const bundleTravellerIds = new Set(bundle.offers.flatMap(getOfferTravellerIds));
-	const coveredTravellers = travellers.filter((t) => bundleTravellerIds.has(t.id));
+	const bundleTravellerIds = new Set(
+		bundle.offers.flatMap(getOfferTravellerIds),
+	);
+	const coveredTravellers = travellers.filter((t) =>
+		bundleTravellerIds.has(t.id),
+	);
 
 	return (
 		<label
@@ -262,10 +273,7 @@ export default function BundleCard({
 												className="shrink-0 text-xs font-semibold"
 												style={{ color: "var(--wayfare-text)" }}
 											>
-												{formatPrice(
-													price.amount,
-													price.currencyCode ?? "NOK",
-												)}
+												{formatPrice(price.amount, price.currencyCode ?? "NOK")}
 											</span>
 										)}
 									</div>

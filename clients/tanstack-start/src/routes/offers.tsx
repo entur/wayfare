@@ -1,6 +1,6 @@
 import { LeftArrowIcon, RightArrowIcon } from "@entur/icons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import BundleCard, {
 	buildBundles,
 	type OfferBundle,
@@ -70,9 +70,9 @@ function OffersScreen() {
 	const bundles: OfferBundle[] = buildBundles(collection?.offers ?? []);
 
 	// Detect multi-leg journeys and split bundles into tiers
-	const allSequences = [
-		...new Set(bundles.flatMap((b) => b.sequences)),
-	].sort((a, b) => a - b);
+	const allSequences = [...new Set(bundles.flatMap((b) => b.sequences))].sort(
+		(a, b) => a - b,
+	);
 	const isMultiLeg = allSequences.length > 1;
 
 	const fullBundles = isMultiLeg
@@ -130,9 +130,7 @@ function OffersScreen() {
 						(b) => b.groupKey === key,
 					);
 					if (bundle)
-						offerIds.push(
-							...bundle.offers.map((o) => o.id!).filter(Boolean),
-						);
+						offerIds.push(...bundle.offers.map((o) => o.id!).filter(Boolean));
 				}
 			}
 		}

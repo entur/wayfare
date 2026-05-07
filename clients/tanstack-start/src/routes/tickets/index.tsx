@@ -3,8 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PageShell from "../../components/layout/PageShell";
 import TicketCard from "../../components/tickets/TicketCard";
-import type { StoredPackage } from "../../types/documents";
 import { getPackages } from "../../lib/ticket-storage";
+import type { StoredPackage } from "../../types/documents";
 
 export const Route = createFileRoute("/tickets/")({ component: TicketsPage });
 

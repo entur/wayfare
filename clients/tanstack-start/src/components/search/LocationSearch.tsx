@@ -6,11 +6,10 @@ import {
 	TrainIcon,
 	TramIcon,
 } from "@entur/icons";
+import { autocompletePlaces } from "../../server-functions/geocoder";
 import type { PlaceReference } from "../../types/common";
-import type { GeocoderFeature, GeocoderResponse } from "../../types/geocoder";
+import type { GeocoderFeature } from "../../types/geocoder";
 import Combobox, { type ComboboxOption } from "../ui/Combobox";
-
-const GEOCODER_BASE = "https://api.entur.io/geocoder/v1";
 
 function getModeIcon(feature: GeocoderFeature): React.ComponentType {
 	const modeKeys = (feature.properties.mode ?? []).flatMap((m) =>
@@ -29,19 +28,11 @@ async function fetchLocationItems(
 	signal: AbortSignal,
 ): Promise<ComboboxOption<PlaceReference>[]> {
 	if (input.trim().length < 2) return [];
-	const params = new URLSearchParams({
-		text: input,
-		size: "10",
-		lang: "no",
-		layers: "venue",
-	});
 	try {
-		const res = await fetch(`${GEOCODER_BASE}/autocomplete?${params}`, {
-			headers: { "ET-Client-Name": "wayfare-web" },
+		const data = await autocompletePlaces({
+			data: { text: input, size: 10, lang: "no", layers: "venue" },
 			signal,
 		});
-		if (!res.ok) return [];
-		const data = (await res.json()) as GeocoderResponse;
 		return data.features.map((feature) => ({
 			value: {
 				placeId: feature.properties.id,

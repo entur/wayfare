@@ -52,16 +52,14 @@ function CheckoutScreen() {
 	}, []);
 
 	const selectedOffers: Offer[] =
-		offerCollection?.offers?.filter(
-			(o) => o.id && offerIds.includes(o.id),
-		) ?? [];
+		offerCollection?.offers?.filter((o) => o.id && offerIds.includes(o.id)) ??
+		[];
 
 	const previewTotal = selectedOffers.reduce(
 		(sum, o) => sum + (o.properties?.price?.amount ?? 0),
 		0,
 	);
-	const currency =
-		selectedOffers[0]?.properties?.price?.currencyCode ?? "NOK";
+	const currency = selectedOffers[0]?.properties?.price?.currencyCode ?? "NOK";
 
 	async function handlePurchase() {
 		if (!paymentMethod) return;
@@ -157,7 +155,9 @@ function CheckoutScreen() {
 						className="text-xs font-semibold uppercase tracking-wide mb-3"
 						style={{ color: "var(--wayfare-text-secondary)" }}
 					>
-						{selectedOffers.length === 1 ? "Your offer" : `Your offers (${selectedOffers.length})`}
+						{selectedOffers.length === 1
+							? "Your offer"
+							: `Your offers (${selectedOffers.length})`}
 					</p>
 					<div className="flex flex-col gap-2">
 						{selectedOffers.map((offer) => {
@@ -177,14 +177,20 @@ function CheckoutScreen() {
 											className="text-sm font-medium"
 											style={{ color: "var(--wayfare-text)", margin: 0 }}
 										>
-											{offer.properties?.summary?.name ?? product?.productName ?? "Travel Offer"}
+											{offer.properties?.summary?.name ??
+												product?.productName ??
+												"Travel Offer"}
 										</p>
 										{travellerCount > 0 && (
 											<p
 												className="text-xs"
-												style={{ color: "var(--wayfare-text-secondary)", margin: 0 }}
+												style={{
+													color: "var(--wayfare-text-secondary)",
+													margin: 0,
+												}}
 											>
-												{travellerCount} traveller{travellerCount !== 1 ? "s" : ""}
+												{travellerCount} traveller
+												{travellerCount !== 1 ? "s" : ""}
 											</p>
 										)}
 									</div>
