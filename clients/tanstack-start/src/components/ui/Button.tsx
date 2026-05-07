@@ -46,6 +46,7 @@ export default function Button({
 	return (
 		<button
 			type="button"
+			suppressHydrationWarning
 			disabled={disabled || loading}
 			className={[base, variantClass, fluid ? "w-full" : "", className]
 				.filter(Boolean)

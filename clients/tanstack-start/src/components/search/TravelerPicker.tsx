@@ -1,73 +1,176 @@
 import { DownArrowIcon, UsersIcon } from "@entur/icons";
 import { useEffect, useRef, useState } from "react";
-import type { TravelerGroup } from "../../context/search-form";
+import type { TravelerGroup, TravelerIndividual } from "../../context/search-form";
 
 const GROUPS: {
 	id: TravelerGroup["ageGroup"];
 	label: string;
-	minAge?: number;
-	maxAge?: number;
+	subtitle?: string;
+	// When true: per-person rows (age + name) always visible when count > 0, no expand toggle
+	perPerson?: boolean;
 }[] = [
-	{ id: "ADULT", label: "Adult", minAge: 18 },
-	{ id: "YOUTH", label: "Youth", minAge: 16, maxAge: 17 },
-	{ id: "CHILD", label: "Child", minAge: 6, maxAge: 15 },
-	{ id: "SENIOR", label: "Senior", minAge: 67 },
+	{ id: "ADULT", label: "Adult", subtitle: "18+ yrs" },
+	{ id: "YOUTH", label: "Youth", subtitle: "16–17 yrs" },
+	{ id: "CHILD", label: "Child", subtitle: "6–15 yrs" },
+	{ id: "SENIOR", label: "Senior", subtitle: "67+ yrs", perPerson: true },
+	{ id: "STUDENT", label: "Student", perPerson: true },
+	{ id: "MILITARY", label: "Military" },
 ];
+
+const ringStyle = {
+	"--tw-ring-color": "color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
+} as React.CSSProperties;
+
+const inputStyle: React.CSSProperties = {
+	borderColor: "var(--wayfare-line)",
+	background: "var(--wayfare-bg)",
+	color: "var(--wayfare-text)",
+	...ringStyle,
+};
+
+const inputCls = "rounded-lg border px-2 py-1.5 text-xs outline-none focus:ring-1";
 
 interface TravelerPickerProps {
 	travelers: TravelerGroup[];
 	onChange: (travelers: TravelerGroup[]) => void;
 }
 
-export default function TravelerPicker({
-	travelers,
-	onChange,
-}: TravelerPickerProps) {
+export default function TravelerPicker({ travelers, onChange }: TravelerPickerProps) {
 	const [open, setOpen] = useState(false);
+	const [expandedId, setExpandedId] = useState<TravelerGroup["ageGroup"] | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	const total = travelers.reduce((sum, t) => sum + t.count, 0);
-	const summary =
-		total === 0
-			? "Add travelers"
-			: `${total} traveler${total !== 1 ? "s" : ""}`;
+	const summary = total === 0 ? "Add travelers" : `${total} traveler${total !== 1 ? "s" : ""}`;
 
-	// Close on outside click
 	useEffect(() => {
-		function handlePointerDown(e: PointerEvent) {
-			if (
-				containerRef.current &&
-				!containerRef.current.contains(e.target as Node)
-			) {
+		function onPointerDown(e: PointerEvent) {
+			if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
 				setOpen(false);
 			}
 		}
-		document.addEventListener("pointerdown", handlePointerDown);
-		return () => document.removeEventListener("pointerdown", handlePointerDown);
+		document.addEventListener("pointerdown", onPointerDown);
+		return () => document.removeEventListener("pointerdown", onPointerDown);
 	}, []);
 
-	function getCount(ageGroup: TravelerGroup["ageGroup"]) {
-		return travelers.find((t) => t.ageGroup === ageGroup)?.count ?? 0;
+	function getGroup(ag: TravelerGroup["ageGroup"]) {
+		return travelers.find((t) => t.ageGroup === ag);
 	}
 
-	function setCount(ageGroup: TravelerGroup["ageGroup"], count: number) {
-		if (count < 0) return;
-		const existing = travelers.filter((t) => t.ageGroup !== ageGroup);
-		const group = GROUPS.find((g) => g.id === ageGroup) ?? GROUPS[0];
-		if (count === 0) {
-			onChange(existing);
-		} else {
-			onChange([
-				...existing,
-				{
-					id: ageGroup.toLowerCase(),
-					ageGroup,
-					count,
-					minAge: group.minAge,
-					maxAge: group.maxAge,
-				},
-			]);
+	function getCount(ag: TravelerGroup["ageGroup"]) {
+		return getGroup(ag)?.count ?? 0;
+	}
+
+	function updateGroup(ag: TravelerGroup["ageGroup"], updates: Partial<TravelerGroup>) {
+		onChange(travelers.map((t) => (t.ageGroup === ag ? { ...t, ...updates } : t)));
+	}
+
+	function syncIndividuals(
+		existing: TravelerIndividual[] | undefined,
+		count: number,
+		perPerson: boolean,
+	): TravelerIndividual[] | undefined {
+		if (!perPerson && existing === undefined) return undefined;
+		const base = existing ?? [];
+		if (count > base.length) {
+			return [...base, ...Array.from({ length: count - base.length }, (): TravelerIndividual => ({}))];
 		}
+		return base.slice(0, count);
+	}
+
+	function setCount(ag: TravelerGroup["ageGroup"], count: number) {
+		if (count < 0) return;
+		const existing = travelers.filter((t) => t.ageGroup !== ag);
+		if (count === 0) {
+			if (expandedId === ag) setExpandedId(null);
+			onChange(existing);
+			return;
+		}
+		const meta = GROUPS.find((g) => g.id === ag)!;
+		const current = getGroup(ag);
+		onChange([
+			...existing,
+			{
+				id: ag.toLowerCase(),
+				ageGroup: ag,
+				count,
+...(ag === "ADULT" ? { minAge: 18 } : {}),
+				...(ag === "YOUTH" ? { minAge: 16, maxAge: 17 } : {}),
+				...(ag === "CHILD" ? { minAge: 6, maxAge: 15 } : {}),
+				...(ag === "SENIOR" ? { minAge: 67 } : {}),
+				individuals: syncIndividuals(current?.individuals, count, !!meta.perPerson),
+			},
+		]);
+	}
+
+	function toggleNamedMode(ag: TravelerGroup["ageGroup"]) {
+		const group = getGroup(ag);
+		if (!group) return;
+		updateGroup(
+			ag,
+			group.individuals !== undefined
+				? { individuals: undefined }
+				: { individuals: Array.from({ length: group.count }, (): TravelerIndividual => ({})) },
+		);
+	}
+
+	function updateIndividual(
+		ag: TravelerGroup["ageGroup"],
+		index: number,
+		patch: Partial<TravelerIndividual>,
+	) {
+		const group = getGroup(ag);
+		if (!group?.individuals) return;
+		updateGroup(ag, {
+			individuals: group.individuals.map((ind, i) =>
+				i === index ? { ...ind, ...patch } : ind,
+			),
+		});
+	}
+
+	function renderIndividualRows(ag: TravelerGroup["ageGroup"], showAge: boolean) {
+		const group = getGroup(ag);
+		if (!group?.individuals) return null;
+		return (
+			<div className="flex flex-col gap-2 pb-3 pl-1">
+				{group.individuals.map((person, i) => (
+					<div key={i} className="flex items-center gap-2">
+						<span
+							className="w-16 shrink-0 text-xs"
+							style={{ color: "var(--wayfare-text-secondary)" }}
+						>
+							{group.count === 1 ? "" : `Person ${i + 1}`}
+						</span>
+						{showAge && (
+							<input
+								type="number"
+								placeholder="Age"
+								min={1}
+								max={130}
+								value={person.age ?? ""}
+								onChange={(e) =>
+									updateIndividual(ag, i, {
+										age: e.target.value === "" ? undefined : Number(e.target.value),
+									})
+								}
+								className={`w-20 shrink-0 ${inputCls}`}
+								style={inputStyle}
+							/>
+						)}
+						<input
+							type="text"
+							placeholder="Name (optional)"
+							value={person.name ?? ""}
+							onChange={(e) =>
+								updateIndividual(ag, i, { name: e.target.value || undefined })
+							}
+							className={`min-w-0 flex-1 ${inputCls}`}
+							style={inputStyle}
+						/>
+					</div>
+				))}
+			</div>
+		);
 	}
 
 	return (
@@ -79,22 +182,14 @@ export default function TravelerPicker({
 				style={{
 					borderColor: "var(--wayfare-line)",
 					background: "var(--wayfare-surface-strong)",
-					color:
-						total === 0
-							? "var(--wayfare-text-secondary)"
-							: "var(--wayfare-text)",
-					// @ts-expect-error - css custom prop
-					"--tw-ring-color":
-						"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
+					color: total === 0 ? "var(--wayfare-text-secondary)" : "var(--wayfare-text)",
+					...ringStyle,
 				}}
 				aria-haspopup="dialog"
 				aria-expanded={open}
 			>
 				<span className="flex items-center gap-2">
-					<UsersIcon
-						aria-hidden="true"
-						style={{ color: "var(--wayfare-text-secondary)" }}
-					/>
+					<UsersIcon aria-hidden="true" style={{ color: "var(--wayfare-text-secondary)" }} />
 					{summary}
 				</span>
 				<DownArrowIcon
@@ -106,7 +201,7 @@ export default function TravelerPicker({
 
 			{open && (
 				<div
-					className="absolute z-50 mt-1 w-full min-w-[260px] rounded-xl border p-4 shadow-lg"
+					className="absolute z-50 mt-1 w-full min-w-[300px] rounded-xl border p-4 shadow-lg"
 					style={{
 						borderColor: "var(--wayfare-line)",
 						background: "var(--wayfare-surface-strong)",
@@ -114,71 +209,134 @@ export default function TravelerPicker({
 					role="dialog"
 					aria-label="Select travelers"
 				>
-					{GROUPS.map((group) => (
-						<div
-							key={group.id}
-							className="flex items-center justify-between py-2.5"
-							style={{
-								borderBottom: "1px solid var(--wayfare-line)",
-							}}
-						>
-							<div>
-								<span
-									className="text-sm font-medium"
-									style={{ color: "var(--wayfare-text)" }}
-								>
-									{group.label}
-								</span>
-								{(group.minAge !== undefined || group.maxAge !== undefined) && (
-									<span
-										className="ml-2 text-xs"
-										style={{ color: "var(--wayfare-text-secondary)" }}
-									>
-										{group.minAge && group.maxAge
-											? `${group.minAge}–${group.maxAge} yrs`
-											: group.minAge
-												? `${group.minAge}+ yrs`
-												: ""}
-									</span>
+					{GROUPS.map((group) => {
+						const count = getCount(group.id);
+						const current = getGroup(group.id);
+						const isExpanded = expandedId === group.id;
+
+						return (
+							<div
+								key={group.id}
+								style={{ borderBottom: "1px solid var(--wayfare-line)" }}
+							>
+								{/* Count row */}
+								<div className="flex items-center justify-between py-2.5">
+									<div>
+										<span
+											className="text-sm font-medium"
+											style={{ color: "var(--wayfare-text)" }}
+										>
+											{group.label}
+										</span>
+										{group.subtitle && (
+											<span
+												className="ml-2 text-xs"
+												style={{ color: "var(--wayfare-text-secondary)" }}
+											>
+												{group.subtitle}
+											</span>
+										)}
+									</div>
+									<div className="flex items-center gap-2">
+										<button
+											type="button"
+											onClick={() => setCount(group.id, count - 1)}
+											disabled={count === 0}
+											aria-label={`Remove ${group.label}`}
+											className="flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+											style={{
+												borderColor: "var(--wayfare-line)",
+												color: "var(--wayfare-text)",
+												background: "transparent",
+											}}
+										>
+											−
+										</button>
+										<span
+											className="w-4 text-center text-sm font-semibold tabular-nums"
+											style={{ color: "var(--wayfare-text)" }}
+										>
+											{count}
+										</span>
+										<button
+											type="button"
+											onClick={() => setCount(group.id, count + 1)}
+											aria-label={`Add ${group.label}`}
+											className="flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-semibold transition-colors"
+											style={{
+												borderColor: "var(--wayfare-line)",
+												color: "var(--wayfare-text)",
+												background: "transparent",
+											}}
+										>
+											+
+										</button>
+										{/* Expand toggle — only for non-perPerson groups */}
+										{!group.perPerson && count > 0 && (
+											<button
+												type="button"
+												onClick={() => setExpandedId(isExpanded ? null : group.id)}
+												aria-label={`${isExpanded ? "Collapse" : "Expand"} ${group.label} options`}
+												className="flex h-7 w-7 items-center justify-center rounded-lg border text-xs transition-colors"
+												style={{
+													borderColor: isExpanded
+														? "var(--wayfare-primary)"
+														: "var(--wayfare-line)",
+													color: isExpanded
+														? "var(--wayfare-primary)"
+														: "var(--wayfare-text-secondary)",
+													background: "transparent",
+												}}
+											>
+												{isExpanded ? "▴" : "▾"}
+											</button>
+										)}
+									</div>
+								</div>
+
+								{/* perPerson groups: always-visible individual rows */}
+								{group.perPerson && count > 0 &&
+									renderIndividualRows(group.id, true)}
+
+								{/* Non-perPerson groups: collapsible names panel */}
+								{!group.perPerson && isExpanded && count > 0 && (
+									<div className="mb-3 flex flex-col gap-3 pl-1">
+										<div className="flex items-center gap-3">
+											<span
+												className="w-16 shrink-0 text-xs"
+												style={{ color: "var(--wayfare-text-secondary)" }}
+											>
+												Names
+											</span>
+											<button
+												type="button"
+												onClick={() => toggleNamedMode(group.id)}
+												className="rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors"
+												style={{
+													borderColor:
+														current?.individuals !== undefined
+															? "var(--wayfare-primary)"
+															: "var(--wayfare-line)",
+													color:
+														current?.individuals !== undefined
+															? "var(--wayfare-primary)"
+															: "var(--wayfare-text-secondary)",
+													background: "transparent",
+												}}
+											>
+												{current?.individuals !== undefined
+													? "Remove names"
+													: "Add names"}
+											</button>
+										</div>
+										{current?.individuals !== undefined &&
+											renderIndividualRows(group.id, false)}
+									</div>
 								)}
 							</div>
-							<div className="flex items-center gap-3">
-								<button
-									type="button"
-									onClick={() => setCount(group.id, getCount(group.id) - 1)}
-									disabled={getCount(group.id) === 0}
-									aria-label={`Remove ${group.label}`}
-									className="flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-									style={{
-										borderColor: "var(--wayfare-line)",
-										color: "var(--wayfare-text)",
-										background: "transparent",
-									}}
-								>
-									−
-								</button>
-								<span
-									className="w-4 text-center text-sm font-semibold tabular-nums"
-									style={{ color: "var(--wayfare-text)" }}
-								>
-									{getCount(group.id)}
-								</span>
-								<button
-									type="button"
-									onClick={() => setCount(group.id, getCount(group.id) + 1)}
-									aria-label={`Add ${group.label}`}
-									className="flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-semibold transition-colors"
-									style={{
-										borderColor: "var(--wayfare-line)",
-										color: "var(--wayfare-text)",
-										background: "transparent",
-									}}
-								>
-									+
-								</button>
-							</div>
-						</div>
-					))}
+						);
+					})}
+
 					<button
 						type="button"
 						onClick={() => setOpen(false)}

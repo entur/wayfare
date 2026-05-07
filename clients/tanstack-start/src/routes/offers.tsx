@@ -9,7 +9,10 @@ import PageShell from "../components/layout/PageShell";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
 import { readSearchSession, type SearchContext } from "../lib/search-session";
-import type { IndividualTraveller, OfferCollection } from "../types/search";
+import { partyLabel, type TravelParty } from "../lib/travel-party";
+import type { OfferCollection } from "../types/search";
+
+export type { TravelParty };
 
 export const Route = createFileRoute("/offers")({ component: OffersPage });
 
@@ -66,7 +69,10 @@ function OffersScreen() {
 		setHydrated(true);
 	}, []);
 
-	const travellers: IndividualTraveller[] = context?.travellers ?? [];
+	const allParties: TravelParty[] = [
+		...(context?.profiles ?? []),
+		...(context?.travellers ?? []),
+	];
 	const bundles: OfferBundle[] = buildBundles(collection?.offers ?? []);
 
 	// Detect multi-leg journeys and split bundles into tiers
@@ -211,11 +217,11 @@ function OffersScreen() {
 								{formattedDate}
 							</p>
 						)}
-						{travellers.length > 0 && (
+						{allParties.length > 0 && (
 							<div className="mt-2 flex flex-wrap gap-1.5">
-								{travellers.map((t) => (
+								{allParties.map((p) => (
 									<span
-										key={t.id}
+										key={p.id}
 										className="inline-flex items-center rounded-full px-2 py-0.5 text-xs"
 										style={{
 											background: "var(--wayfare-bg)",
@@ -223,7 +229,7 @@ function OffersScreen() {
 											border: "1px solid var(--wayfare-line)",
 										}}
 									>
-										{t.age != null ? `${t.age} yrs` : t.id}
+										{partyLabel(p)}
 									</span>
 								))}
 							</div>
@@ -240,7 +246,7 @@ function OffersScreen() {
 						<BundleCard
 							key={String(bundle.groupKey)}
 							bundle={bundle}
-							travellers={travellers}
+							parties={allParties}
 							selected={selectedFullKey === bundle.groupKey}
 							onSelect={() => handleSelectFull(bundle.groupKey)}
 						/>
@@ -262,7 +268,7 @@ function OffersScreen() {
 											<BundleCard
 												key={String(bundle.groupKey)}
 												bundle={bundle}
-												travellers={travellers}
+												parties={allParties}
 												selected={
 													canMixAndMatch
 														? selectedLegKeys[seq] === bundle.groupKey

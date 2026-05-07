@@ -1,12 +1,18 @@
 import { createContext, useContext, useEffect, useReducer } from "react";
 import type { PlaceReference } from "../types/common";
 
+export interface TravelerIndividual {
+	name?: string;
+	age?: number;
+}
+
 export interface TravelerGroup {
 	id: string;
-	ageGroup: "ADULT" | "CHILD" | "YOUTH" | "SENIOR" | "INFANT";
+	ageGroup: "ADULT" | "CHILD" | "YOUTH" | "SENIOR" | "INFANT" | "STUDENT" | "MILITARY";
 	count: number;
 	minAge?: number;
 	maxAge?: number;
+	individuals?: TravelerIndividual[];
 }
 
 export type SearchType = "zone" | "stop" | "trip";
