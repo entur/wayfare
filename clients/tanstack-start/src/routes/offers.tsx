@@ -29,7 +29,13 @@ export function partyLabel(p: TravelParty): string {
 		const base = AGE_GROUP_LABELS[p.ageGroup ?? "anyone"] ?? p.id;
 		return p.count && p.count > 1 ? `${base} × ${p.count}` : base;
 	}
-	return p.fullName ?? (p.age != null ? `${p.age} yrs` : p.id);
+	if (p.fullName) return p.fullName;
+	const entitlements = p.entitlements?.entitlementsGiven?.map((e) => e.entitlementType) ?? [];
+	if (entitlements.length > 0) {
+		const label = entitlements.join(", ");
+		return p.age != null ? `${label} (${p.age} yrs)` : label;
+	}
+	return p.age != null ? `${p.age} yrs` : p.id;
 }
 
 function OffersPage() {
