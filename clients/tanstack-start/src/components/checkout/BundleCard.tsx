@@ -42,7 +42,8 @@ export function buildBundles(offers: Offer[]): OfferBundle[] {
 		const group =
 			offer.properties?.summary?.recommendationGroup ?? `ungrouped-${idx}`;
 		if (!grouped.has(group)) grouped.set(group, []);
-		grouped.get(group)!.push(offer);
+		const groupOffers = grouped.get(group);
+		if (groupOffers) groupOffers.push(offer);
 	}
 
 	const bundles: OfferBundle[] = [];

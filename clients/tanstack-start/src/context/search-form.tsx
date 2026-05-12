@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useReducer } from "react";
 import type { PlaceReference } from "../types/common";
 
 export interface TravelerIndividual {
+	id?: string;
 	name?: string;
 	age?: number;
 }
