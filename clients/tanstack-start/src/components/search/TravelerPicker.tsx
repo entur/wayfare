@@ -71,9 +71,16 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 		perPerson: boolean,
 	): TravelerIndividual[] | undefined {
 		if (!perPerson && existing === undefined) return undefined;
-		const base = existing ?? [];
+		const base = (existing ?? []).map((individual) =>
+			individual.id ? individual : { ...individual, id: crypto.randomUUID() },
+		);
 		if (count > base.length) {
-			return [...base, ...Array.from({ length: count - base.length }, (): TravelerIndividual => ({}))];
+			return [
+				...base,
+				...Array.from({ length: count - base.length }, (): TravelerIndividual => ({
+					id: crypto.randomUUID(),
+				})),
+			];
 		}
 		return base.slice(0, count);
 	}
@@ -86,7 +93,8 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 			onChange(existing);
 			return;
 		}
-		const meta = GROUPS.find((g) => g.id === ag)!;
+		const meta = GROUPS.find((g) => g.id === ag);
+		if (!meta) return;
 		const current = getGroup(ag);
 		onChange([
 			...existing,
@@ -110,7 +118,12 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 			ag,
 			group.individuals !== undefined
 				? { individuals: undefined }
-				: { individuals: Array.from({ length: group.count }, (): TravelerIndividual => ({})) },
+				: {
+						individuals: Array.from(
+							{ length: group.count },
+							(): TravelerIndividual => ({ id: crypto.randomUUID() }),
+						),
+					},
 		);
 	}
 
@@ -134,7 +147,13 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 		return (
 			<div className="flex flex-col gap-2 pb-3 pl-1">
 				{group.individuals.map((person, i) => (
-					<div key={i} className="flex items-center gap-2">
+					<div
+						key={
+							person.id ??
+							`${ag}-${person.name ?? "traveler"}-${person.age ?? "unknown"}`
+						}
+						className="flex items-center gap-2"
+					>
 						<span
 							className="w-16 shrink-0 text-xs"
 							style={{ color: "var(--wayfare-text-secondary)" }}

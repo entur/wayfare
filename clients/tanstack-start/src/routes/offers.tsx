@@ -124,10 +124,15 @@ function OffersScreen() {
 	}
 
 	function handleContinue() {
+		const extractIds = (bundle: OfferBundle): string[] =>
+			bundle.offers
+				.map((o) => o.id)
+				.filter((id): id is string => Boolean(id));
+
 		let offerIds: string[] = [];
 		if (selectedFullKey !== null) {
 			const bundle = fullBundles.find((b) => b.groupKey === selectedFullKey);
-			offerIds = bundle?.offers.map((o) => o.id!).filter(Boolean) ?? [];
+			offerIds = bundle ? extractIds(bundle) : [];
 		} else {
 			for (const seq of allSequences) {
 				const key = selectedLegKeys[seq];
@@ -135,8 +140,7 @@ function OffersScreen() {
 					const bundle = (perSeqMap.get(seq) ?? []).find(
 						(b) => b.groupKey === key,
 					);
-					if (bundle)
-						offerIds.push(...bundle.offers.map((o) => o.id!).filter(Boolean));
+					if (bundle) offerIds.push(...extractIds(bundle));
 				}
 			}
 		}
