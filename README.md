@@ -28,6 +28,7 @@ docs/                  Shared documentation and BFF + client integration guides
 ## Documentation
 - Add new client/BFF pairings under `docs/` as `client-bff-guide.md` to keep combinations discoverable (e.g. `react-express-guide.md`).
 - Official OMSA specification: <https://github.com/OMSA-Open-Mobility-Sales-API/OMSA>
+- Node dependency security baseline: [docs/node-dependency-security.md](docs/node-dependency-security.md)
 
 ## Having problems?
 Please [open an issue](https://github.com/entur/omsa-example-clients/issues/new/choose) if you encounter bugs or have feature requests.

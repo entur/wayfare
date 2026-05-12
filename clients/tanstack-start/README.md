@@ -5,8 +5,9 @@ Welcome to your new TanStack Start app!
 To run this application:
 
 ```bash
-npm install
-npm run dev
+pnpm install --frozen-lockfile
+cp .env.example .env
+pnpm dev
 ```
 
 ## OMSA Environment Modes
@@ -39,7 +40,7 @@ Optional overrides:
 To build this application for production:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 ## Testing
@@ -47,7 +48,7 @@ npm run build
 This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
 
 ```bash
-npm run test
+pnpm test
 ```
 
 ## Styling
@@ -61,7 +62,7 @@ If you prefer not to use Tailwind CSS:
 1. Remove the demo pages in `src/routes/demo/`
 2. Replace the Tailwind import in `src/styles.css` with your own styles
 3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `npm install @tailwindcss/vite tailwindcss -D`
+4. Uninstall the packages: `pnpm remove @tailwindcss/vite tailwindcss`
 
 ## Linting & Formatting
 
@@ -69,10 +70,17 @@ This project uses [Biome](https://biomejs.dev/) for linting and formatting. The 
 
 
 ```bash
-npm run lint
-npm run format
-npm run check
+pnpm lint
+pnpm format
+pnpm check
 ```
+
+## Dependency Updates
+
+This project pins exact dependency versions for reproducible installs.
+
+- Add/update dependencies with exact versions only: `pnpm add -E <package>@<version>`
+- Keep lockfile immutable in CI via `pnpm install --frozen-lockfile`
 
 
 
