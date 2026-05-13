@@ -19,7 +19,9 @@ jobs:
     name: Code Scan
     permissions:
       actions: read
-      contents: read
+      contents: write
+      issues: write
+      pull-requests: write
       security-events: write
     uses: entur/gha-security/.github/workflows/code-scan.yml@v2
     secrets: inherit
