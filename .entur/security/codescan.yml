@@ -4,6 +4,7 @@ metadata:
   id: omsaexampleclients
 spec:
   notifications:
+    severityThreshold: high
     outputs:
       pullRequest:
         enabled: false
