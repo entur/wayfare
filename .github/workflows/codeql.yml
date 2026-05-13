@@ -20,8 +20,6 @@ jobs:
     permissions:
       actions: read
       contents: read
-      issues: write
-      pull-requests: write
       security-events: write
     uses: entur/gha-security/.github/workflows/code-scan.yml@v2
     secrets: inherit
