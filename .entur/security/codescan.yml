@@ -1,0 +1,9 @@
+apiVersion: entur.io/securitytools/v1
+kind: CodeScanConfig
+metadata:
+  id: omsaexampleclients
+spec:
+  notifications:
+    outputs:
+      pullRequest:
+        enabled: false
