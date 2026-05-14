@@ -1,4 +1,6 @@
+import { UserIcon } from "@entur/icons";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useProfile } from "../context/profile";
 import ThemeToggle from "./ThemeToggle";
 import WayfareWordmark from "./WayfareWordmark";
 
@@ -29,6 +31,12 @@ function NavItem({
 
 export default function Header() {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const { customer } = useProfile();
+
+	const customerLabel = customer
+		? [customer.firstName, customer.lastName].filter(Boolean).join(" ") ||
+			customer.id
+		: null;
 
 	return (
 		<header
@@ -57,6 +65,23 @@ export default function Header() {
 					<NavItem to="/settings" active={pathname === "/settings"}>
 						Settings
 					</NavItem>
+					<Link
+						to="/profile"
+						className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium no-underline transition-colors"
+						style={{
+							color:
+								pathname === "/profile" || customerLabel
+									? "var(--wayfare-primary)"
+									: "var(--wayfare-text-secondary)",
+							background:
+								pathname === "/profile"
+									? "var(--wayfare-accent-soft)"
+									: "transparent",
+						}}
+					>
+						<UserIcon aria-hidden="true" />
+						{customerLabel ?? "Profile"}
+					</Link>
 					<ThemeToggle />
 				</div>
 			</nav>
