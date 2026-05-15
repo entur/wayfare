@@ -42,7 +42,7 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 	const [expandedId, setExpandedId] = useState<TravelerGroup["ageGroup"] | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	const customerIncluded = !!customer && travelers.some((t) =>
+	const customerIncluded = !!customer?.id && travelers.some((t) =>
 		t.individuals?.some((i) => i.customerId === customer.id),
 	);
 

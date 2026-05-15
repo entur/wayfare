@@ -25,6 +25,6 @@ export const getCustomer = createServerFn({ method: "GET" })
 	.inputValidator((data: { customerId: string }) => data)
 	.handler(async ({ data }) => {
 		return omsa.get<OmsaCustomer>(
-			`/collections/customers/items/${data.customerId}`,
+			`/collections/customers/items/${encodeURIComponent(data.customerId)}`,
 		);
 	});

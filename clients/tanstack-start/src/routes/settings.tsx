@@ -47,6 +47,7 @@ function ProfileTab() {
 		if (searchInput.lastName.trim())
 			params.lastName = searchInput.lastName.trim();
 		if (searchInput.email.trim()) params.email = searchInput.email.trim();
+		if (!Object.keys(params).length) return;
 		setSearchParams(params);
 		setHasSearched(true);
 	}

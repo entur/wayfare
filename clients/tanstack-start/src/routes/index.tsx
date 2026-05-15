@@ -50,8 +50,7 @@ function removeCustomerFromTravelers(travelers: TravelerGroup[]): TravelerGroup[
 	return travelers.flatMap((t) => {
 		if (!t.individuals?.some((i) => i.customerId)) return [t];
 		const without = t.individuals.filter((i) => !i.customerId);
-		const newCount = t.count - 1;
-		if (newCount <= 0) return [];
+		const newCount = Math.max(1, t.count - 1);
 		return [{ ...t, count: newCount, individuals: without.length ? without : undefined }];
 	});
 }
@@ -137,6 +136,7 @@ function SearchScreen() {
 	const planTrip = useTripPlanner();
 	const { customer } = useProfile();
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: state.travelers intentionally omitted — including it causes dispatch→state→effect infinite loop
 	useEffect(() => {
 		const hasCustomer = state.travelers.some((t) =>
 			t.individuals?.some((i) => i.customerId),
@@ -156,7 +156,7 @@ function SearchScreen() {
 				});
 			}
 		}
-	}, [customer?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [customer, dispatch]);
 
 	async function handleSearch(e: React.FormEvent) {
 		e.preventDefault();
