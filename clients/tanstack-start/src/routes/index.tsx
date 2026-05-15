@@ -6,6 +6,7 @@ import TravelerPicker from "../components/search/TravelerPicker";
 import TripResults from "../components/search/TripResults";
 import ZoneSearch from "../components/search/ZoneSearch";
 import Button from "../components/ui/Button";
+import SegmentedControl from "../components/ui/SegmentedControl";
 import type { TravelerGroup } from "../context/search-form";
 import { SearchFormProvider, useSearchForm } from "../context/search-form";
 import { useSearchOffers } from "../hooks/use-search-offers";
@@ -220,45 +221,18 @@ function SearchScreen() {
 			>
 				<div className="flex flex-col gap-4">
 					{/* Search type toggle */}
-					<fieldset
-						className="inline-flex w-full rounded-xl border p-1"
-						style={{
-							borderColor: "var(--wayfare-line)",
-							background: "var(--wayfare-bg)",
-						}}
-					>
-						<legend className="sr-only">Search type</legend>
-						{(
-							[
-								{ value: "zone", label: "Zone to Zone" },
-								{ value: "stop", label: "Stop to Stop" },
-								{ value: "trip", label: "Trip Planner" },
-							] as const
-						).map(({ value, label }) => {
-							const active = state.searchType === value;
-							return (
-								<button
-									key={value}
-									type="button"
-									onClick={() =>
-										dispatch({ type: "SET_SEARCH_TYPE", payload: value })
-									}
-									className="flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-all"
-									style={{
-										background: active
-											? "var(--wayfare-surface-strong)"
-											: "transparent",
-										color: active
-											? "var(--wayfare-text)"
-											: "var(--wayfare-text-secondary)",
-										boxShadow: active ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-									}}
-								>
-									{label}
-								</button>
-							);
-						})}
-					</fieldset>
+					<SegmentedControl
+						legend="Search type"
+						options={[
+							{ value: "zone", label: "Zone to Zone" },
+							{ value: "stop", label: "Stop to Stop" },
+							{ value: "trip", label: "Trip Planner" },
+						] as const}
+						value={state.searchType}
+						onChange={(v) =>
+							dispatch({ type: "SET_SEARCH_TYPE", payload: v })
+						}
+					/>
 
 					{/* Location inputs */}
 					<div className="grid gap-3 sm:grid-cols-2">

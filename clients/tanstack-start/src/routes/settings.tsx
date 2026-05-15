@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import Button from "../components/ui/Button";
+import SegmentedControl from "../components/ui/SegmentedControl";
 import { useProfile } from "../context/profile";
 import { useCustomerSearch } from "../hooks/use-customers";
 import { clearPackages, getPackages } from "../lib/ticket-storage";
@@ -416,29 +417,16 @@ function SettingsPage() {
 	return (
 		<PageShell title="Settings">
 			<div className="mx-auto max-w-lg">
-				<div
-					className="mb-6 flex gap-1 rounded-xl p-1"
-					style={{
-						background: "var(--wayfare-surface-strong)",
-						border: "1px solid var(--wayfare-line)",
-					}}
-				>
-					{(["profile", "app"] as Tab[]).map((t) => (
-						<button
-							key={t}
-							type="button"
-							onClick={() => setTab(t)}
-							className="flex-1 cursor-pointer rounded-lg px-4 py-2 text-sm font-medium capitalize transition-colors"
-							style={{
-								background:
-									tab === t ? "var(--wayfare-primary)" : "transparent",
-								color: tab === t ? "#fff" : "var(--wayfare-text-secondary)",
-								border: "none",
-							}}
-						>
-							{t === "profile" ? "Profile" : "App"}
-						</button>
-					))}
+				<div className="mb-6">
+					<SegmentedControl
+						legend="Settings section"
+						options={[
+							{ value: "profile", label: "Profile" },
+							{ value: "app", label: "App" },
+						] as const}
+						value={tab}
+						onChange={setTab}
+					/>
 				</div>
 
 				{tab === "profile" && <ProfileTab />}
