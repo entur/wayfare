@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "../server/middleware";
-import { omsa } from "../server/omsa-client";
+import { createOmsaClient } from "../server/omsa-client";
 import type {
 	ChangeOptionCollection,
 	PackageItem,
@@ -11,7 +11,8 @@ import type {
 export const getPackageItem = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.inputValidator((packageId: string) => packageId)
-	.handler(async ({ data: packageId }) => {
+	.handler(async ({ data: packageId, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<PackageItem>(
 			`/collections/packages/items/${encodeURIComponent(packageId)}`,
 		);
@@ -20,7 +21,8 @@ export const getPackageItem = createServerFn({ method: "GET" })
 export const getTravelDocuments = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.inputValidator((packageId: string) => packageId)
-	.handler(async ({ data: packageId }) => {
+	.handler(async ({ data: packageId, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<TravelDocumentCollection>(
 			"/collections/travel-documents/items",
 			{ packageId },
@@ -30,7 +32,8 @@ export const getTravelDocuments = createServerFn({ method: "GET" })
 export const getRefundOptions = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.inputValidator((packageId: string) => packageId)
-	.handler(async ({ data: packageId }) => {
+	.handler(async ({ data: packageId, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<RefundOptionCollection>(
 			"/collections/refund-options/items",
 			{ packageId },
@@ -40,7 +43,8 @@ export const getRefundOptions = createServerFn({ method: "GET" })
 export const getChangeOptions = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.inputValidator((packageId: string) => packageId)
-	.handler(async ({ data: packageId }) => {
+	.handler(async ({ data: packageId, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<ChangeOptionCollection>(
 			"/collections/change-options/items",
 			{ packageId },

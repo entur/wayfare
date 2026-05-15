@@ -1,17 +1,22 @@
 import { UserIcon } from "@entur/icons";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import Button from "../components/ui/Button";
 import SegmentedControl from "../components/ui/SegmentedControl";
+import { useDevConfig } from "../context/dev-config";
 import { useProfile } from "../context/profile";
 import { useCustomerSearch } from "../hooks/use-customers";
+import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { clearPackages, getPackages } from "../lib/ticket-storage";
+import { getResolvedDevConfig } from "../server-functions/dev-config";
 import type { CustomerSearchParams, OmsaCustomer } from "../types/customer";
+import type { OmsaRuntimeMode } from "../server/runtime-config";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
-type Tab = "profile" | "app";
+type Tab = "profile" | "app" | "developer";
 
 function customerDisplayName(c: OmsaCustomer): string {
 	const parts = [c.firstName, c.lastName].filter(Boolean);
@@ -412,6 +417,220 @@ function AppTab() {
 	);
 }
 
+const ENV_MODE_OPTIONS = [
+	{ value: "dev" as const, label: "dev" },
+	{ value: "staging" as const, label: "staging" },
+	{ value: "local" as const, label: "local" },
+	{ value: "local-tst" as const, label: "local-tst" },
+] as const;
+
+function DeveloperTab() {
+	const { overrides, setOverrides, resetOverrides } = useDevConfig();
+
+	const { data: resolved } = useQuery({
+		queryKey: ["resolved-dev-config", overrides.envMode],
+		queryFn: () => getResolvedDevConfig(),
+		staleTime: 30_000,
+	});
+
+	const [formMode, setFormMode] = useState<OmsaRuntimeMode>(
+		() => (overrides.envMode as OmsaRuntimeMode | undefined) ?? "dev",
+	);
+	const [formDistributionChannel, setFormDistributionChannel] = useState(
+		() => overrides.distributionChannel ?? "",
+	);
+	const [formClientName, setFormClientName] = useState(
+		() => overrides.clientName ?? "",
+	);
+	const [formPos, setFormPos] = useState(() => overrides.pos ?? "");
+	const [saved, setSaved] = useState(false);
+	const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	useEffect(() => {
+		return () => {
+			if (savedTimerRef.current !== null) clearTimeout(savedTimerRef.current);
+		};
+	}, []);
+
+	useEffect(() => {
+		if (!overrides.envMode && resolved?.envDefaults.mode) {
+			setFormMode(resolved.envDefaults.mode as OmsaRuntimeMode);
+		}
+	}, [resolved?.envDefaults.mode, overrides.envMode]);
+
+	function handleSave() {
+		const next: DevConfigOverrides = {
+			envMode: formMode,
+			distributionChannel: formDistributionChannel || undefined,
+			clientName: formClientName || undefined,
+			pos: formPos || undefined,
+		};
+		setOverrides(next);
+		setSaved(true);
+		if (savedTimerRef.current !== null) clearTimeout(savedTimerRef.current);
+		savedTimerRef.current = setTimeout(() => setSaved(false), 2000);
+	}
+
+	function handleReset() {
+		resetOverrides();
+		setFormMode(
+			(resolved?.envDefaults.mode as OmsaRuntimeMode | undefined) ?? "dev",
+		);
+		setFormDistributionChannel("");
+		setFormClientName("");
+		setFormPos("");
+	}
+
+	const sectionStyle = {
+		background: "var(--wayfare-surface-strong)",
+		border: "1px solid var(--wayfare-line)",
+	};
+
+	const inputStyle = {
+		background: "var(--wayfare-surface)",
+		borderColor: "var(--wayfare-line)",
+		color: "var(--wayfare-text)",
+	};
+
+	const labelStyle = {
+		color: "var(--wayfare-text-secondary)",
+	};
+
+	return (
+		<div className="space-y-4">
+			<section className="rounded-xl p-5" style={sectionStyle}>
+				<h2
+					className="mb-4 text-sm font-semibold"
+					style={{ color: "var(--wayfare-text)" }}
+				>
+					Environment
+				</h2>
+				<SegmentedControl
+					legend="Environment mode"
+					options={ENV_MODE_OPTIONS}
+					value={formMode}
+					onChange={setFormMode}
+				/>
+				<p className="mt-2 text-xs" style={labelStyle}>
+					.env default:{" "}
+					<span className="font-mono">
+						{resolved?.envDefaults.mode ?? "…"}
+					</span>
+				</p>
+			</section>
+
+			{resolved && (
+				<section className="rounded-xl p-5" style={sectionStyle}>
+					<h2
+						className="mb-3 text-sm font-semibold"
+						style={{ color: "var(--wayfare-text)" }}
+					>
+						Resolved endpoints
+					</h2>
+					<dl className="space-y-2 text-xs">
+						{(
+							[
+								["OMSA", resolved.effectiveOmsaBaseUrl],
+								["Sales", resolved.effectiveSalesBaseUrl],
+								["Journey planner", resolved.effectiveJourneyPlannerUrl],
+								["Geocoder", resolved.effectiveGeocoderUrl],
+							] as const
+						).map(([label, url]) => (
+							<div key={label} className="flex justify-between gap-4">
+								<dt style={labelStyle}>{label}</dt>
+								<dd
+									className="truncate font-mono text-right"
+									style={{ color: "var(--wayfare-text)" }}
+									title={url}
+								>
+									{url}
+								</dd>
+							</div>
+						))}
+					</dl>
+				</section>
+			)}
+
+			<section className="rounded-xl p-5" style={sectionStyle}>
+				<h2
+					className="mb-4 text-sm font-semibold"
+					style={{ color: "var(--wayfare-text)" }}
+				>
+					Entur headers
+				</h2>
+				<div className="space-y-3">
+					<div>
+						<label
+							htmlFor="dev-distribution-channel"
+							className="mb-1 block text-xs font-medium"
+							style={labelStyle}
+						>
+							Entur-Distribution-Channel
+						</label>
+						<input
+							id="dev-distribution-channel"
+							type="text"
+							value={formDistributionChannel}
+							onChange={(e) => setFormDistributionChannel(e.target.value)}
+							placeholder={
+								resolved?.envDefaults.distributionChannel ??
+								"WAY:DistributionChannel:App"
+							}
+							className="w-full rounded-lg border px-3 py-2 text-sm font-mono"
+							style={inputStyle}
+						/>
+					</div>
+					<div>
+						<label
+							htmlFor="dev-client-name"
+							className="mb-1 block text-xs font-medium"
+							style={labelStyle}
+						>
+							Entur-Client-Name
+						</label>
+						<input
+							id="dev-client-name"
+							type="text"
+							value={formClientName}
+							onChange={(e) => setFormClientName(e.target.value)}
+							placeholder={resolved?.envDefaults.clientName ?? "Wayfare-Web"}
+							className="w-full rounded-lg border px-3 py-2 text-sm font-mono"
+							style={inputStyle}
+						/>
+					</div>
+					<div>
+						<label
+							htmlFor="dev-pos"
+							className="mb-1 block text-xs font-medium"
+							style={labelStyle}
+						>
+							Entur-POS
+						</label>
+						<input
+							id="dev-pos"
+							type="text"
+							value={formPos}
+							onChange={(e) => setFormPos(e.target.value)}
+							placeholder={resolved?.envDefaults.pos ?? "Wayfare"}
+							className="w-full rounded-lg border px-3 py-2 text-sm font-mono"
+							style={inputStyle}
+						/>
+					</div>
+				</div>
+			</section>
+
+			<div className="flex items-center justify-between">
+				<Button variant="secondary" onClick={handleReset}>
+					Reset to .env defaults
+				</Button>
+				<Button variant="primary" onClick={handleSave}>
+					{saved ? "Saved" : "Save"}
+				</Button>
+			</div>
+		</div>
+	);
+}
+
 function SettingsPage() {
 	const [tab, setTab] = useState<Tab>("profile");
 
@@ -424,6 +643,7 @@ function SettingsPage() {
 						options={[
 							{ value: "profile", label: "Profile" },
 							{ value: "app", label: "App" },
+							{ value: "developer", label: "Developer" },
 						] as const}
 						value={tab}
 						onChange={setTab}
@@ -432,6 +652,7 @@ function SettingsPage() {
 
 				{tab === "profile" && <ProfileTab />}
 				{tab === "app" && <AppTab />}
+				{tab === "developer" && <DeveloperTab />}
 			</div>
 		</PageShell>
 	);

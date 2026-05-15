@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { journeyPlanner } from "../server/omsa-client";
+import { devConfigMiddleware } from "../server/middleware";
+import { createJourneyPlannerClient } from "../server/omsa-client";
 import type { TripPattern } from "../types/trip-planner";
 
 const TRIP_QUERY = `
@@ -52,8 +53,10 @@ interface TripQueryData {
 }
 
 export const planTrip = createServerFn({ method: "POST" })
+	.middleware([devConfigMiddleware])
 	.inputValidator((data: TripQueryVariables) => data)
-	.handler(async ({ data }) => {
+	.handler(async ({ data, context }) => {
+		const journeyPlanner = createJourneyPlannerClient(context.devConfig);
 		const result = await journeyPlanner.query<TripQueryData>(TRIP_QUERY, data);
 		return result.trip.tripPatterns;
 	});

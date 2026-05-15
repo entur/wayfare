@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "../server/middleware";
-import { sales } from "../server/omsa-client";
+import { createSalesClient } from "../server/omsa-client";
 import type {
 	PaymentRequest,
 	PaymentSessionResult,
@@ -11,7 +11,8 @@ import type {
 export const createPayment = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((data: PaymentRequest) => data)
-	.handler(async ({ data }) => {
+	.handler(async ({ data, context }) => {
+		const sales = createSalesClient(context.devConfig);
 		return sales.post<PaymentSessionResult>("/payments", data);
 	});
 
@@ -25,7 +26,8 @@ export interface TerminalSessionRequest {
 export const startTerminalSession = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((data: TerminalSessionRequest) => data)
-	.handler(async ({ data }) => {
+	.handler(async ({ data, context }) => {
+		const sales = createSalesClient(context.devConfig);
 		return sales.post<TerminalSessionResult>(
 			`/payments/${data.paymentId}/transactions/${data.transactionId}/terminal`,
 			{
@@ -46,7 +48,8 @@ export interface AppClaimRequest {
 export const startAppClaim = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((data: AppClaimRequest) => data)
-	.handler(async ({ data }) => {
+	.handler(async ({ data, context }) => {
+		const sales = createSalesClient(context.devConfig);
 		return sales.post<{ status?: string; id?: string }>(
 			`/payments/${data.paymentId}/transactions/${data.transactionId}/app-claim`,
 			{
@@ -65,7 +68,8 @@ export interface CaptureRequest {
 export const captureTransaction = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((data: CaptureRequest) => data)
-	.handler(async ({ data }) => {
+	.handler(async ({ data, context }) => {
+		const sales = createSalesClient(context.devConfig);
 		return sales.put<{ status?: string }>(
 			`/payments/${data.paymentId}/transactions/${data.transactionId}/capture`,
 		);
@@ -74,7 +78,8 @@ export const captureTransaction = createServerFn({ method: "POST" })
 export const getTransaction = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.inputValidator((data: CaptureRequest) => data)
-	.handler(async ({ data }) => {
+	.handler(async ({ data, context }) => {
+		const sales = createSalesClient(context.devConfig);
 		return sales.get<TransactionStatus>(
 			`/payments/${data.paymentId}/transactions/${data.transactionId}`,
 		);

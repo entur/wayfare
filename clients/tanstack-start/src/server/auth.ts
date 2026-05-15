@@ -1,3 +1,4 @@
+import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { getRuntimeConfig } from "./runtime-config";
 
 interface OAuthToken {
@@ -14,8 +15,10 @@ function isExpired(token: OAuthToken): boolean {
 	return Date.now() >= token.expiresAt - safetyWindowMs;
 }
 
-export async function getAccessToken(): Promise<string> {
-	const runtimeConfig = getRuntimeConfig();
+export async function getAccessToken(
+	devConfig?: DevConfigOverrides,
+): Promise<string> {
+	const runtimeConfig = getRuntimeConfig(devConfig);
 	const tokenUrl = runtimeConfig.oauthTokenUrl;
 	const clientId = runtimeConfig.clientId;
 	const clientSecret = runtimeConfig.clientSecret;
