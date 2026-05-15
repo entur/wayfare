@@ -1,18 +1,59 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import PageShell from "../components/layout/PageShell";
 import LocationSearch from "../components/search/LocationSearch";
 import TravelerPicker from "../components/search/TravelerPicker";
 import TripResults from "../components/search/TripResults";
 import ZoneSearch from "../components/search/ZoneSearch";
 import Button from "../components/ui/Button";
-import type { TravelerGroup } from "../context/search-form";
+import SegmentedControl from "../components/ui/SegmentedControl";
+import { useProfile } from "../context/profile";
+import type { TravelerGroup, TravelerIndividual } from "../context/search-form";
 import { SearchFormProvider, useSearchForm } from "../context/search-form";
 import { useSearchOffers } from "../hooks/use-search-offers";
 import { useTripPlanner } from "../hooks/use-trip-planner";
 import { writeSearchSession } from "../lib/search-session";
+import type { OmsaCustomer } from "../types/customer";
 import type { IndividualTraveller, TripPatternLeg, UserProfile } from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
+
+function syncCustomerIntoTravelers(
+	travelers: TravelerGroup[],
+	customer: OmsaCustomer,
+): TravelerGroup[] {
+	const name =
+		[customer.firstName, customer.lastName].filter(Boolean).join(" ") ||
+		undefined;
+	const customerInd: TravelerIndividual = { name, customerId: customer.id };
+	const adultGroup = travelers.find((t) => t.ageGroup === "ADULT");
+	if (adultGroup) {
+		const others = (adultGroup.individuals ?? []).filter((i) => !i.customerId);
+		return travelers.map((t) =>
+			t.ageGroup === "ADULT"
+				? { ...t, individuals: [customerInd, ...others] }
+				: t,
+		);
+	}
+	return [
+		...travelers,
+		{
+			id: "adult",
+			ageGroup: "ADULT" as const,
+			count: 1,
+			minAge: 18,
+			individuals: [customerInd],
+		},
+	];
+}
+
+function removeCustomerFromTravelers(travelers: TravelerGroup[]): TravelerGroup[] {
+	return travelers.flatMap((t) => {
+		if (!t.individuals?.some((i) => i.customerId)) return [t];
+		const without = t.individuals.filter((i) => !i.customerId);
+		const newCount = Math.max(1, t.count - 1);
+		return [{ ...t, count: newCount, individuals: without.length ? without : undefined }];
+	});
+}
 
 export const Route = createFileRoute("/")({ component: SearchPage });
 
@@ -47,15 +88,16 @@ function buildRequest(travelers: TravelerGroup[]): {
 				? t.ageGroup
 				: undefined;
 
-		const named = t.individuals?.filter((i) => i.name || i.age != null) ?? [];
+		const named = t.individuals?.filter((i) => i.name || i.age != null || i.customerId) ?? [];
 
 		if (named.length > 0) {
 			named.forEach((person, j) => {
 				travellers.push({
 					id: `${t.id}_${j}`,
 					type: "individual_traveller",
-					...(person.age != null ? { age: person.age } : {}),
+					...(person.age != null ? { age: person.age } : t.minAge != null ? { age: t.minAge } : {}),
 					...(person.name ? { fullName: person.name } : {}),
+					...(person.customerId ? { customerReference: person.customerId } : {}),
 					...entitlements,
 				});
 			});
@@ -92,6 +134,29 @@ function SearchScreen() {
 	const navigate = useNavigate();
 	const { mutateAsync, isPending, error } = useSearchOffers();
 	const planTrip = useTripPlanner();
+	const { customer } = useProfile();
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: state.travelers intentionally omitted — including it causes dispatch→state→effect infinite loop
+	useEffect(() => {
+		const hasCustomer = state.travelers.some((t) =>
+			t.individuals?.some((i) => i.customerId),
+		);
+		if (customer) {
+			if (!hasCustomer) {
+				dispatch({
+					type: "SET_TRAVELERS",
+					payload: syncCustomerIntoTravelers(state.travelers, customer),
+				});
+			}
+		} else {
+			if (hasCustomer) {
+				dispatch({
+					type: "SET_TRAVELERS",
+					payload: removeCustomerFromTravelers(state.travelers),
+				});
+			}
+		}
+	}, [customer, dispatch]);
 
 	async function handleSearch(e: React.FormEvent) {
 		e.preventDefault();
@@ -220,45 +285,18 @@ function SearchScreen() {
 			>
 				<div className="flex flex-col gap-4">
 					{/* Search type toggle */}
-					<fieldset
-						className="inline-flex w-full rounded-xl border p-1"
-						style={{
-							borderColor: "var(--wayfare-line)",
-							background: "var(--wayfare-bg)",
-						}}
-					>
-						<legend className="sr-only">Search type</legend>
-						{(
-							[
-								{ value: "zone", label: "Zone to Zone" },
-								{ value: "stop", label: "Stop to Stop" },
-								{ value: "trip", label: "Trip Planner" },
-							] as const
-						).map(({ value, label }) => {
-							const active = state.searchType === value;
-							return (
-								<button
-									key={value}
-									type="button"
-									onClick={() =>
-										dispatch({ type: "SET_SEARCH_TYPE", payload: value })
-									}
-									className="flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-all"
-									style={{
-										background: active
-											? "var(--wayfare-surface-strong)"
-											: "transparent",
-										color: active
-											? "var(--wayfare-text)"
-											: "var(--wayfare-text-secondary)",
-										boxShadow: active ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-									}}
-								>
-									{label}
-								</button>
-							);
-						})}
-					</fieldset>
+					<SegmentedControl
+						legend="Search type"
+						options={[
+							{ value: "zone", label: "Zone to Zone" },
+							{ value: "stop", label: "Stop to Stop" },
+							{ value: "trip", label: "Trip Planner" },
+						] as const}
+						value={state.searchType}
+						onChange={(v) =>
+							dispatch({ type: "SET_SEARCH_TYPE", payload: v })
+						}
+					/>
 
 					{/* Location inputs */}
 					<div className="grid gap-3 sm:grid-cols-2">
@@ -354,6 +392,7 @@ function SearchScreen() {
 					<TravelerPicker
 						travelers={state.travelers}
 						onChange={(t) => dispatch({ type: "SET_TRAVELERS", payload: t })}
+						customer={customer}
 					/>
 
 					{/* Error message */}

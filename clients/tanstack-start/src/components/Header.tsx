@@ -1,4 +1,6 @@
+import { UserIcon } from "@entur/icons";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useProfile } from "../context/profile";
 import ThemeToggle from "./ThemeToggle";
 import WayfareWordmark from "./WayfareWordmark";
 
@@ -29,6 +31,13 @@ function NavItem({
 
 export default function Header() {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const { customer } = useProfile();
+
+	const initials = customer
+		? [customer.firstName?.[0], customer.lastName?.[0]].filter(Boolean).join("")
+		: null;
+
+	const isSettingsActive = pathname === "/settings";
 
 	return (
 		<header
@@ -54,9 +63,33 @@ export default function Header() {
 					<NavItem to="/tickets" active={pathname.startsWith("/tickets")}>
 						Tickets
 					</NavItem>
-					<NavItem to="/settings" active={pathname === "/settings"}>
-						Settings
-					</NavItem>
+					<Link
+						to="/settings"
+						aria-label="Settings"
+						className="flex items-center justify-center rounded-full p-1 no-underline transition-colors"
+						style={{
+							color:
+								isSettingsActive || customer
+									? "var(--wayfare-primary)"
+									: "var(--wayfare-text-secondary)",
+							background: isSettingsActive
+								? "var(--wayfare-accent-soft)"
+								: "transparent",
+						}}
+					>
+						{initials ? (
+							<span
+								className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold"
+								style={{ background: "var(--wayfare-primary)", color: "#fff" }}
+							>
+								{initials}
+							</span>
+						) : (
+							<span className="flex h-7 w-7 items-center justify-center">
+								<UserIcon aria-hidden="true" />
+							</span>
+						)}
+					</Link>
 					<ThemeToggle />
 				</div>
 			</nav>

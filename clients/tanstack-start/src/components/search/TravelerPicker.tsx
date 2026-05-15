@@ -1,6 +1,7 @@
 import { DownArrowIcon, UsersIcon } from "@entur/icons";
 import { useEffect, useRef, useState } from "react";
 import type { TravelerGroup, TravelerIndividual } from "../../context/search-form";
+import type { OmsaCustomer } from "../../types/customer";
 
 const GROUPS: {
 	id: TravelerGroup["ageGroup"];
@@ -33,15 +34,34 @@ const inputCls = "rounded-lg border px-2 py-1.5 text-xs outline-none focus:ring-
 interface TravelerPickerProps {
 	travelers: TravelerGroup[];
 	onChange: (travelers: TravelerGroup[]) => void;
+	customer?: OmsaCustomer | null;
 }
 
-export default function TravelerPicker({ travelers, onChange }: TravelerPickerProps) {
+export default function TravelerPicker({ travelers, onChange, customer }: TravelerPickerProps) {
 	const [open, setOpen] = useState(false);
 	const [expandedId, setExpandedId] = useState<TravelerGroup["ageGroup"] | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
+	const customerIncluded = !!customer?.id && travelers.some((t) =>
+		t.individuals?.some((i) => i.customerId === customer.id),
+	);
+
 	const total = travelers.reduce((sum, t) => sum + t.count, 0);
-	const summary = total === 0 ? "Add travelers" : `${total} traveler${total !== 1 ? "s" : ""}`;
+
+	const customerFirstName = customer?.firstName ?? customer?.id ?? "You";
+
+	let summary: string;
+	if (total === 0) {
+		summary = "Add travelers";
+	} else if (customerIncluded) {
+		const others = total - 1;
+		summary =
+			others > 0
+				? `${customerFirstName} + ${others} other${others !== 1 ? "s" : ""}`
+				: customerFirstName;
+	} else {
+		summary = `${total} traveler${total !== 1 ? "s" : ""}`;
+	}
 
 	useEffect(() => {
 		function onPointerDown(e: PointerEvent) {
@@ -102,13 +122,60 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 				id: ag.toLowerCase(),
 				ageGroup: ag,
 				count,
-...(ag === "ADULT" ? { minAge: 18 } : {}),
+				...(ag === "ADULT" ? { minAge: 18 } : {}),
 				...(ag === "YOUTH" ? { minAge: 16, maxAge: 17 } : {}),
 				...(ag === "CHILD" ? { minAge: 6, maxAge: 15 } : {}),
 				...(ag === "SENIOR" ? { minAge: 67 } : {}),
 				individuals: syncIndividuals(current?.individuals, count, !!meta.perPerson),
 			},
 		]);
+	}
+
+	function toggleCustomer() {
+		if (!customer) return;
+		if (customerIncluded) {
+			const adultGroup = getGroup("ADULT");
+			if (!adultGroup) return;
+			const newCount = adultGroup.count - 1;
+			const without = adultGroup.individuals?.filter((i) => !i.customerId) ?? [];
+			if (newCount <= 0) {
+				onChange(travelers.filter((t) => t.ageGroup !== "ADULT"));
+			} else {
+				onChange(
+					travelers.map((t) =>
+						t.ageGroup === "ADULT"
+							? { ...t, count: newCount, individuals: without.length ? without : undefined }
+							: t,
+					),
+				);
+			}
+		} else {
+			const name =
+				[customer.firstName, customer.lastName].filter(Boolean).join(" ") || undefined;
+			const customerInd: TravelerIndividual = { name, customerId: customer.id };
+			const adultGroup = getGroup("ADULT");
+			if (adultGroup) {
+				const others = (adultGroup.individuals ?? []).filter((i) => !i.customerId);
+				onChange(
+					travelers.map((t) =>
+						t.ageGroup === "ADULT"
+							? { ...t, count: t.count + 1, individuals: [customerInd, ...others] }
+							: t,
+					),
+				);
+			} else {
+				onChange([
+					...travelers,
+					{
+						id: "adult",
+						ageGroup: "ADULT" as const,
+						count: 1,
+						minAge: 18,
+						individuals: [customerInd],
+					},
+				]);
+			}
+		}
 	}
 
 	function toggleNamedMode(ag: TravelerGroup["ageGroup"]) {
@@ -192,6 +259,10 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 		);
 	}
 
+	const customerInitials = customer
+		? [customer.firstName?.[0], customer.lastName?.[0]].filter(Boolean).join("") || "?"
+		: null;
+
 	return (
 		<div ref={containerRef} className="relative w-full">
 			<button
@@ -208,7 +279,16 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 				aria-expanded={open}
 			>
 				<span className="flex items-center gap-2">
-					<UsersIcon aria-hidden="true" style={{ color: "var(--wayfare-text-secondary)" }} />
+					{customerIncluded && customerInitials ? (
+						<span
+							className="flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold"
+							style={{ background: "var(--wayfare-primary)", color: "#fff" }}
+						>
+							{customerInitials}
+						</span>
+					) : (
+						<UsersIcon aria-hidden="true" style={{ color: "var(--wayfare-text-secondary)" }} />
+					)}
 					{summary}
 				</span>
 				<DownArrowIcon
@@ -228,6 +308,60 @@ export default function TravelerPicker({ travelers, onChange }: TravelerPickerPr
 					role="dialog"
 					aria-label="Select travelers"
 				>
+					{/* Signed-in customer row */}
+					{customer && (
+						<div
+							className="mb-1 flex items-center justify-between py-2.5"
+							style={{ borderBottom: "1px solid var(--wayfare-line)" }}
+						>
+							<div className="flex items-center gap-2.5">
+								<span
+									className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+									style={{
+										background: customerIncluded
+											? "var(--wayfare-primary)"
+											: "var(--wayfare-accent-soft)",
+										color: customerIncluded ? "#fff" : "var(--wayfare-primary)",
+									}}
+								>
+									{customerInitials}
+								</span>
+								<div>
+									<span
+										className="text-sm font-medium"
+										style={{ color: "var(--wayfare-text)" }}
+									>
+										{[customer.firstName, customer.lastName]
+											.filter(Boolean)
+											.join(" ") || customer.id}
+									</span>
+									<span
+										className="ml-1.5 text-xs"
+										style={{ color: "var(--wayfare-text-secondary)" }}
+									>
+										you
+									</span>
+								</div>
+							</div>
+							<button
+								type="button"
+								onClick={toggleCustomer}
+								className="rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors"
+								style={{
+									borderColor: customerIncluded
+										? "var(--wayfare-primary)"
+										: "var(--wayfare-line)",
+									color: customerIncluded
+										? "var(--wayfare-primary)"
+										: "var(--wayfare-text-secondary)",
+									background: "transparent",
+								}}
+							>
+								{customerIncluded ? "Remove" : "Add"}
+							</button>
+						</div>
+					)}
+
 					{GROUPS.map((group) => {
 						const count = getCount(group.id);
 						const current = getGroup(group.id);
