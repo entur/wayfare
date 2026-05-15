@@ -19,6 +19,7 @@ Homepage = "https://github.com/entur/omsa-example-clients"
 dev = [
     "pytest>=9.0.3,<10.0.0",
     "anyio>=4.4.0,<5.0.0",
+    "pygments>=2.20.0",
 ]
 
 [build-system]
