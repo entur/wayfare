@@ -1,3 +1,5 @@
+import type { DevConfigOverrides } from "../lib/dev-config-storage";
+
 export type OmsaRuntimeMode = "dev" | "staging" | "local" | "local-tst";
 type CredentialProfile = "dev" | "staging";
 
@@ -128,8 +130,8 @@ function resolveProfileCredentials(profile: CredentialProfile): {
 	};
 }
 
-export function getRuntimeConfig(): RuntimeConfig {
-	const mode = resolveMode(process.env.OMSA_ENV_MODE);
+export function getRuntimeConfig(overrides?: DevConfigOverrides): RuntimeConfig {
+	const mode = resolveMode(overrides?.envMode ?? process.env.OMSA_ENV_MODE);
 	const defaults = MODE_DEFAULTS[mode];
 	const credentialProfile = resolveCredentialProfile(
 		process.env.OMSA_CREDENTIAL_PROFILE,

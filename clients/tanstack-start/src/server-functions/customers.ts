@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "../server/middleware";
-import { omsa } from "../server/omsa-client";
+import { createOmsaClient } from "../server/omsa-client";
 import type {
 	CustomerCollection,
 	CustomerSearchParams,
@@ -10,7 +10,8 @@ import type {
 export const getCustomers = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.inputValidator((data: CustomerSearchParams) => data)
-	.handler(async ({ data }) => {
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
 		const params: Record<string, string> = {};
 		if (data.customerId) params.customerId = data.customerId;
 		if (data.firstName) params.firstName = data.firstName;
@@ -23,7 +24,8 @@ export const getCustomers = createServerFn({ method: "GET" })
 export const getCustomer = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
 	.inputValidator((data: { customerId: string }) => data)
-	.handler(async ({ data }) => {
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<OmsaCustomer>(
 			`/collections/customers/items/${encodeURIComponent(data.customerId)}`,
 		);

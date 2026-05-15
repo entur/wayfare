@@ -1,4 +1,5 @@
 import { inspect } from "node:util";
+import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { getAccessToken } from "./auth";
 import { getRuntimeConfig } from "./runtime-config";
 
@@ -174,30 +175,27 @@ function logRequestError(
 	);
 }
 
-function getBaseUrl(): string {
-	return getRuntimeConfig().omsaBaseUrl;
-}
-
-function getSalesBaseUrl(): string {
-	return getRuntimeConfig().salesBaseUrl;
-}
-
-function enturHeaders(): Record<string, string> {
+function enturHeaders(devConfig?: DevConfigOverrides): Record<string, string> {
 	return {
 		"Entur-Distribution-Channel":
-			process.env.ENTUR_DISTRIBUTION_CHANNEL ?? "KOL:DistributionChannel:App",
-		"Et-Client-Name": process.env.ET_CLIENT_NAME ?? "omsa",
-		"Entur-POS": process.env.ENTUR_POS ?? "Kolumbus",
+			devConfig?.distributionChannel ??
+			process.env.ENTUR_DISTRIBUTION_CHANNEL ??
+			"WAY:DistributionChannel:App",
+		"Entur-Client-Name":
+			devConfig?.clientName ?? process.env.ENTUR_CLIENT_NAME ?? "Wayfare-Web",
+		"Entur-POS": devConfig?.pos ?? process.env.ENTUR_POS ?? "Wayfare",
 	};
 }
 
-async function authorizedHeaders(): Promise<Record<string, string>> {
-	const authorization = await getAccessToken();
+async function authorizedHeaders(
+	devConfig?: DevConfigOverrides,
+): Promise<Record<string, string>> {
+	const authorization = await getAccessToken(devConfig);
 	return {
 		Authorization: authorization,
 		Accept: "application/json",
 		"Accept-Language": "en-GB",
-		...enturHeaders(),
+		...enturHeaders(devConfig),
 	};
 }
 
@@ -212,163 +210,167 @@ async function handleResponse<T>(
 	return response.json() as Promise<T>;
 }
 
-function getJourneyPlannerUrl(): string {
-	return getRuntimeConfig().journeyPlannerUrl;
+export function createOmsaClient(devConfig?: DevConfigOverrides) {
+	const config = getRuntimeConfig(devConfig);
+
+	return {
+		async get<T>(path: string, params?: Record<string, string>): Promise<T> {
+			const url = new URL(`${config.omsaBaseUrl}${path}`);
+			if (params) {
+				for (const [key, value] of Object.entries(params)) {
+					url.searchParams.set(key, value);
+				}
+			}
+			const requestUrl = url.toString();
+			const startedAt = Date.now();
+			const headers = await authorizedHeaders(devConfig);
+			logRequest("GET", requestUrl, undefined, headers);
+			try {
+				const response = await fetch(requestUrl, { headers });
+				await logResponse(response, startedAt);
+				return handleResponse<T>(response, `GET ${path}`);
+			} catch (error) {
+				logRequestError("GET", requestUrl, startedAt, error);
+				throw error;
+			}
+		},
+
+		async post<T>(path: string, body: unknown): Promise<T> {
+			const requestUrl = `${config.omsaBaseUrl}${path}`;
+			const startedAt = Date.now();
+			const headers = {
+				...(await authorizedHeaders(devConfig)),
+				"Content-Type": "application/json",
+			};
+			logRequest("POST", requestUrl, body, headers);
+			try {
+				const response = await fetch(requestUrl, {
+					method: "POST",
+					headers,
+					body: JSON.stringify(body),
+				});
+				await logResponse(response, startedAt);
+				return handleResponse<T>(response, `POST ${path}`);
+			} catch (error) {
+				logRequestError("POST", requestUrl, startedAt, error);
+				throw error;
+			}
+		},
+	};
 }
 
-export const journeyPlanner = {
-	async query<T>(query: string, variables: unknown): Promise<T> {
-		const requestUrl = getJourneyPlannerUrl();
-		const body = { query, variables };
-		const startedAt = Date.now();
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-			"ET-Client-Name": process.env.ET_CLIENT_NAME ?? "wayfare-web",
-		};
-		logRequest("POST", requestUrl, body, headers);
-		try {
-			const response = await fetch(requestUrl, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(body),
-			});
-			await logResponse(response, startedAt);
-			const json = (await response.json()) as {
-				data?: T;
-				errors?: { message: string }[];
+export function createSalesClient(devConfig?: DevConfigOverrides) {
+	const config = getRuntimeConfig(devConfig);
+
+	return {
+		async post<T>(path: string, body: unknown): Promise<T> {
+			const authorization = await getAccessToken(devConfig);
+			const requestUrl = `${config.salesBaseUrl}${path}`;
+			const startedAt = Date.now();
+			const headers = {
+				Authorization: authorization,
+				Accept: "application/hal+json",
+				"Accept-Language": "en-GB",
+				"Content-Type": "application/json",
+				...enturHeaders(devConfig),
 			};
-			if (json.errors?.length) {
-				throw new Error(json.errors[0]?.message ?? "Journey planner error");
+			logRequest("POST", requestUrl, body, headers);
+			try {
+				const response = await fetch(requestUrl, {
+					method: "POST",
+					headers,
+					body: JSON.stringify(body),
+				});
+				await logResponse(response, startedAt);
+				return handleResponse<T>(response, `POST ${path}`);
+			} catch (error) {
+				logRequestError("POST", requestUrl, startedAt, error);
+				throw error;
 			}
-			if (!json.data) {
-				throw new Error("Journey planner returned no data");
+		},
+
+		async put<T>(path: string): Promise<T> {
+			const authorization = await getAccessToken(devConfig);
+			const requestUrl = `${config.salesBaseUrl}${path}`;
+			const startedAt = Date.now();
+			const headers = {
+				Authorization: authorization,
+				Accept: "application/hal+json",
+				"Accept-Language": "en-GB",
+				...enturHeaders(devConfig),
+			};
+			logRequest("PUT", requestUrl, undefined, headers);
+			try {
+				const response = await fetch(requestUrl, {
+					method: "PUT",
+					headers,
+				});
+				await logResponse(response, startedAt);
+				return handleResponse<T>(response, `PUT ${path}`);
+			} catch (error) {
+				logRequestError("PUT", requestUrl, startedAt, error);
+				throw error;
 			}
-			return json.data;
-		} catch (error) {
-			logRequestError("POST", requestUrl, startedAt, error);
-			throw error;
-		}
-	},
-};
+		},
 
-export const omsa = {
-	async get<T>(path: string, params?: Record<string, string>): Promise<T> {
-		const url = new URL(`${getBaseUrl()}${path}`);
-		if (params) {
-			for (const [key, value] of Object.entries(params)) {
-				url.searchParams.set(key, value);
+		async get<T>(path: string): Promise<T> {
+			const authorization = await getAccessToken(devConfig);
+			const requestUrl = `${config.salesBaseUrl}${path}`;
+			const startedAt = Date.now();
+			const headers = {
+				Authorization: authorization,
+				Accept: "application/hal+json",
+				"Accept-Language": "en-GB",
+				...enturHeaders(devConfig),
+			};
+			logRequest("GET", requestUrl, undefined, headers);
+			try {
+				const response = await fetch(requestUrl, { headers });
+				await logResponse(response, startedAt);
+				return handleResponse<T>(response, `GET ${path}`);
+			} catch (error) {
+				logRequestError("GET", requestUrl, startedAt, error);
+				throw error;
 			}
-		}
-		const requestUrl = url.toString();
-		const startedAt = Date.now();
-		const headers = await authorizedHeaders();
-		logRequest("GET", requestUrl, undefined, headers);
-		try {
-			const response = await fetch(requestUrl, {
-				headers,
-			});
-			await logResponse(response, startedAt);
-			return handleResponse<T>(response, `GET ${path}`);
-		} catch (error) {
-			logRequestError("GET", requestUrl, startedAt, error);
-			throw error;
-		}
-	},
+		},
+	};
+}
 
-	async post<T>(path: string, body: unknown): Promise<T> {
-		const requestUrl = `${getBaseUrl()}${path}`;
-		const startedAt = Date.now();
-		const headers = {
-			...(await authorizedHeaders()),
-			"Content-Type": "application/json",
-		};
-		logRequest("POST", requestUrl, body, headers);
-		try {
-			const response = await fetch(requestUrl, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(body),
-			});
-			await logResponse(response, startedAt);
-			return handleResponse<T>(response, `POST ${path}`);
-		} catch (error) {
-			logRequestError("POST", requestUrl, startedAt, error);
-			throw error;
-		}
-	},
-};
+export function createJourneyPlannerClient(devConfig?: DevConfigOverrides) {
+	const config = getRuntimeConfig(devConfig);
 
-export const sales = {
-	async post<T>(path: string, body: unknown): Promise<T> {
-		const authorization = await getAccessToken();
-		const requestUrl = `${getSalesBaseUrl()}${path}`;
-		const startedAt = Date.now();
-		const headers = {
-			Authorization: authorization,
-			Accept: "application/hal+json",
-			"Accept-Language": "en-GB",
-			"Content-Type": "application/json",
-			...enturHeaders(),
-		};
-		logRequest("POST", requestUrl, body, headers);
-		try {
-			const response = await fetch(requestUrl, {
-				method: "POST",
-				headers,
-				body: JSON.stringify(body),
-			});
-			await logResponse(response, startedAt);
-			return handleResponse<T>(response, `POST ${path}`);
-		} catch (error) {
-			logRequestError("POST", requestUrl, startedAt, error);
-			throw error;
-		}
-	},
-
-	async put<T>(path: string): Promise<T> {
-		const authorization = await getAccessToken();
-		const requestUrl = `${getSalesBaseUrl()}${path}`;
-		const startedAt = Date.now();
-		const headers = {
-			Authorization: authorization,
-			Accept: "application/hal+json",
-			"Accept-Language": "en-GB",
-			...enturHeaders(),
-		};
-		logRequest("PUT", requestUrl, undefined, headers);
-		try {
-			const response = await fetch(requestUrl, {
-				method: "PUT",
-				headers,
-			});
-			await logResponse(response, startedAt);
-			return handleResponse<T>(response, `PUT ${path}`);
-		} catch (error) {
-			logRequestError("PUT", requestUrl, startedAt, error);
-			throw error;
-		}
-	},
-
-	async get<T>(path: string): Promise<T> {
-		const authorization = await getAccessToken();
-		const requestUrl = `${getSalesBaseUrl()}${path}`;
-		const startedAt = Date.now();
-		const headers = {
-			Authorization: authorization,
-			Accept: "application/hal+json",
-			"Accept-Language": "en-GB",
-			...enturHeaders(),
-		};
-		logRequest("GET", requestUrl, undefined, headers);
-		try {
-			const response = await fetch(requestUrl, {
-				headers,
-			});
-			await logResponse(response, startedAt);
-			return handleResponse<T>(response, `GET ${path}`);
-		} catch (error) {
-			logRequestError("GET", requestUrl, startedAt, error);
-			throw error;
-		}
-	},
-};
+	return {
+		async query<T>(query: string, variables: unknown): Promise<T> {
+			const requestUrl = config.journeyPlannerUrl;
+			const body = { query, variables };
+			const startedAt = Date.now();
+			const headers: Record<string, string> = {
+				"Content-Type": "application/json",
+				...enturHeaders(devConfig),
+			};
+			logRequest("POST", requestUrl, body, headers);
+			try {
+				const response = await fetch(requestUrl, {
+					method: "POST",
+					headers,
+					body: JSON.stringify(body),
+				});
+				await logResponse(response, startedAt);
+				const json = (await response.json()) as {
+					data?: T;
+					errors?: { message: string }[];
+				};
+				if (json.errors?.length) {
+					throw new Error(json.errors[0]?.message ?? "Journey planner error");
+				}
+				if (!json.data) {
+					throw new Error("Journey planner returned no data");
+				}
+				return json.data;
+			} catch (error) {
+				logRequestError("POST", requestUrl, startedAt, error);
+				throw error;
+			}
+		},
+	};
+}
