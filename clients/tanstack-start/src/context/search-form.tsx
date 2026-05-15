@@ -5,6 +5,7 @@ export interface TravelerIndividual {
 	id?: string;
 	name?: string;
 	age?: number;
+	customerId?: string;
 }
 
 export interface TravelerGroup {
@@ -43,7 +44,7 @@ const defaultState: SearchFormState = {
 	from: null,
 	to: null,
 	travelDate: "", // set on client after mount to avoid SSR/hydration mismatch
-	travelers: [{ id: "adult", ageGroup: "ADULT", count: 1 }],
+	travelers: [{ id: "adult", ageGroup: "ADULT", count: 1, minAge: 18 }],
 	searchType: "zone",
 };
 
