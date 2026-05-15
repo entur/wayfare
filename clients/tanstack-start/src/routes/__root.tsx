@@ -8,6 +8,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import { DevConfigProvider } from "../context/dev-config";
 import { ProfileProvider } from "../context/profile";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import TanStackQueryProvider from "../integrations/tanstack-query/root-provider";
@@ -55,13 +56,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body className="font-sans antialiased [overflow-wrap:anywhere]">
 				<TanStackQueryProvider queryClient={queryClient}>
-					<ProfileProvider>
-						<div className="flex min-h-screen flex-col">
-							<Header />
-							<div className="flex-1">{children}</div>
-							<Footer />
-						</div>
-					</ProfileProvider>
+					<DevConfigProvider>
+						<ProfileProvider>
+							<div className="flex min-h-screen flex-col">
+								<Header />
+								<div className="flex-1">{children}</div>
+								<Footer />
+							</div>
+						</ProfileProvider>
+					</DevConfigProvider>
 					<TanStackDevtools
 						config={{
 							position: "bottom-right",
