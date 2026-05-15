@@ -16,7 +16,7 @@ export interface ResolvedDevConfig {
 	};
 }
 
-export const getResolvedDevConfig = createServerFn()
+export const getResolvedDevConfig = createServerFn({ method: "GET" })
 	.middleware([devConfigMiddleware])
 	.handler(async ({ context }): Promise<ResolvedDevConfig> => {
 		const config = getRuntimeConfig(context.devConfig);

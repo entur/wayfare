@@ -1,6 +1,6 @@
-import type { DevConfigOverrides } from "../lib/dev-config-storage";
+import type { DevConfigOverrides, OmsaRuntimeMode } from "../lib/dev-config-storage";
 
-export type OmsaRuntimeMode = "dev" | "staging" | "local" | "local-tst";
+export type { OmsaRuntimeMode };
 type CredentialProfile = "dev" | "staging";
 
 interface ModeDefaults {

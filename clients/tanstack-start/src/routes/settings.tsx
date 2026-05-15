@@ -1,7 +1,7 @@
 import { UserIcon } from "@entur/icons";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import Button from "../components/ui/Button";
 import SegmentedControl from "../components/ui/SegmentedControl";
@@ -444,6 +444,13 @@ function DeveloperTab() {
 	);
 	const [formPos, setFormPos] = useState(() => overrides.pos ?? "");
 	const [saved, setSaved] = useState(false);
+	const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	useEffect(() => {
+		return () => {
+			if (savedTimerRef.current !== null) clearTimeout(savedTimerRef.current);
+		};
+	}, []);
 
 	useEffect(() => {
 		if (!overrides.envMode && resolved?.envDefaults.mode) {
@@ -460,7 +467,8 @@ function DeveloperTab() {
 		};
 		setOverrides(next);
 		setSaved(true);
-		setTimeout(() => setSaved(false), 2000);
+		if (savedTimerRef.current !== null) clearTimeout(savedTimerRef.current);
+		savedTimerRef.current = setTimeout(() => setSaved(false), 2000);
 	}
 
 	function handleReset() {
@@ -578,7 +586,7 @@ function DeveloperTab() {
 							className="mb-1 block text-xs font-medium"
 							style={labelStyle}
 						>
-							ET-Client-Name
+							Entur-Client-Name
 						</label>
 						<input
 							id="dev-client-name"

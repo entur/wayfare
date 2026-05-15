@@ -20,8 +20,8 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
 	);
 
 	function setOverrides(next: DevConfigOverrides) {
-		setDevConfigOverrides(next);
-		setOverridesState(next);
+		const cleaned = setDevConfigOverrides(next);
+		setOverridesState(cleaned);
 	}
 
 	function resetOverrides() {

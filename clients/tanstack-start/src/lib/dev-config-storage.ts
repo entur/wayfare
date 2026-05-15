@@ -1,5 +1,7 @@
+export type OmsaRuntimeMode = "dev" | "staging" | "local" | "local-tst";
+
 export interface DevConfigOverrides {
-	envMode?: string;
+	envMode?: OmsaRuntimeMode;
 	distributionChannel?: string;
 	clientName?: string;
 	pos?: string;
@@ -23,18 +25,22 @@ export function getDevConfigOverrides(): DevConfigOverrides {
 	}
 }
 
-export function setDevConfigOverrides(overrides: DevConfigOverrides): void {
-	if (!isBrowser()) return;
+export function setDevConfigOverrides(
+	overrides: DevConfigOverrides,
+): DevConfigOverrides {
 	const cleaned: DevConfigOverrides = {};
-	if (overrides.envMode?.trim()) cleaned.envMode = overrides.envMode.trim();
+	if (overrides.envMode) cleaned.envMode = overrides.envMode;
 	if (overrides.distributionChannel?.trim())
 		cleaned.distributionChannel = overrides.distributionChannel.trim();
 	if (overrides.clientName?.trim())
 		cleaned.clientName = overrides.clientName.trim();
 	if (overrides.pos?.trim()) cleaned.pos = overrides.pos.trim();
 
-	localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
-	syncCookie(cleaned);
+	if (isBrowser()) {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+		syncCookie(cleaned);
+	}
+	return cleaned;
 }
 
 export function clearDevConfigOverrides(): void {
