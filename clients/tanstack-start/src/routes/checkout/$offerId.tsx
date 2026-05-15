@@ -292,7 +292,7 @@ function CheckoutScreen() {
 								)}
 							</div>
 							<Link
-								to="/profile"
+								to="/settings"
 								className="text-xs no-underline"
 								style={{ color: "var(--wayfare-primary)" }}
 							>
@@ -307,7 +307,7 @@ function CheckoutScreen() {
 							>
 								No profile selected.{" "}
 								<Link
-									to="/profile"
+									to="/settings"
 									className="no-underline"
 									style={{ color: "var(--wayfare-primary)" }}
 								>

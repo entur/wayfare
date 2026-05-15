@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PaymentReturnRouteImport } from './routes/payment-return'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as IndexRouteImport } from './routes/index'
@@ -21,11 +20,6 @@ import { Route as CheckoutOfferIdRouteImport } from './routes/checkout/$offerId'
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaymentReturnRoute = PaymentReturnRouteImport.update({
@@ -63,7 +57,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
-  '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
   '/tickets/$packageId': typeof TicketsPackageIdRoute
@@ -73,7 +66,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
-  '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
   '/tickets/$packageId': typeof TicketsPackageIdRoute
@@ -84,7 +76,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
-  '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
   '/tickets/$packageId': typeof TicketsPackageIdRoute
@@ -96,7 +87,6 @@ export interface FileRouteTypes {
     | '/'
     | '/offers'
     | '/payment-return'
-    | '/profile'
     | '/settings'
     | '/checkout/$offerId'
     | '/tickets/$packageId'
@@ -106,7 +96,6 @@ export interface FileRouteTypes {
     | '/'
     | '/offers'
     | '/payment-return'
-    | '/profile'
     | '/settings'
     | '/checkout/$offerId'
     | '/tickets/$packageId'
@@ -116,7 +105,6 @@ export interface FileRouteTypes {
     | '/'
     | '/offers'
     | '/payment-return'
-    | '/profile'
     | '/settings'
     | '/checkout/$offerId'
     | '/tickets/$packageId'
@@ -127,7 +115,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OffersRoute: typeof OffersRoute
   PaymentReturnRoute: typeof PaymentReturnRoute
-  ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
   CheckoutOfferIdRoute: typeof CheckoutOfferIdRoute
   TicketsPackageIdRoute: typeof TicketsPackageIdRoute
@@ -141,13 +128,6 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payment-return': {
@@ -199,7 +179,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OffersRoute: OffersRoute,
   PaymentReturnRoute: PaymentReturnRoute,
-  ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
   CheckoutOfferIdRoute: CheckoutOfferIdRoute,
   TicketsPackageIdRoute: TicketsPackageIdRoute,
