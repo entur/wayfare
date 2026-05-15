@@ -6,6 +6,7 @@ import PurchaseProgress from "../../components/checkout/PurchaseProgress";
 import PurchaseSuccess from "../../components/checkout/PurchaseSuccess";
 import PageShell from "../../components/layout/PageShell";
 import Button from "../../components/ui/Button";
+import { useProfile } from "../../context/profile";
 import {
 	PurchaseFlowProvider,
 	usePurchaseFlow,
@@ -17,6 +18,7 @@ import {
 import { usePurchaseOffers } from "../../hooks/use-purchase";
 import { formatPrice } from "../../lib/format-price";
 import { readSearchSession } from "../../lib/search-session";
+import type { OmsaCustomer } from "../../types/customer";
 import type { PaymentType } from "../../types/purchase";
 import type { Offer, OfferCollection } from "../../types/search";
 
@@ -36,10 +38,16 @@ function CheckoutScreen() {
 	const { offerId } = Route.useParams();
 	const offerIds = offerId.split(",");
 	const { state, dispatch } = usePurchaseFlow();
+	const { customer: profileCustomer } = useProfile();
 	const [paymentMethod, setPaymentMethod] = useState<PaymentType | null>(null);
 	const [hydrated, setHydrated] = useState(false);
 	const [offerCollection, setOfferCollection] =
 		useState<OfferCollection | null>(null);
+	const [guestCustomer, setGuestCustomer] = useState<{
+		firstName: string;
+		lastName: string;
+		email: string;
+	}>({ firstName: "", lastName: "", email: "" });
 
 	const purchaseMutation = usePurchaseOffers();
 	const createPaymentMutation = useCreatePayment();
@@ -50,6 +58,22 @@ function CheckoutScreen() {
 		setOfferCollection(session.collection);
 		setHydrated(true);
 	}, []);
+
+	const activeCustomer: OmsaCustomer | undefined = profileCustomer
+		? profileCustomer
+		: guestCustomer.firstName || guestCustomer.lastName || guestCustomer.email
+			? {
+					firstName: guestCustomer.firstName || undefined,
+					lastName: guestCustomer.lastName || undefined,
+					email: guestCustomer.email || undefined,
+				}
+			: undefined;
+
+	const guestCustomerComplete =
+		!!profileCustomer ||
+		(!!guestCustomer.firstName &&
+			!!guestCustomer.lastName &&
+			!!guestCustomer.email);
 
 	const selectedOffers: Offer[] =
 		offerCollection?.offers?.filter((o) => o.id && offerIds.includes(o.id)) ??
@@ -62,12 +86,16 @@ function CheckoutScreen() {
 	const currency = selectedOffers[0]?.properties?.price?.currencyCode ?? "NOK";
 
 	async function handlePurchase() {
-		if (!paymentMethod) return;
+		if (!paymentMethod || !guestCustomerComplete) return;
 		dispatch({ type: "START_PURCHASE" });
 		try {
 			// Step 1: OMSA purchase-offers (supports multiple IDs in one call)
 			const purchased = await purchaseMutation.mutateAsync({
-				inputs: { type: "purchase_offers", offerIds },
+				inputs: {
+					type: "purchase_offers",
+					offerIds,
+					...(activeCustomer ? { customer: activeCustomer } : {}),
+				},
 			});
 			const packageId = purchased.id ?? "";
 			dispatch({ type: "PURCHASE_DONE", packageId });
@@ -228,6 +256,153 @@ function CheckoutScreen() {
 				</div>
 
 				<div
+					className="mb-4 rounded-lg p-4"
+					style={{
+						background: "var(--wayfare-surface-strong)",
+						border: "1px solid var(--wayfare-line)",
+					}}
+				>
+					<p
+						className="text-xs font-semibold uppercase tracking-wide mb-3"
+						style={{ color: "var(--wayfare-text-secondary)" }}
+					>
+						Customer
+					</p>
+					{profileCustomer ? (
+						<div className="flex items-center justify-between gap-2">
+							<div>
+								<p
+									className="text-sm font-medium"
+									style={{ color: "var(--wayfare-text)", margin: 0 }}
+								>
+									{[profileCustomer.firstName, profileCustomer.lastName]
+										.filter(Boolean)
+										.join(" ") || profileCustomer.id}
+								</p>
+								{profileCustomer.email && (
+									<p
+										className="text-xs"
+										style={{
+											color: "var(--wayfare-text-secondary)",
+											margin: 0,
+										}}
+									>
+										{profileCustomer.email}
+									</p>
+								)}
+							</div>
+							<Link
+								to="/profile"
+								className="text-xs no-underline"
+								style={{ color: "var(--wayfare-primary)" }}
+							>
+								Change
+							</Link>
+						</div>
+					) : (
+						<div className="space-y-3">
+							<p
+								className="text-xs"
+								style={{ color: "var(--wayfare-text-secondary)" }}
+							>
+								No profile selected.{" "}
+								<Link
+									to="/profile"
+									className="no-underline"
+									style={{ color: "var(--wayfare-primary)" }}
+								>
+									Sign in
+								</Link>{" "}
+								or enter your details below.
+							</p>
+							<div className="grid grid-cols-2 gap-2">
+								<div>
+									<label
+										htmlFor="checkout-firstName"
+										className="mb-1 block text-xs font-medium"
+										style={{ color: "var(--wayfare-text-secondary)" }}
+									>
+										First name *
+									</label>
+									<input
+										id="checkout-firstName"
+										type="text"
+										value={guestCustomer.firstName}
+										onChange={(e) =>
+											setGuestCustomer((g) => ({
+												...g,
+												firstName: e.target.value,
+											}))
+										}
+										className="w-full rounded-lg border px-3 py-2 text-sm"
+										style={{
+											background: "var(--wayfare-surface)",
+											borderColor: "var(--wayfare-line)",
+											color: "var(--wayfare-text)",
+										}}
+										placeholder="First name"
+									/>
+								</div>
+								<div>
+									<label
+										htmlFor="checkout-lastName"
+										className="mb-1 block text-xs font-medium"
+										style={{ color: "var(--wayfare-text-secondary)" }}
+									>
+										Last name *
+									</label>
+									<input
+										id="checkout-lastName"
+										type="text"
+										value={guestCustomer.lastName}
+										onChange={(e) =>
+											setGuestCustomer((g) => ({
+												...g,
+												lastName: e.target.value,
+											}))
+										}
+										className="w-full rounded-lg border px-3 py-2 text-sm"
+										style={{
+											background: "var(--wayfare-surface)",
+											borderColor: "var(--wayfare-line)",
+											color: "var(--wayfare-text)",
+										}}
+										placeholder="Last name"
+									/>
+								</div>
+							</div>
+							<div>
+								<label
+									htmlFor="checkout-email"
+									className="mb-1 block text-xs font-medium"
+									style={{ color: "var(--wayfare-text-secondary)" }}
+								>
+									Email *
+								</label>
+								<input
+									id="checkout-email"
+									type="email"
+									value={guestCustomer.email}
+									onChange={(e) =>
+										setGuestCustomer((g) => ({
+											...g,
+											email: e.target.value,
+										}))
+									}
+									className="w-full rounded-lg border px-3 py-2 text-sm"
+									style={{
+										background: "var(--wayfare-surface)",
+										borderColor: "var(--wayfare-line)",
+										color: "var(--wayfare-text)",
+									}}
+									placeholder="email@example.com"
+								/>
+							</div>
+						</div>
+					)}
+				</div>
+
+				<div
 					className="mb-6 rounded-lg p-4"
 					style={{
 						background: "var(--wayfare-surface-strong)",
@@ -267,7 +442,7 @@ function CheckoutScreen() {
 					<Button
 						variant="primary"
 						className="flex-1"
-						disabled={!paymentMethod || isProcessing}
+						disabled={!paymentMethod || !guestCustomerComplete || isProcessing}
 						loading={isProcessing}
 						onClick={handlePurchase}
 					>

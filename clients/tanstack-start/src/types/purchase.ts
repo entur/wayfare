@@ -1,4 +1,5 @@
 import type { AmountOfMoney, Link } from "./common";
+import type { OmsaCustomer } from "./customer";
 
 export interface Subscriber {
 	successUri?: string;
@@ -9,6 +10,7 @@ export interface Subscriber {
 export interface PurchaseOffersInputs {
 	type: "purchase_offers";
 	offerIds: string[];
+	customer?: OmsaCustomer;
 	timestamp?: string;
 }
 

@@ -16,6 +16,7 @@ export interface IndividualTraveller {
 	type: "individual_traveller";
 	age?: number;
 	fullName?: string;
+	customerReference?: string;
 	entitlements?: TravelPartyEntitlements;
 }
 
