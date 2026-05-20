@@ -4,7 +4,7 @@ import {
 	VippsIcon,
 	VisaIcon,
 } from "@entur/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useProfile } from "../../context/profile";
 import {
 	useAddCard,
@@ -152,7 +152,10 @@ function SignedInPicker({
 		useRecurringPayments(customerId);
 	const addCard = useAddCard(customerId);
 
-	const activeCards = recurringPayments.filter((p) => p.recurringStatus === "ACTIVE");
+	const activeCards = useMemo(
+		() => recurringPayments.filter((p) => p.recurringStatus === "ACTIVE"),
+		[recurringPayments],
+	);
 	const primaryCard = activeCards.find((p) => p.primary) ?? activeCards[0];
 
 	const defaultRadio: RadioValue = autoSelectId
@@ -376,13 +379,13 @@ function GuestPicker({ onSelect }: GuestPickerProps) {
 		if (radio === "vipps") {
 			const phone = vippsPhone.trim();
 			onSelect(phone ? { kind: "vipps", phone } : null);
-			if (phone) setGuestPaymentPrefs({ ...prefs, vippsPhone: phone });
+			if (phone) setGuestPaymentPrefs({ ...getGuestPaymentPrefs(), vippsPhone: phone });
 		} else if (radio) {
 			onSelect({ kind: "card", paymentType: radio as CardPaymentType });
 		} else {
 			onSelect(null);
 		}
-	}, [radio, vippsPhone, onSelect, prefs]);
+	}, [radio, vippsPhone, onSelect]);
 
 	const METHODS: {
 		id: "vipps" | CardPaymentType;
