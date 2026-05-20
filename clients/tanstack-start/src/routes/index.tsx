@@ -396,7 +396,6 @@ function SearchScreen() {
 								label="When"
 								value={state.travelDate}
 								timeMode={state.timeMode}
-								minDate={new Date().toISOString().slice(0, 10)}
 								onChange={(v) =>
 									dispatch({ type: "SET_TRAVEL_DATE", payload: v })
 								}

@@ -176,12 +176,12 @@ export default function DateTimePicker({
 	}
 
 	function adjustHour(delta: number) {
-		const h = ((hour + delta) % 24 + 24) % 24;
+		const h = (((hour + delta) % 24) + 24) % 24;
 		onChange(`${dateStr}T${pad(h)}:${mStr}`);
 	}
 
 	function adjustMinute(delta: number) {
-		const m = ((minute + delta) % 60 + 60) % 60;
+		const m = (((minute + delta) % 60) + 60) % 60;
 		onChange(`${dateStr}T${hStr}:${pad(m)}`);
 	}
 
@@ -267,9 +267,7 @@ export default function DateTimePicker({
 											? "var(--wayfare-text)"
 											: "var(--wayfare-text-secondary)",
 									boxShadow:
-										timeMode === m.value
-											? "0 1px 3px rgba(0,0,0,0.1)"
-											: "none",
+										timeMode === m.value ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
 								}}
 							>
 								{m.label}
