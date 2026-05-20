@@ -148,6 +148,7 @@ function OffersScreen() {
 		navigate({
 			to: "/checkout/$offerId",
 			params: { offerId: offerIds.join(",") },
+			search: { pendingCardId: undefined },
 		});
 	}
 

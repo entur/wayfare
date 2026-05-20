@@ -88,12 +88,19 @@ export interface ChangeOptionCollection {
 	numberReturned?: number;
 }
 
+export interface StoredPackageContact {
+	firstName?: string;
+	lastName?: string;
+	email?: string;
+}
+
 export interface StoredPackage {
 	packageId: string;
 	savedAt: string;
 	status: string;
 	price: { amount: number; currencyCode?: string };
 	offerIds?: string[];
+	guestContact?: StoredPackageContact;
 }
 
 export interface PackageItemProperties {

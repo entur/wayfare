@@ -3,19 +3,21 @@ import { useEffect } from "react";
 import PageShell from "../components/layout/PageShell";
 import { useCaptureTransaction } from "../hooks/use-payments";
 import { useConfirmPackage } from "../hooks/use-purchase";
-import { savePackage } from "../lib/ticket-storage";
+import { getTransaction } from "../server-functions/payments";
+import { popPendingGuestContact, savePackage } from "../lib/ticket-storage";
 
 export const Route = createFileRoute("/payment-return")({
 	validateSearch: (search: Record<string, unknown>) => ({
 		packageId: search.packageId as string | undefined,
 		enturPaymentId: search.enturPaymentId as string | undefined,
 		enturTransactionId: search.enturTransactionId as string | undefined,
+		paymentType: search.paymentType as string | undefined,
 	}),
 	component: PaymentReturnPage,
 });
 
 function PaymentReturnPage() {
-	const { packageId, enturPaymentId, enturTransactionId } = Route.useSearch();
+	const { packageId, enturPaymentId, enturTransactionId, paymentType } = Route.useSearch();
 	const navigate = useNavigate();
 	const captureMutation = useCaptureTransaction();
 	const confirmMutation = useConfirmPackage();
@@ -30,14 +32,28 @@ function PaymentReturnPage() {
 		async function complete() {
 			try {
 				if (enturPaymentId && enturTransactionId) {
-					await captureMutation.mutateAsync({
-						paymentId: enturPaymentId,
-						transactionId: enturTransactionId,
-					});
+					if (paymentType === "VIPPS") {
+						// Vipps captures asynchronously; poll until the transaction is settled before confirming
+						for (let attempt = 0; attempt < 30; attempt++) {
+							const tx = await getTransaction({
+								data: { paymentId: enturPaymentId, transactionId: enturTransactionId },
+							});
+							if (tx.status === "CAPTURED") break;
+							if (tx.status === "CANCELLED" || tx.status === "REJECTED") throw new Error("Vipps payment failed");
+							await new Promise((r) => setTimeout(r, 2000));
+							if (attempt === 29) throw new Error("Vipps payment timed out");
+						}
+					} else {
+						await captureMutation.mutateAsync({
+							paymentId: enturPaymentId,
+							transactionId: enturTransactionId,
+						});
+					}
 				}
 				const confirmed = await confirmMutation.mutateAsync({
 					inputs: { type: "package_input", packageId: resolvedPackageId },
 				});
+				const guestContact = popPendingGuestContact(resolvedPackageId);
 				savePackage({
 					packageId: resolvedPackageId,
 					savedAt: new Date().toISOString(),
@@ -46,6 +62,7 @@ function PaymentReturnPage() {
 						amount: confirmed.price?.amount ?? 0,
 						currencyCode: confirmed.price?.currencyCode,
 					},
+					...(guestContact ? { guestContact } : {}),
 				});
 				navigate({
 					to: "/tickets/$packageId",
@@ -64,6 +81,7 @@ function PaymentReturnPage() {
 		navigate,
 		enturPaymentId,
 		enturTransactionId,
+		paymentType,
 	]);
 
 	return (
