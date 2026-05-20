@@ -256,6 +256,50 @@ export function createOmsaClient(devConfig?: DevConfigOverrides) {
 				throw error;
 			}
 		},
+
+		async put<T>(path: string, body: unknown): Promise<T> {
+			const requestUrl = `${config.omsaBaseUrl}${path}`;
+			const startedAt = Date.now();
+			const headers = {
+				...(await authorizedHeaders(devConfig)),
+				"Content-Type": "application/json",
+			};
+			logRequest("PUT", requestUrl, body, headers);
+			try {
+				const response = await fetch(requestUrl, {
+					method: "PUT",
+					headers,
+					body: JSON.stringify(body),
+				});
+				await logResponse(response, startedAt);
+				return handleResponse<T>(response, `PUT ${path}`);
+			} catch (error) {
+				logRequestError("PUT", requestUrl, startedAt, error);
+				throw error;
+			}
+		},
+
+		async patch<T>(path: string, body: unknown): Promise<T> {
+			const requestUrl = `${config.omsaBaseUrl}${path}`;
+			const startedAt = Date.now();
+			const headers = {
+				...(await authorizedHeaders(devConfig)),
+				"Content-Type": "application/json",
+			};
+			logRequest("PATCH", requestUrl, body, headers);
+			try {
+				const response = await fetch(requestUrl, {
+					method: "PATCH",
+					headers,
+					body: JSON.stringify(body),
+				});
+				await logResponse(response, startedAt);
+				return handleResponse<T>(response, `PATCH ${path}`);
+			} catch (error) {
+				logRequestError("PATCH", requestUrl, startedAt, error);
+				throw error;
+			}
+		},
 	};
 }
 
@@ -313,9 +357,15 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 			}
 		},
 
-		async get<T>(path: string): Promise<T> {
+		async get<T>(path: string, params?: Record<string, string>): Promise<T> {
 			const authorization = await getAccessToken(devConfig);
-			const requestUrl = `${config.salesBaseUrl}${path}`;
+			const url = new URL(`${config.salesBaseUrl}${path}`);
+			if (params) {
+				for (const [key, value] of Object.entries(params)) {
+					url.searchParams.set(key, value);
+				}
+			}
+			const requestUrl = url.toString();
 			const startedAt = Date.now();
 			const headers = {
 				Authorization: authorization,
@@ -330,6 +380,56 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 				return handleResponse<T>(response, `GET ${path}`);
 			} catch (error) {
 				logRequestError("GET", requestUrl, startedAt, error);
+				throw error;
+			}
+		},
+
+		async patch<T>(path: string, body: unknown): Promise<T> {
+			const authorization = await getAccessToken(devConfig);
+			const requestUrl = `${config.salesBaseUrl}${path}`;
+			const startedAt = Date.now();
+			const headers = {
+				Authorization: authorization,
+				Accept: "application/hal+json",
+				"Accept-Language": "en-GB",
+				"Content-Type": "application/json",
+				...enturHeaders(devConfig),
+			};
+			logRequest("PATCH", requestUrl, body, headers);
+			try {
+				const response = await fetch(requestUrl, {
+					method: "PATCH",
+					headers,
+					body: JSON.stringify(body),
+				});
+				await logResponse(response, startedAt);
+				return handleResponse<T>(response, `PATCH ${path}`);
+			} catch (error) {
+				logRequestError("PATCH", requestUrl, startedAt, error);
+				throw error;
+			}
+		},
+
+		async delete<T>(path: string): Promise<T> {
+			const authorization = await getAccessToken(devConfig);
+			const requestUrl = `${config.salesBaseUrl}${path}`;
+			const startedAt = Date.now();
+			const headers = {
+				Authorization: authorization,
+				Accept: "application/hal+json",
+				"Accept-Language": "en-GB",
+				...enturHeaders(devConfig),
+			};
+			logRequest("DELETE", requestUrl, undefined, headers);
+			try {
+				const response = await fetch(requestUrl, {
+					method: "DELETE",
+					headers,
+				});
+				await logResponse(response, startedAt);
+				return handleResponse<T>(response, `DELETE ${path}`);
+			} catch (error) {
+				logRequestError("DELETE", requestUrl, startedAt, error);
 				throw error;
 			}
 		},
