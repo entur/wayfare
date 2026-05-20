@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { TimeMode } from "../../context/search-form";
 
 function localIsoNow(): string {
@@ -16,8 +16,18 @@ function addMinutes(localStr: string, minutes: number): string {
 }
 
 const MONTHS = [
-	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+	"Jan",
+	"Feb",
+	"Mar",
+	"Apr",
+	"May",
+	"Jun",
+	"Jul",
+	"Aug",
+	"Sep",
+	"Oct",
+	"Nov",
+	"Dec",
 ] as const;
 
 function formatTrigger(mode: TimeMode, value: string): string {
@@ -54,6 +64,7 @@ export default function DateTimePicker({
 }: DateTimePickerProps) {
 	const [open, setOpen] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
+	const triggerId = useId();
 
 	useEffect(() => {
 		if (!open) return;
@@ -89,12 +100,14 @@ export default function DateTimePicker({
 	return (
 		<div ref={containerRef} className="relative w-full">
 			<label
+				htmlFor={triggerId}
 				className="mb-1.5 block text-sm font-medium"
 				style={{ color: "var(--wayfare-text)" }}
 			>
 				{label}
 			</label>
 			<button
+				id={triggerId}
 				type="button"
 				onClick={() => setOpen((v) => !v)}
 				className="flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2"
@@ -155,9 +168,7 @@ export default function DateTimePicker({
 											? "var(--wayfare-text)"
 											: "var(--wayfare-text-secondary)",
 									boxShadow:
-										timeMode === m.value
-											? "0 1px 3px rgba(0,0,0,0.1)"
-											: "none",
+										timeMode === m.value ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
 								}}
 							>
 								{m.label}

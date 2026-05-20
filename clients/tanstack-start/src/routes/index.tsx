@@ -15,7 +15,11 @@ import { useSearchOffers } from "../hooks/use-search-offers";
 import { useTripPlanner } from "../hooks/use-trip-planner";
 import { writeSearchSession } from "../lib/search-session";
 import type { OmsaCustomer } from "../types/customer";
-import type { IndividualTraveller, TripPatternLeg, UserProfile } from "../types/search";
+import type {
+	IndividualTraveller,
+	TripPatternLeg,
+	UserProfile,
+} from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
 
 function syncCustomerIntoTravelers(
@@ -47,15 +51,22 @@ function syncCustomerIntoTravelers(
 	];
 }
 
-function removeCustomerFromTravelers(travelers: TravelerGroup[]): TravelerGroup[] {
+function removeCustomerFromTravelers(
+	travelers: TravelerGroup[],
+): TravelerGroup[] {
 	return travelers.flatMap((t) => {
 		if (!t.individuals?.some((i) => i.customerId)) return [t];
 		const without = t.individuals.filter((i) => !i.customerId);
 		const newCount = Math.max(1, t.count - 1);
-		return [{ ...t, count: newCount, individuals: without.length ? without : undefined }];
+		return [
+			{
+				...t,
+				count: newCount,
+				individuals: without.length ? without : undefined,
+			},
+		];
 	});
 }
-
 
 export const Route = createFileRoute("/")({ component: SearchPage });
 
@@ -82,7 +93,13 @@ function buildRequest(travelers: TravelerGroup[]): {
 					? "MILITARY"
 					: undefined;
 		const entitlements = entitlementType
-			? { entitlements: { entitlementsGiven: [{ type: "entitlement" as const, entitlementType }] } }
+			? {
+					entitlements: {
+						entitlementsGiven: [
+							{ type: "entitlement" as const, entitlementType },
+						],
+					},
+				}
 			: {};
 		// STUDENT and MILITARY don't map to a UserProfile ageGroup
 		const profileAgeGroup =
@@ -90,16 +107,24 @@ function buildRequest(travelers: TravelerGroup[]): {
 				? t.ageGroup
 				: undefined;
 
-		const named = t.individuals?.filter((i) => i.name || i.age != null || i.customerId) ?? [];
+		const named =
+			t.individuals?.filter((i) => i.name || i.age != null || i.customerId) ??
+			[];
 
 		if (named.length > 0) {
 			named.forEach((person, j) => {
 				travellers.push({
 					id: `${t.id}_${j}`,
 					type: "individual_traveller",
-					...(person.age != null ? { age: person.age } : t.minAge != null ? { age: t.minAge } : {}),
+					...(person.age != null
+						? { age: person.age }
+						: t.minAge != null
+							? { age: t.minAge }
+							: {}),
 					...(person.name ? { fullName: person.name } : {}),
-					...(person.customerId ? { customerReference: person.customerId } : {}),
+					...(person.customerId
+						? { customerReference: person.customerId }
+						: {}),
 					...entitlements,
 				});
 			});
@@ -277,11 +302,13 @@ function SearchScreen() {
 					<div className="max-w-sm">
 						<SegmentedControl
 							legend="Search type"
-							options={[
-								{ value: "zone", label: "Zone to Zone" },
-								{ value: "stop", label: "Stop to Stop" },
-								{ value: "trip", label: "Trip Planner" },
-							] as const}
+							options={
+								[
+									{ value: "zone", label: "Zone to Zone" },
+									{ value: "stop", label: "Stop to Stop" },
+									{ value: "trip", label: "Trip Planner" },
+								] as const
+							}
 							value={state.searchType}
 							onChange={(v) =>
 								dispatch({ type: "SET_SEARCH_TYPE", payload: v })
@@ -309,7 +336,9 @@ function SearchScreen() {
 						{/* Swap button — desktop only. Phantom label spacer keeps the button
 						    flush with the input row rather than the top of the cell. */}
 						<div className="hidden lg:flex lg:flex-col">
-							<span className="mb-1.5 block text-sm" aria-hidden="true">&nbsp;</span>
+							<span className="mb-1.5 block text-sm" aria-hidden="true">
+								&nbsp;
+							</span>
 							<button
 								type="button"
 								onClick={handleSwap}
@@ -321,9 +350,27 @@ function SearchScreen() {
 									color: "var(--wayfare-text-secondary)",
 								}}
 							>
-								<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-									<path d="M1 4h12M10 1l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-									<path d="M13 10H1M4 7l-3 3 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+								<svg
+									width="14"
+									height="14"
+									viewBox="0 0 14 14"
+									fill="none"
+									aria-hidden="true"
+								>
+									<path
+										d="M1 4h12M10 1l3 3-3 3"
+										stroke="currentColor"
+										strokeWidth="1.5"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									/>
+									<path
+										d="M13 10H1M4 7l-3 3 3 3"
+										stroke="currentColor"
+										strokeWidth="1.5"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									/>
 								</svg>
 							</button>
 						</div>
@@ -362,7 +409,9 @@ function SearchScreen() {
 						<div className="sm:col-span-2 lg:col-span-1">
 							<TravelerPicker
 								travelers={state.travelers}
-								onChange={(t) => dispatch({ type: "SET_TRAVELERS", payload: t })}
+								onChange={(t) =>
+									dispatch({ type: "SET_TRAVELERS", payload: t })
+								}
 								customer={customer}
 							/>
 						</div>

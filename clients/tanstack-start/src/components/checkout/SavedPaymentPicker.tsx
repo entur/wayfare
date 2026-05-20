@@ -10,8 +10,14 @@ import {
 	useAddCard,
 	useRecurringPayments,
 } from "../../hooks/use-recurring-payments";
-import { getGuestPaymentPrefs, setGuestPaymentPrefs } from "../../lib/payment-methods-storage";
-import type { PaymentSelection, RecurringPayment } from "../../types/payment-methods";
+import {
+	getGuestPaymentPrefs,
+	setGuestPaymentPrefs,
+} from "../../lib/payment-methods-storage";
+import type {
+	PaymentSelection,
+	RecurringPayment,
+} from "../../types/payment-methods";
 import type { CardPaymentType } from "../../types/purchase";
 import Button from "../ui/Button";
 
@@ -181,7 +187,9 @@ function SignedInPicker({
 	// emit selection whenever relevant state changes
 	useEffect(() => {
 		if (radio === "vipps") {
-			onSelect(vippsPhone.trim() ? { kind: "vipps", phone: vippsPhone.trim() } : null);
+			onSelect(
+				vippsPhone.trim() ? { kind: "vipps", phone: vippsPhone.trim() } : null,
+			);
 		} else if (radio === "new-card") {
 			onSelect(cardType ? { kind: "card", paymentType: cardType } : null);
 		} else {
@@ -215,7 +223,9 @@ function SignedInPicker({
 			window.location.href = result.terminalUri;
 		} catch (err) {
 			setAddError(
-				err instanceof Error ? err.message : "Could not start card registration",
+				err instanceof Error
+					? err.message
+					: "Could not start card registration",
 			);
 		}
 	}
@@ -379,7 +389,8 @@ function GuestPicker({ onSelect }: GuestPickerProps) {
 		if (radio === "vipps") {
 			const phone = vippsPhone.trim();
 			onSelect(phone ? { kind: "vipps", phone } : null);
-			if (phone) setGuestPaymentPrefs({ ...getGuestPaymentPrefs(), vippsPhone: phone });
+			if (phone)
+				setGuestPaymentPrefs({ ...getGuestPaymentPrefs(), vippsPhone: phone });
 		} else if (radio) {
 			onSelect({ kind: "card", paymentType: radio as CardPaymentType });
 		} else {
@@ -393,13 +404,30 @@ function GuestPicker({ onSelect }: GuestPickerProps) {
 		description: string;
 		Icon: React.ComponentType;
 	}[] = [
-		{ id: "VISA", label: "Visa", description: "Pay with Visa card", Icon: VisaIcon },
-		{ id: "MASTERCARD", label: "Mastercard", description: "Pay with Mastercard", Icon: MastercardIcon },
-		{ id: "AMEX", label: "American Express", description: "Pay with American Express", Icon: AmericanExpressIcon },
+		{
+			id: "VISA",
+			label: "Visa",
+			description: "Pay with Visa card",
+			Icon: VisaIcon,
+		},
+		{
+			id: "MASTERCARD",
+			label: "Mastercard",
+			description: "Pay with Mastercard",
+			Icon: MastercardIcon,
+		},
+		{
+			id: "AMEX",
+			label: "American Express",
+			description: "Pay with American Express",
+			Icon: AmericanExpressIcon,
+		},
 		{
 			id: "vipps",
 			label: "Vipps",
-			description: vippsPhone ? `Using number: ${vippsPhone}` : "Pay with Vipps mobile payment",
+			description: vippsPhone
+				? `Using number: ${vippsPhone}`
+				: "Pay with Vipps mobile payment",
 			Icon: VippsIcon,
 		},
 	];

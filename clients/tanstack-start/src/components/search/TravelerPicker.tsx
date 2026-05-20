@@ -1,6 +1,9 @@
 import { DownArrowIcon, UsersIcon } from "@entur/icons";
 import { useEffect, useRef, useState } from "react";
-import type { TravelerGroup, TravelerIndividual } from "../../context/search-form";
+import type {
+	TravelerGroup,
+	TravelerIndividual,
+} from "../../context/search-form";
 import type { OmsaCustomer } from "../../types/customer";
 
 const GROUPS: {
@@ -19,7 +22,8 @@ const GROUPS: {
 ];
 
 const ringStyle = {
-	"--tw-ring-color": "color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
+	"--tw-ring-color":
+		"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
 } as React.CSSProperties;
 
 const inputStyle: React.CSSProperties = {
@@ -29,7 +33,8 @@ const inputStyle: React.CSSProperties = {
 	...ringStyle,
 };
 
-const inputCls = "rounded-lg border px-2 py-1.5 text-xs outline-none focus:ring-1";
+const inputCls =
+	"rounded-lg border px-2 py-1.5 text-xs outline-none focus:ring-1";
 
 interface TravelerPickerProps {
 	travelers: TravelerGroup[];
@@ -37,14 +42,22 @@ interface TravelerPickerProps {
 	customer?: OmsaCustomer | null;
 }
 
-export default function TravelerPicker({ travelers, onChange, customer }: TravelerPickerProps) {
+export default function TravelerPicker({
+	travelers,
+	onChange,
+	customer,
+}: TravelerPickerProps) {
 	const [open, setOpen] = useState(false);
-	const [expandedId, setExpandedId] = useState<TravelerGroup["ageGroup"] | null>(null);
+	const [expandedId, setExpandedId] = useState<
+		TravelerGroup["ageGroup"] | null
+	>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	const customerIncluded = !!customer?.id && travelers.some((t) =>
-		t.individuals?.some((i) => i.customerId === customer.id),
-	);
+	const customerIncluded =
+		!!customer?.id &&
+		travelers.some((t) =>
+			t.individuals?.some((i) => i.customerId === customer.id),
+		);
 
 	const total = travelers.reduce((sum, t) => sum + t.count, 0);
 
@@ -65,7 +78,10 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 
 	useEffect(() => {
 		function onPointerDown(e: PointerEvent) {
-			if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+			if (
+				containerRef.current &&
+				!containerRef.current.contains(e.target as Node)
+			) {
 				setOpen(false);
 			}
 		}
@@ -81,8 +97,13 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 		return getGroup(ag)?.count ?? 0;
 	}
 
-	function updateGroup(ag: TravelerGroup["ageGroup"], updates: Partial<TravelerGroup>) {
-		onChange(travelers.map((t) => (t.ageGroup === ag ? { ...t, ...updates } : t)));
+	function updateGroup(
+		ag: TravelerGroup["ageGroup"],
+		updates: Partial<TravelerGroup>,
+	) {
+		onChange(
+			travelers.map((t) => (t.ageGroup === ag ? { ...t, ...updates } : t)),
+		);
 	}
 
 	function syncIndividuals(
@@ -97,9 +118,12 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 		if (count > base.length) {
 			return [
 				...base,
-				...Array.from({ length: count - base.length }, (): TravelerIndividual => ({
-					id: crypto.randomUUID(),
-				})),
+				...Array.from(
+					{ length: count - base.length },
+					(): TravelerIndividual => ({
+						id: crypto.randomUUID(),
+					}),
+				),
 			];
 		}
 		return base.slice(0, count);
@@ -126,7 +150,11 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 				...(ag === "YOUTH" ? { minAge: 16, maxAge: 17 } : {}),
 				...(ag === "CHILD" ? { minAge: 6, maxAge: 15 } : {}),
 				...(ag === "SENIOR" ? { minAge: 67 } : {}),
-				individuals: syncIndividuals(current?.individuals, count, !!meta.perPerson),
+				individuals: syncIndividuals(
+					current?.individuals,
+					count,
+					!!meta.perPerson,
+				),
 			},
 		]);
 	}
@@ -137,29 +165,41 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 			const adultGroup = getGroup("ADULT");
 			if (!adultGroup) return;
 			const newCount = adultGroup.count - 1;
-			const without = adultGroup.individuals?.filter((i) => !i.customerId) ?? [];
+			const without =
+				adultGroup.individuals?.filter((i) => !i.customerId) ?? [];
 			if (newCount <= 0) {
 				onChange(travelers.filter((t) => t.ageGroup !== "ADULT"));
 			} else {
 				onChange(
 					travelers.map((t) =>
 						t.ageGroup === "ADULT"
-							? { ...t, count: newCount, individuals: without.length ? without : undefined }
+							? {
+									...t,
+									count: newCount,
+									individuals: without.length ? without : undefined,
+								}
 							: t,
 					),
 				);
 			}
 		} else {
 			const name =
-				[customer.firstName, customer.lastName].filter(Boolean).join(" ") || undefined;
+				[customer.firstName, customer.lastName].filter(Boolean).join(" ") ||
+				undefined;
 			const customerInd: TravelerIndividual = { name, customerId: customer.id };
 			const adultGroup = getGroup("ADULT");
 			if (adultGroup) {
-				const others = (adultGroup.individuals ?? []).filter((i) => !i.customerId);
+				const others = (adultGroup.individuals ?? []).filter(
+					(i) => !i.customerId,
+				);
 				onChange(
 					travelers.map((t) =>
 						t.ageGroup === "ADULT"
-							? { ...t, count: t.count + 1, individuals: [customerInd, ...others] }
+							? {
+									...t,
+									count: t.count + 1,
+									individuals: [customerInd, ...others],
+								}
 							: t,
 					),
 				);
@@ -208,7 +248,10 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 		});
 	}
 
-	function renderIndividualRows(ag: TravelerGroup["ageGroup"], showAge: boolean) {
+	function renderIndividualRows(
+		ag: TravelerGroup["ageGroup"],
+		showAge: boolean,
+	) {
 		const group = getGroup(ag);
 		if (!group?.individuals) return null;
 		return (
@@ -236,7 +279,10 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 								value={person.age ?? ""}
 								onChange={(e) =>
 									updateIndividual(ag, i, {
-										age: e.target.value === "" ? undefined : Number(e.target.value),
+										age:
+											e.target.value === ""
+												? undefined
+												: Number(e.target.value),
 									})
 								}
 								className={`w-20 shrink-0 ${inputCls}`}
@@ -260,7 +306,9 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 	}
 
 	const customerInitials = customer
-		? [customer.firstName?.[0], customer.lastName?.[0]].filter(Boolean).join("") || "?"
+		? [customer.firstName?.[0], customer.lastName?.[0]]
+				.filter(Boolean)
+				.join("") || "?"
 		: null;
 
 	return (
@@ -272,7 +320,10 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 				style={{
 					borderColor: "var(--wayfare-line)",
 					background: "var(--wayfare-surface-strong)",
-					color: total === 0 ? "var(--wayfare-text-secondary)" : "var(--wayfare-text)",
+					color:
+						total === 0
+							? "var(--wayfare-text-secondary)"
+							: "var(--wayfare-text)",
 					...ringStyle,
 				}}
 				aria-haspopup="dialog"
@@ -287,7 +338,10 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 							{customerInitials}
 						</span>
 					) : (
-						<UsersIcon aria-hidden="true" style={{ color: "var(--wayfare-text-secondary)" }} />
+						<UsersIcon
+							aria-hidden="true"
+							style={{ color: "var(--wayfare-text-secondary)" }}
+						/>
 					)}
 					{summary}
 				</span>
@@ -428,7 +482,9 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 										{!group.perPerson && count > 0 && (
 											<button
 												type="button"
-												onClick={() => setExpandedId(isExpanded ? null : group.id)}
+												onClick={() =>
+													setExpandedId(isExpanded ? null : group.id)
+												}
 												aria-label={`${isExpanded ? "Collapse" : "Expand"} ${group.label} options`}
 												className="flex h-7 w-7 items-center justify-center rounded-lg border text-xs transition-colors"
 												style={{
@@ -448,7 +504,8 @@ export default function TravelerPicker({ travelers, onChange, customer }: Travel
 								</div>
 
 								{/* perPerson groups: always-visible individual rows */}
-								{group.perPerson && count > 0 &&
+								{group.perPerson &&
+									count > 0 &&
 									renderIndividualRows(group.id, true)}
 
 								{/* Non-perPerson groups: collapsible names panel */}

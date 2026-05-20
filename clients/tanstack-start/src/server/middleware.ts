@@ -20,12 +20,12 @@ function parseDevConfigCookie(): DevConfigOverrides {
 	}
 }
 
-export const devConfigMiddleware = createMiddleware({ type: "function" }).server(
-	async ({ next }) => {
-		const devConfig = parseDevConfigCookie();
-		return next({ context: { devConfig } });
-	},
-);
+export const devConfigMiddleware = createMiddleware({
+	type: "function",
+}).server(async ({ next }) => {
+	const devConfig = parseDevConfigCookie();
+	return next({ context: { devConfig } });
+});
 
 export const authMiddleware = createMiddleware({ type: "function" })
 	.middleware([devConfigMiddleware])

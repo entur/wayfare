@@ -33,9 +33,7 @@ function customerDisplayName(c: OmsaCustomer): string {
 }
 
 function customerInitials(c: OmsaCustomer): string {
-	return (
-		[c.firstName?.[0], c.lastName?.[0]].filter(Boolean).join("") || "?"
-	);
+	return [c.firstName?.[0], c.lastName?.[0]].filter(Boolean).join("") || "?";
 }
 
 function ProfileTab() {
@@ -375,7 +373,8 @@ function AppTab() {
 							className="text-xs"
 							style={{ color: "var(--wayfare-text-secondary)", margin: 0 }}
 						>
-							{cleared ? 0 : count} ticket{count !== 1 ? "s" : ""} stored locally
+							{cleared ? 0 : count} ticket{count !== 1 ? "s" : ""} stored
+							locally
 						</p>
 					</div>
 					<Button
@@ -522,9 +521,7 @@ function DeveloperTab() {
 				/>
 				<p className="mt-2 text-xs" style={labelStyle}>
 					.env default:{" "}
-					<span className="font-mono">
-						{resolved?.envDefaults.mode ?? "…"}
-					</span>
+					<span className="font-mono">{resolved?.envDefaults.mode ?? "…"}</span>
 				</p>
 			</section>
 
@@ -645,7 +642,9 @@ function SettingsPage() {
 	const navigate = useNavigate({ from: "/settings" });
 
 	function setTab(t: Tab) {
-		navigate({ search: (prev) => ({ ...prev, tab: t, pendingCardId: undefined }) });
+		navigate({
+			search: (prev) => ({ ...prev, tab: t, pendingCardId: undefined }),
+		});
 	}
 
 	function clearPendingCard() {
@@ -658,12 +657,14 @@ function SettingsPage() {
 				<div className="mb-6">
 					<SegmentedControl
 						legend="Settings section"
-						options={[
-							{ value: "profile", label: "Profile" },
-							{ value: "payment", label: "Payment" },
-							{ value: "app", label: "App" },
-							{ value: "developer", label: "Developer" },
-						] as const}
+						options={
+							[
+								{ value: "profile", label: "Profile" },
+								{ value: "payment", label: "Payment" },
+								{ value: "app", label: "App" },
+								{ value: "developer", label: "Developer" },
+							] as const
+						}
 						value={tab}
 						onChange={setTab}
 					/>

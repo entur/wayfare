@@ -17,7 +17,8 @@ export const Route = createFileRoute("/payment-return")({
 });
 
 function PaymentReturnPage() {
-	const { packageId, enturPaymentId, enturTransactionId, paymentType } = Route.useSearch();
+	const { packageId, enturPaymentId, enturTransactionId, paymentType } =
+		Route.useSearch();
 	const navigate = useNavigate();
 	const captureMutation = useCaptureTransaction();
 	const confirmMutation = useConfirmPackage();
@@ -36,10 +37,14 @@ function PaymentReturnPage() {
 						// Vipps captures asynchronously; poll until the transaction is settled before confirming
 						for (let attempt = 0; attempt < 30; attempt++) {
 							const tx = await getTransaction({
-								data: { paymentId: enturPaymentId, transactionId: enturTransactionId },
+								data: {
+									paymentId: enturPaymentId,
+									transactionId: enturTransactionId,
+								},
 							});
 							if (tx.status === "CAPTURED") break;
-							if (tx.status === "CANCELLED" || tx.status === "REJECTED") throw new Error("Vipps payment failed");
+							if (tx.status === "CANCELLED" || tx.status === "REJECTED")
+								throw new Error("Vipps payment failed");
 							await new Promise((r) => setTimeout(r, 2000));
 							if (attempt === 29) throw new Error("Vipps payment timed out");
 						}

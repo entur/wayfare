@@ -35,5 +35,4 @@ export const getResolvedDevConfig = createServerFn({ method: "GET" })
 				pos: process.env.ENTUR_POS ?? "Wayfare",
 			},
 		};
-	},
-);
+	});

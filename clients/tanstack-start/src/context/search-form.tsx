@@ -10,7 +10,14 @@ export interface TravelerIndividual {
 
 export interface TravelerGroup {
 	id: string;
-	ageGroup: "ADULT" | "CHILD" | "YOUTH" | "SENIOR" | "INFANT" | "STUDENT" | "MILITARY";
+	ageGroup:
+		| "ADULT"
+		| "CHILD"
+		| "YOUTH"
+		| "SENIOR"
+		| "INFANT"
+		| "STUDENT"
+		| "MILITARY";
 	count: number;
 	minAge?: number;
 	maxAge?: number;
