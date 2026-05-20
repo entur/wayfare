@@ -207,6 +207,11 @@ function SearchScreen() {
 
 		const { profiles, travellers } = buildRequest(state.travelers);
 
+		const timeField =
+			state.timeMode === "arrive"
+				? { endTime: travelDateTime }
+				: { startTime: travelDateTime };
+
 		const result = await mutateAsync({
 			inputs: {
 				type: "search_offer",
@@ -215,7 +220,7 @@ function SearchScreen() {
 				specification: {
 					from,
 					to,
-					startTime: travelDateTime,
+					...timeField,
 				},
 			},
 		});
