@@ -18,11 +18,13 @@ export interface TravelerGroup {
 }
 
 export type SearchType = "zone" | "stop" | "trip";
+export type TimeMode = "now" | "depart" | "arrive";
 
 interface SearchFormState {
 	from: PlaceReference | null;
 	to: PlaceReference | null;
 	travelDate: string;
+	timeMode: TimeMode;
 	travelers: TravelerGroup[];
 	searchType: SearchType;
 }
@@ -31,6 +33,7 @@ type Action =
 	| { type: "SET_FROM"; payload: PlaceReference | null }
 	| { type: "SET_TO"; payload: PlaceReference | null }
 	| { type: "SET_TRAVEL_DATE"; payload: string }
+	| { type: "SET_TIME_MODE"; payload: TimeMode }
 	| { type: "SET_TRAVELERS"; payload: TravelerGroup[] }
 	| { type: "SET_SEARCH_TYPE"; payload: SearchType };
 
@@ -44,6 +47,7 @@ const defaultState: SearchFormState = {
 	from: null,
 	to: null,
 	travelDate: "", // set on client after mount to avoid SSR/hydration mismatch
+	timeMode: "depart",
 	travelers: [{ id: "adult", ageGroup: "ADULT", count: 1, minAge: 18 }],
 	searchType: "zone",
 };
@@ -56,6 +60,8 @@ function reducer(state: SearchFormState, action: Action): SearchFormState {
 			return { ...state, to: action.payload };
 		case "SET_TRAVEL_DATE":
 			return { ...state, travelDate: action.payload };
+		case "SET_TIME_MODE":
+			return { ...state, timeMode: action.payload };
 		case "SET_TRAVELERS":
 			return { ...state, travelers: action.payload };
 		case "SET_SEARCH_TYPE":
