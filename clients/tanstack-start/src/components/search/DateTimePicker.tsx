@@ -11,11 +11,16 @@ function localIsoNow(): string {
 	return now.toISOString().slice(0, 16);
 }
 
-function addMinutes(localStr: string, minutes: number): string {
+function parseLocalIso(localStr: string): Date {
 	const [datePart, timePart = "00:00"] = localStr.split("T");
 	const [y, m, d] = datePart.split("-").map(Number);
 	const [h, min] = timePart.split(":").map(Number);
-	const date = new Date(y, m - 1, d, h, min + minutes);
+	return new Date(y, m - 1, d, h, min);
+}
+
+function addMinutes(localStr: string, minutes: number): string {
+	const date = parseLocalIso(localStr);
+	date.setMinutes(date.getMinutes() + minutes);
 	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
@@ -98,13 +103,13 @@ export default function DateTimePicker({
 	const popupRef = useRef<HTMLDivElement>(null);
 	const triggerId = useId();
 
-	const parsedDate = value ? new Date(value.replace("T", " ")) : new Date();
+	const parsedDate = value ? parseLocalIso(value) : new Date();
 	const [calYear, setCalYear] = useState(parsedDate.getFullYear());
 	const [calMonth, setCalMonth] = useState(parsedDate.getMonth());
 
 	useEffect(() => {
 		if (value) {
-			const d = new Date(value.replace("T", " "));
+			const d = parseLocalIso(value);
 			setCalYear(d.getFullYear());
 			setCalMonth(d.getMonth());
 		}
