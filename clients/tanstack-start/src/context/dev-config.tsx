@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
 	clearDevConfigOverrides,
 	getDevConfigOverrides,
@@ -15,16 +16,23 @@ interface DevConfigContextValue {
 const DevConfigContext = createContext<DevConfigContextValue | null>(null);
 
 export function DevConfigProvider({ children }: { children: React.ReactNode }) {
+	const queryClient = useQueryClient();
 	const [overrides, setOverridesState] = useState<DevConfigOverrides>(
 		() => getDevConfigOverrides(),
 	);
 
 	function setOverrides(next: DevConfigOverrides) {
 		const cleaned = setDevConfigOverrides(next);
+		if (cleaned.envMode !== overrides.envMode) {
+			queryClient.clear();
+		}
 		setOverridesState(cleaned);
 	}
 
 	function resetOverrides() {
+		if (overrides.envMode !== undefined) {
+			queryClient.clear();
+		}
 		clearDevConfigOverrides();
 		setOverridesState({});
 	}

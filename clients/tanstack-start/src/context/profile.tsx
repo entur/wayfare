@@ -3,8 +3,10 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useRef,
 	useState,
 } from "react";
+import { useDevConfig } from "./dev-config";
 import {
 	clearStoredCustomer,
 	getStoredCustomer,
@@ -21,11 +23,20 @@ interface ProfileContextValue {
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
+	const { overrides } = useDevConfig();
 	const [customer, setCustomer] = useState<OmsaCustomer | null>(null);
+	const prevEnvMode = useRef(overrides.envMode);
 
 	useEffect(() => {
 		setCustomer(getStoredCustomer());
 	}, []);
+
+	useEffect(() => {
+		if (prevEnvMode.current === overrides.envMode) return;
+		prevEnvMode.current = overrides.envMode;
+		clearStoredCustomer();
+		setCustomer(null);
+	}, [overrides.envMode]);
 
 	const signIn = useCallback((c: OmsaCustomer) => {
 		storeCustomer(c);
