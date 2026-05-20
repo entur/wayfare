@@ -313,6 +313,12 @@ export default function TravelerPicker({
 
 	return (
 		<div ref={containerRef} className="relative w-full">
+			<p
+				className="mb-1.5 text-sm font-medium"
+				style={{ color: "var(--wayfare-text)" }}
+			>
+				Who
+			</p>
 			<button
 				type="button"
 				onClick={() => setOpen((v) => !v)}
