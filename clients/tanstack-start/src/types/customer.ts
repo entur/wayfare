@@ -1,9 +1,11 @@
 export interface OmsaCustomer {
 	id?: string;
+	customerNumber?: string;
 	firstName?: string;
 	lastName?: string;
 	email?: string;
 	phoneNumber?: string;
+	vippsPhoneNumber?: string;
 }
 
 export interface CustomerCollection {

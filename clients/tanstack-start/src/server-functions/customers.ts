@@ -30,3 +30,19 @@ export const getCustomer = createServerFn({ method: "GET" })
 			`/collections/customers/items/${encodeURIComponent(data.customerId)}`,
 		);
 	});
+
+export interface UpdateCustomerRequest {
+	customerId: string;
+	customer: Partial<OmsaCustomer>;
+}
+
+export const updateCustomer = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.inputValidator((data: UpdateCustomerRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.put<OmsaCustomer>(
+			`/collections/customers/items/${encodeURIComponent(data.customerId)}`,
+			data.customer,
+		);
+	});
