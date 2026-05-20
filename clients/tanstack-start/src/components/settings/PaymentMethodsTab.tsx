@@ -349,16 +349,17 @@ function SignedInPaymentMethods({
 }: SignedInPaymentMethodsProps) {
 	const { customer, signIn } = useProfile();
 	const customerId = customer?.id ?? "";
+	const customerNumber = customer?.customerNumber ?? "";
 
 	const {
 		data: recurringPayments,
 		isLoading,
 		error,
-	} = useRecurringPayments(customerId);
-	const setPrimary = useSetPrimaryPayment(customerId);
-	const deletePayment = useDeletePayment(customerId);
-	const addCard = useAddCard(customerId);
-	const authorizeCard = useAuthorizeCard(customerId);
+	} = useRecurringPayments(customerNumber);
+	const setPrimary = useSetPrimaryPayment(customerNumber);
+	const deletePayment = useDeletePayment(customerNumber);
+	const addCard = useAddCard(customerNumber);
+	const authorizeCard = useAuthorizeCard(customerNumber);
 
 	const [primaryPendingId, setPrimaryPendingId] = useState<number | null>(null);
 	const [deletePendingId, setDeletePendingId] = useState<number | null>(null);

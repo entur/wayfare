@@ -152,11 +152,11 @@ function SignedInPicker({
 	offerId,
 }: SignedInPickerProps) {
 	const { customer } = useProfile();
-	const customerId = customer?.id ?? "";
+	const customerNumber = customer?.customerNumber ?? "";
 
 	const { data: recurringPayments = [], isLoading } =
-		useRecurringPayments(customerId);
-	const addCard = useAddCard(customerId);
+		useRecurringPayments(customerNumber);
+	const addCard = useAddCard(customerNumber);
 
 	const activeCards = useMemo(
 		() => recurringPayments.filter((p) => p.recurringStatus === "ACTIVE"),
