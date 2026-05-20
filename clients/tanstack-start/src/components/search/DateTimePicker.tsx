@@ -323,6 +323,7 @@ export default function DateTimePicker({
 								<div className="grid grid-cols-7">
 									{cells.map((day, i) => {
 										if (day === null) {
+											// biome-ignore lint/suspicious/noArrayIndexKey: empty padding cells are fixed-position spacers that never reorder
 											return <div key={`e-${i}`} className="h-7" />;
 										}
 										const cellStr = `${calYear}-${pad(calMonth + 1)}-${pad(day)}`;
