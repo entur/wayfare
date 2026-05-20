@@ -17,8 +17,8 @@ const DevConfigContext = createContext<DevConfigContextValue | null>(null);
 
 export function DevConfigProvider({ children }: { children: React.ReactNode }) {
 	const queryClient = useQueryClient();
-	const [overrides, setOverridesState] = useState<DevConfigOverrides>(
-		() => getDevConfigOverrides(),
+	const [overrides, setOverridesState] = useState<DevConfigOverrides>(() =>
+		getDevConfigOverrides(),
 	);
 
 	function setOverrides(next: DevConfigOverrides) {
@@ -38,7 +38,9 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
 	}
 
 	return (
-		<DevConfigContext.Provider value={{ overrides, setOverrides, resetOverrides }}>
+		<DevConfigContext.Provider
+			value={{ overrides, setOverrides, resetOverrides }}
+		>
 			{children}
 		</DevConfigContext.Provider>
 	);
@@ -46,6 +48,7 @@ export function DevConfigProvider({ children }: { children: React.ReactNode }) {
 
 export function useDevConfig() {
 	const ctx = useContext(DevConfigContext);
-	if (!ctx) throw new Error("useDevConfig must be used within DevConfigProvider");
+	if (!ctx)
+		throw new Error("useDevConfig must be used within DevConfigProvider");
 	return ctx;
 }

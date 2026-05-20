@@ -23,7 +23,10 @@ import { readSearchSession } from "../../lib/search-session";
 import { setPendingGuestContact } from "../../lib/ticket-storage";
 import type { OmsaCustomer } from "../../types/customer";
 import type { PaymentSelection } from "../../types/payment-methods";
-import type { CardPaymentTransaction, RecurringPaymentTransaction } from "../../types/purchase";
+import type {
+	CardPaymentTransaction,
+	RecurringPaymentTransaction,
+} from "../../types/purchase";
 import type { Offer, OfferCollection } from "../../types/search";
 
 export const Route = createFileRoute("/checkout/$offerId")({
@@ -51,8 +54,12 @@ function CheckoutScreen() {
 	const { customer: profileCustomer } = useProfile();
 	const navigate = useNavigate({ from: "/checkout/$offerId" });
 
-	const [paymentMethod, setPaymentMethod] = useState<PaymentSelection | null>(null);
-	const [authorizedCardId, setAuthorizedCardId] = useState<number | undefined>();
+	const [paymentMethod, setPaymentMethod] = useState<PaymentSelection | null>(
+		null,
+	);
+	const [authorizedCardId, setAuthorizedCardId] = useState<
+		number | undefined
+	>();
 	const [hydrated, setHydrated] = useState(false);
 	const [offerCollection, setOfferCollection] =
 		useState<OfferCollection | null>(null);
@@ -71,17 +78,20 @@ function CheckoutScreen() {
 	// Handle return from add-card terminal
 	useEffect(() => {
 		if (!pendingCardId || !profileCustomer?.id) return;
-		authorizeCard.mutateAsync(pendingCardId).then((authorized) => {
-			setAuthorizedCardId(authorized.recurringPaymentId);
-			setPaymentMethod({
-				kind: "recurring",
-				recurringPaymentId: authorized.recurringPaymentId,
-				paymentType: authorized.paymentType,
+		authorizeCard
+			.mutateAsync(pendingCardId)
+			.then((authorized) => {
+				setAuthorizedCardId(authorized.recurringPaymentId);
+				setPaymentMethod({
+					kind: "recurring",
+					recurringPaymentId: authorized.recurringPaymentId,
+					paymentType: authorized.paymentType,
+				});
+				navigate({ search: { pendingCardId: undefined } });
+			})
+			.catch(() => {
+				navigate({ search: { pendingCardId: undefined } });
 			});
-			navigate({ search: { pendingCardId: undefined } });
-		}).catch(() => {
-			navigate({ search: { pendingCardId: undefined } });
-		});
 	}, [pendingCardId, profileCustomer?.id, authorizeCard.mutateAsync, navigate]);
 
 	useEffect(() => {
@@ -91,8 +101,9 @@ function CheckoutScreen() {
 	}, []);
 
 	// OMSA requires customer.id to be non-null, so only attach a customer when signed in
-	const activeCustomer: OmsaCustomer | undefined =
-		profileCustomer?.id ? profileCustomer : undefined;
+	const activeCustomer: OmsaCustomer | undefined = profileCustomer?.id
+		? profileCustomer
+		: undefined;
 
 	const guestCustomerComplete = true;
 
@@ -111,7 +122,8 @@ function CheckoutScreen() {
 	const currency = selectedOffers[0]?.properties?.price?.currencyCode ?? "NOK";
 
 	async function handlePurchase() {
-		if (!paymentMethod || !paymentMethodComplete || !guestCustomerComplete) return;
+		if (!paymentMethod || !paymentMethodComplete || !guestCustomerComplete)
+			return;
 		dispatch({ type: "START_PURCHASE" });
 		try {
 			// Step 1: OMSA purchase-offers
@@ -517,7 +529,9 @@ function CheckoutScreen() {
 					<Button
 						variant="primary"
 						className="flex-1"
-						disabled={!paymentMethodComplete || !guestCustomerComplete || isProcessing}
+						disabled={
+							!paymentMethodComplete || !guestCustomerComplete || isProcessing
+						}
 						loading={isProcessing}
 						onClick={handlePurchase}
 					>

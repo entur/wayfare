@@ -1,4 +1,4 @@
-import { UserIcon } from "@entur/icons";
+import { AdditionalZonesTicketIcon, SearchIcon, UserIcon } from "@entur/icons";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useProfile } from "../context/profile";
 import ThemeToggle from "./ThemeToggle";
@@ -7,23 +7,26 @@ import WayfareWordmark from "./WayfareWordmark";
 function NavItem({
 	to,
 	active,
+	icon,
 	children,
 }: {
 	to: string;
 	active: boolean;
+	icon: React.ReactNode;
 	children: React.ReactNode;
 }) {
 	return (
 		<Link
 			to={to}
-			className="rounded-lg px-3 py-1.5 text-sm font-medium no-underline transition-colors"
-			style={{
-				color: active
-					? "var(--wayfare-primary)"
-					: "var(--wayfare-text-secondary)",
-				background: active ? "var(--wayfare-accent-soft)" : "transparent",
-			}}
+			className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium no-underline transition-colors ${
+				active
+					? "bg-[var(--wayfare-accent-soft)] text-[var(--wayfare-primary)]"
+					: "text-[var(--wayfare-text-secondary)] hover:bg-[var(--wayfare-bg)]"
+			}`}
 		>
+			<span className="flex shrink-0 items-center" aria-hidden="true">
+				{icon}
+			</span>
 			{children}
 		</Link>
 	);
@@ -38,6 +41,18 @@ export default function Header() {
 		: null;
 
 	const isSettingsActive = pathname === "/settings";
+	const profileActive = isSettingsActive || !!customer;
+
+	const profileIcon = initials ? (
+		<span
+			className="flex h-[1.1rem] w-[1.1rem] items-center justify-center rounded-full text-[0.5rem] font-bold"
+			style={{ background: "var(--wayfare-primary)", color: "#fff" }}
+		>
+			{initials}
+		</span>
+	) : (
+		<UserIcon size={16} aria-hidden="true" />
+	);
 
 	return (
 		<header
@@ -57,40 +72,42 @@ export default function Header() {
 				</Link>
 
 				<div className="ml-auto flex items-center gap-1">
-					<NavItem to="/" active={pathname === "/"}>
+					<NavItem
+						to="/"
+						active={pathname === "/"}
+						icon={<SearchIcon size={16} />}
+					>
 						Search
 					</NavItem>
-					<NavItem to="/tickets" active={pathname.startsWith("/tickets")}>
+					<NavItem
+						to="/tickets"
+						active={pathname.startsWith("/tickets")}
+						icon={<AdditionalZonesTicketIcon size={16} />}
+					>
 						Tickets
 					</NavItem>
 					<Link
 						to="/settings"
 						search={{ tab: "profile", pendingCardId: undefined }}
-						aria-label="Settings"
-						className="flex items-center justify-center rounded-full p-1 no-underline transition-colors"
-						style={{
-							color:
-								isSettingsActive || customer
-									? "var(--wayfare-primary)"
-									: "var(--wayfare-text-secondary)",
-							background: isSettingsActive
-								? "var(--wayfare-accent-soft)"
-								: "transparent",
-						}}
+						aria-label={
+							customer ? `Profile – ${customer.firstName}` : "Profile"
+						}
+						className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium no-underline transition-colors ${
+							isSettingsActive
+								? "bg-[var(--wayfare-accent-soft)] text-[var(--wayfare-primary)]"
+								: `hover:bg-[var(--wayfare-bg)] ${profileActive ? "text-[var(--wayfare-primary)]" : "text-[var(--wayfare-text-secondary)]"}`
+						}`}
 					>
-						{initials ? (
-							<span
-								className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold"
-								style={{ background: "var(--wayfare-primary)", color: "#fff" }}
-							>
-								{initials}
-							</span>
-						) : (
-							<span className="flex h-7 w-7 items-center justify-center">
-								<UserIcon aria-hidden="true" />
-							</span>
-						)}
+						<span className="flex shrink-0 items-center" aria-hidden="true">
+							{profileIcon}
+						</span>
+						{customer?.firstName ?? "Profile"}
 					</Link>
+					<div
+						className="mx-1 h-4 w-px self-center"
+						style={{ background: "var(--wayfare-line)" }}
+						aria-hidden="true"
+					/>
 					<ThemeToggle />
 				</div>
 			</nav>

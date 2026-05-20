@@ -11,7 +11,9 @@ import type {
 
 export const listRecurringPayments = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((data: { customerNumber: string; includeExpired?: boolean }) => data)
+	.inputValidator(
+		(data: { customerNumber: string; includeExpired?: boolean }) => data,
+	)
 	.handler(async ({ data, context }) => {
 		const sales = createSalesClient(context.devConfig);
 		const params: Record<string, string> = {

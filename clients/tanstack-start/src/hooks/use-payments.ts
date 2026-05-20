@@ -31,7 +31,11 @@ export function useStartTerminalSession() {
 }
 
 export function useStartAppClaim() {
-	return useMutation<{ appClaimUrl?: string; status?: string }, Error, AppClaimRequest>({
+	return useMutation<
+		{ appClaimUrl?: string; status?: string },
+		Error,
+		AppClaimRequest
+	>({
 		mutationFn: (req) => startAppClaim({ data: req }),
 	});
 }
@@ -58,7 +62,13 @@ export function useGetTransaction(
 		enabled: !!paymentId && !!transactionId,
 		refetchInterval: (query) => {
 			const status = query.state.data?.status;
-			if (!status || status === "CAPTURED" || status === "CANCELLED" || status === "REJECTED") return false;
+			if (
+				!status ||
+				status === "CAPTURED" ||
+				status === "CANCELLED" ||
+				status === "REJECTED"
+			)
+				return false;
 			return 2000;
 		},
 	});

@@ -231,9 +231,7 @@ export default function BundleCard({
 									"Travel offer";
 								const price = offer.properties?.price;
 								const ids = getOfferTravellerIds(offer);
-								const offerParties = parties.filter((p) =>
-									ids.includes(p.id),
-								);
+								const offerParties = parties.filter((p) => ids.includes(p.id));
 
 								const travellerText =
 									offerParties.length > 0

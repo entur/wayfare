@@ -1,3 +1,4 @@
+import { LaptopIcon, NightIcon, SunIcon } from "@entur/icons";
 import { useEffect, useState } from "react";
 
 type ThemeMode = "light" | "dark" | "auto";
@@ -22,6 +23,13 @@ function applyThemeMode(mode: ThemeMode) {
 	document.documentElement.setAttribute("data-color-mode", resolved);
 	document.documentElement.style.colorScheme = resolved;
 }
+
+const modeConfig: Record<ThemeMode, { icon: React.ReactNode; label: string }> =
+	{
+		light: { icon: <SunIcon size={16} aria-hidden="true" />, label: "Light" },
+		dark: { icon: <NightIcon size={16} aria-hidden="true" />, label: "Dark" },
+		auto: { icon: <LaptopIcon size={16} aria-hidden="true" />, label: "Auto" },
+	};
 
 export default function ThemeToggle() {
 	const [mode, setMode] = useState<ThemeMode>("auto");
@@ -54,25 +62,18 @@ export default function ThemeToggle() {
 		window.localStorage.setItem("theme", nextMode);
 	}
 
-	const label =
-		mode === "auto"
-			? "Theme mode: auto (system). Click to switch to light mode."
-			: `Theme mode: ${mode}. Click to switch mode.`;
+	const { icon, label } = modeConfig[mode];
+	const ariaLabel = `Theme: ${label}. Click to cycle theme.`;
 
 	return (
 		<button
 			type="button"
 			onClick={toggleMode}
-			aria-label={label}
-			title={label}
-			className="rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors"
-			style={{
-				borderColor: "var(--wayfare-line)",
-				color: "var(--wayfare-text-secondary)",
-				background: "transparent",
-			}}
+			aria-label={ariaLabel}
+			title={ariaLabel}
+			className="flex cursor-pointer items-center justify-center rounded-lg p-1.5 text-[var(--wayfare-text-secondary)] transition-colors hover:bg-[var(--wayfare-bg)]"
 		>
-			{mode === "auto" ? "Auto" : mode === "dark" ? "Dark" : "Light"}
+			{icon}
 		</button>
 	);
 }

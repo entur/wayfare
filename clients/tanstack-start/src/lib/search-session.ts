@@ -1,6 +1,10 @@
 import type { SearchType } from "../context/search-form";
 import type { PlaceReference } from "../types/common";
-import type { IndividualTraveller, OfferCollection, UserProfile } from "../types/search";
+import type {
+	IndividualTraveller,
+	OfferCollection,
+	UserProfile,
+} from "../types/search";
 
 const OFFER_COLLECTION_KEY = "offerCollection";
 const SEARCH_CONTEXT_KEY = "searchContext";

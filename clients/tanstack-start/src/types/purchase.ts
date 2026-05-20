@@ -101,7 +101,9 @@ export interface RecurringPaymentTransaction {
 	recurringPaymentId: number;
 }
 
-export type PaymentTransaction = CardPaymentTransaction | RecurringPaymentTransaction;
+export type PaymentTransaction =
+	| CardPaymentTransaction
+	| RecurringPaymentTransaction;
 
 export interface PaymentRequest {
 	orderId: string;

@@ -1,6 +1,10 @@
 import type { CardPaymentType } from "./purchase";
 
-export type RecurringPaymentStatus = "CREATED" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+export type RecurringPaymentStatus =
+	| "CREATED"
+	| "ACTIVE"
+	| "EXPIRED"
+	| "CANCELLED";
 
 export interface RecurringPayment {
 	recurringPaymentId: number;
@@ -83,6 +87,10 @@ export interface GuestPaymentPrefs {
 }
 
 export type PaymentSelection =
-	| { kind: "recurring"; recurringPaymentId: number; paymentType?: CardPaymentType }
+	| {
+			kind: "recurring";
+			recurringPaymentId: number;
+			paymentType?: CardPaymentType;
+	  }
 	| { kind: "card"; paymentType: CardPaymentType }
 	| { kind: "vipps"; phone: string };

@@ -1,8 +1,4 @@
-import {
-	AmericanExpressIcon,
-	MastercardIcon,
-	VisaIcon,
-} from "@entur/icons";
+import { AmericanExpressIcon, MastercardIcon, VisaIcon } from "@entur/icons";
 import { useEffect, useRef, useState } from "react";
 import { useProfile } from "../../context/profile";
 import { useUpdateCustomer } from "../../hooks/use-customers";
@@ -276,9 +272,7 @@ function RecurringPaymentRow({
 	primaryPendingId,
 	deletePendingId,
 }: RecurringPaymentRowProps) {
-	const meta = payment.paymentType
-		? CARD_META[payment.paymentType]
-		: undefined;
+	const meta = payment.paymentType ? CARD_META[payment.paymentType] : undefined;
 	const Icon = meta?.Icon;
 
 	return (
@@ -356,7 +350,11 @@ function SignedInPaymentMethods({
 	const { customer, signIn } = useProfile();
 	const customerId = customer?.id ?? "";
 
-	const { data: recurringPayments, isLoading, error } = useRecurringPayments(customerId);
+	const {
+		data: recurringPayments,
+		isLoading,
+		error,
+	} = useRecurringPayments(customerId);
 	const setPrimary = useSetPrimaryPayment(customerId);
 	const deletePayment = useDeletePayment(customerId);
 	const addCard = useAddCard(customerId);
@@ -417,7 +415,9 @@ function SignedInPaymentMethods({
 			window.location.href = result.terminalUri;
 		} catch (err) {
 			setAddError(
-				err instanceof Error ? err.message : "Could not start card registration",
+				err instanceof Error
+					? err.message
+					: "Could not start card registration",
 			);
 		}
 	}
@@ -474,8 +474,13 @@ function SignedInPaymentMethods({
 					</p>
 				)}
 				{error && !isLoading && (
-					<p className="py-3 text-sm" style={{ color: "var(--wayfare-primary)" }}>
-						{error instanceof Error ? error.message : "Failed to load saved cards"}
+					<p
+						className="py-3 text-sm"
+						style={{ color: "var(--wayfare-primary)" }}
+					>
+						{error instanceof Error
+							? error.message
+							: "Failed to load saved cards"}
 					</p>
 				)}
 

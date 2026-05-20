@@ -125,9 +125,7 @@ function OffersScreen() {
 
 	function handleContinue() {
 		const extractIds = (bundle: OfferBundle): string[] =>
-			bundle.offers
-				.map((o) => o.id)
-				.filter((id): id is string => Boolean(id));
+			bundle.offers.map((o) => o.id).filter((id): id is string => Boolean(id));
 
 		let offerIds: string[] = [];
 		if (selectedFullKey !== null) {
