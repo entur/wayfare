@@ -52,5 +52,6 @@ export function clearDevConfigOverrides(): void {
 function syncCookie(overrides: DevConfigOverrides): void {
 	const value = encodeURIComponent(JSON.stringify(overrides));
 	const oneYear = 365 * 24 * 60 * 60;
+	// biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API is async and has limited browser support; synchronous write is required here
 	document.cookie = `${DEV_CONFIG_COOKIE_NAME}=${value}; path=/; max-age=${oneYear}; SameSite=Strict`;
 }

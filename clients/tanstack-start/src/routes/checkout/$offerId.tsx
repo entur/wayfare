@@ -82,9 +82,7 @@ function CheckoutScreen() {
 		}).catch(() => {
 			navigate({ search: { pendingCardId: undefined } });
 		});
-		// run once on mount when pendingCardId is present
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [pendingCardId, profileCustomer?.id, authorizeCard.mutateAsync, navigate]);
 
 	useEffect(() => {
 		const session = readSearchSession();

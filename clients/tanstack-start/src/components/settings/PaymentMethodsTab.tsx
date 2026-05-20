@@ -385,7 +385,7 @@ function SignedInPaymentMethods({
 					err instanceof Error ? err.message : "Card activation failed",
 				);
 			});
-	}, []);
+	}, [pendingCardId, authorizeCard.mutateAsync, onCardAuthorized]);
 
 	async function handleSetPrimary(id: number) {
 		setPrimaryPendingId(id);

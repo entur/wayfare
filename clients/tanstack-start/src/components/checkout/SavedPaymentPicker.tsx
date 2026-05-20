@@ -195,8 +195,7 @@ function SignedInPicker({
 				onSelect(null);
 			}
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [radio, vippsPhone, cardType]);
+	}, [radio, vippsPhone, cardType, activeCards, onSelect]);
 
 	function selectRecurring(p: RecurringPayment) {
 		setRadio(`recurring-${p.recurringPaymentId}`);
@@ -383,8 +382,7 @@ function GuestPicker({ onSelect }: GuestPickerProps) {
 		} else {
 			onSelect(null);
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [radio, vippsPhone]);
+	}, [radio, vippsPhone, onSelect, prefs]);
 
 	const METHODS: {
 		id: "vipps" | CardPaymentType;
