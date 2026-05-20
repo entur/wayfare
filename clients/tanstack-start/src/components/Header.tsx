@@ -65,6 +65,7 @@ export default function Header() {
 					</NavItem>
 					<Link
 						to="/settings"
+						search={{ tab: "profile", pendingCardId: undefined }}
 						aria-label="Settings"
 						className="flex items-center justify-center rounded-full p-1 no-underline transition-colors"
 						style={{

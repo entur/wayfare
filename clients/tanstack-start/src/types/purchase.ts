@@ -74,14 +74,34 @@ export interface ConfirmedPackage {
 export type CardPaymentType = "VISA" | "MASTERCARD" | "AMEX" | "BANKAXEPT";
 export type OtherPaymentType = "VIPPS" | "GIFTCARD" | "INTERNAL";
 export type PaymentType = CardPaymentType | OtherPaymentType;
+export type PaymentTypeGroup =
+	| "AGENT"
+	| "CASH"
+	| "ECARD"
+	| "GIFTCARD"
+	| "INVOICE"
+	| "MOBILE"
+	| "PAYMENTCARD"
+	| "PAYPAL"
+	| "REMITTED"
+	| "REQUISITION"
+	| "TRAVELACCOUNT";
 
-export interface PaymentTransaction {
+export interface CardPaymentTransaction {
 	amount: string;
 	currency: string;
 	paymentType: PaymentType;
 	isImport?: boolean;
-	paymentTypeGroup?: string;
+	paymentTypeGroup?: PaymentTypeGroup;
 }
+
+export interface RecurringPaymentTransaction {
+	amount: string;
+	currency: string;
+	recurringPaymentId: number;
+}
+
+export type PaymentTransaction = CardPaymentTransaction | RecurringPaymentTransaction;
 
 export interface PaymentRequest {
 	orderId: string;
@@ -112,9 +132,17 @@ export interface TerminalSessionResult {
 	terminalUri?: string;
 }
 
+export type TransactionStatusValue =
+	| "CANCELLED"
+	| "CAPTURED"
+	| "CREATED"
+	| "CREDITED"
+	| "INITIATED"
+	| "REJECTED";
+
 export interface TransactionStatus {
 	id?: string;
-	status?: string;
+	status?: TransactionStatusValue;
 	amount?: string;
 	currency?: string;
 	paymentType?: string;

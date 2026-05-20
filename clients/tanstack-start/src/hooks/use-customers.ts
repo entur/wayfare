@@ -1,6 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
-import { getCustomer, getCustomers } from "../server-functions/customers";
-import type { CustomerSearchParams } from "../types/customer";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	getCustomer,
+	getCustomers,
+	updateCustomer,
+} from "../server-functions/customers";
+import type { CustomerSearchParams, OmsaCustomer } from "../types/customer";
 
 export function useCustomerSearch(
 	params: CustomerSearchParams,
@@ -21,5 +25,16 @@ export function useCustomer(customerId: string | undefined) {
 			return getCustomer({ data: { customerId } });
 		},
 		enabled: !!customerId,
+	});
+}
+
+export function useUpdateCustomer(customerId: string) {
+	const queryClient = useQueryClient();
+	return useMutation<OmsaCustomer, Error, Partial<OmsaCustomer>>({
+		mutationFn: (customer) =>
+			updateCustomer({ data: { customerId, customer } }),
+		onSuccess: (updated) => {
+			queryClient.setQueryData(["customer", customerId], updated);
+		},
 	});
 }

@@ -50,7 +50,7 @@ export const startAppClaim = createServerFn({ method: "POST" })
 	.inputValidator((data: AppClaimRequest) => data)
 	.handler(async ({ data, context }) => {
 		const sales = createSalesClient(context.devConfig);
-		return sales.post<{ status?: string; id?: string }>(
+		return sales.post<{ appClaimUrl?: string; status?: string }>(
 			`/payments/${data.paymentId}/transactions/${data.transactionId}/app-claim`,
 			{
 				description: data.description,

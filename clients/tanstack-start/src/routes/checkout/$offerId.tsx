@@ -1,7 +1,7 @@
 import { CardIcon, LeftArrowIcon } from "@entur/icons";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import PaymentMethodPicker from "../../components/checkout/PaymentMethodPicker";
+import SavedPaymentPicker from "../../components/checkout/SavedPaymentPicker";
 import PurchaseProgress from "../../components/checkout/PurchaseProgress";
 import PurchaseSuccess from "../../components/checkout/PurchaseSuccess";
 import PageShell from "../../components/layout/PageShell";
@@ -13,16 +13,25 @@ import {
 } from "../../context/purchase-flow";
 import {
 	useCreatePayment,
+	useStartAppClaim,
 	useStartTerminalSession,
 } from "../../hooks/use-payments";
+import { useAuthorizeCard } from "../../hooks/use-recurring-payments";
 import { usePurchaseOffers } from "../../hooks/use-purchase";
 import { formatPrice } from "../../lib/format-price";
 import { readSearchSession } from "../../lib/search-session";
+import { setPendingGuestContact } from "../../lib/ticket-storage";
 import type { OmsaCustomer } from "../../types/customer";
-import type { PaymentType } from "../../types/purchase";
+import type { PaymentSelection } from "../../types/payment-methods";
+import type { CardPaymentTransaction, RecurringPaymentTransaction } from "../../types/purchase";
 import type { Offer, OfferCollection } from "../../types/search";
 
 export const Route = createFileRoute("/checkout/$offerId")({
+	validateSearch: (search: Record<string, unknown>) => ({
+		pendingCardId: search.pendingCardId
+			? Number(search.pendingCardId)
+			: undefined,
+	}),
 	component: CheckoutPage,
 });
 
@@ -36,10 +45,14 @@ function CheckoutPage() {
 
 function CheckoutScreen() {
 	const { offerId } = Route.useParams();
+	const { pendingCardId } = Route.useSearch();
 	const offerIds = offerId.split(",");
 	const { state, dispatch } = usePurchaseFlow();
 	const { customer: profileCustomer } = useProfile();
-	const [paymentMethod, setPaymentMethod] = useState<PaymentType | null>(null);
+	const navigate = useNavigate({ from: "/checkout/$offerId" });
+
+	const [paymentMethod, setPaymentMethod] = useState<PaymentSelection | null>(null);
+	const [authorizedCardId, setAuthorizedCardId] = useState<number | undefined>();
 	const [hydrated, setHydrated] = useState(false);
 	const [offerCollection, setOfferCollection] =
 		useState<OfferCollection | null>(null);
@@ -52,6 +65,24 @@ function CheckoutScreen() {
 	const purchaseMutation = usePurchaseOffers();
 	const createPaymentMutation = useCreatePayment();
 	const startTerminalMutation = useStartTerminalSession();
+	const startAppClaimMutation = useStartAppClaim();
+	const authorizeCard = useAuthorizeCard(profileCustomer?.id ?? "");
+
+	// Handle return from add-card terminal
+	useEffect(() => {
+		if (!pendingCardId || !profileCustomer?.id) return;
+		authorizeCard.mutateAsync(pendingCardId).then((authorized) => {
+			setAuthorizedCardId(authorized.recurringPaymentId);
+			setPaymentMethod({
+				kind: "recurring",
+				recurringPaymentId: authorized.recurringPaymentId,
+				paymentType: authorized.paymentType,
+			});
+			navigate({ search: { pendingCardId: undefined } });
+		}).catch(() => {
+			navigate({ search: { pendingCardId: undefined } });
+		});
+	}, [pendingCardId, profileCustomer?.id, authorizeCard.mutateAsync, navigate]);
 
 	useEffect(() => {
 		const session = readSearchSession();
@@ -59,21 +90,15 @@ function CheckoutScreen() {
 		setHydrated(true);
 	}, []);
 
-	const activeCustomer: OmsaCustomer | undefined = profileCustomer
-		? profileCustomer
-		: guestCustomer.firstName || guestCustomer.lastName || guestCustomer.email
-			? {
-					firstName: guestCustomer.firstName || undefined,
-					lastName: guestCustomer.lastName || undefined,
-					email: guestCustomer.email || undefined,
-				}
-			: undefined;
+	// OMSA requires customer.id to be non-null, so only attach a customer when signed in
+	const activeCustomer: OmsaCustomer | undefined =
+		profileCustomer?.id ? profileCustomer : undefined;
 
-	const guestCustomerComplete =
-		!!profileCustomer ||
-		(!!guestCustomer.firstName &&
-			!!guestCustomer.lastName &&
-			!!guestCustomer.email);
+	const guestCustomerComplete = true;
+
+	const paymentMethodComplete =
+		paymentMethod !== null &&
+		(paymentMethod.kind !== "vipps" || paymentMethod.phone.trim().length > 0);
 
 	const selectedOffers: Offer[] =
 		offerCollection?.offers?.filter((o) => o.id && offerIds.includes(o.id)) ??
@@ -86,10 +111,10 @@ function CheckoutScreen() {
 	const currency = selectedOffers[0]?.properties?.price?.currencyCode ?? "NOK";
 
 	async function handlePurchase() {
-		if (!paymentMethod || !guestCustomerComplete) return;
+		if (!paymentMethod || !paymentMethodComplete || !guestCustomerComplete) return;
 		dispatch({ type: "START_PURCHASE" });
 		try {
-			// Step 1: OMSA purchase-offers (supports multiple IDs in one call)
+			// Step 1: OMSA purchase-offers
 			const purchased = await purchaseMutation.mutateAsync({
 				inputs: {
 					type: "purchase_offers",
@@ -100,38 +125,85 @@ function CheckoutScreen() {
 			const packageId = purchased.id ?? "";
 			dispatch({ type: "PURCHASE_DONE", packageId });
 
-			// Step 2: Entur Sales create payment
+			// Stash any guest contact details so payment-return can attach them to the saved package
+			if (!profileCustomer && packageId) {
+				const contact = {
+					firstName: guestCustomer.firstName || undefined,
+					lastName: guestCustomer.lastName || undefined,
+					email: guestCustomer.email || undefined,
+				};
+				if (contact.firstName || contact.lastName || contact.email) {
+					setPendingGuestContact(packageId, contact);
+				}
+			}
+
+			// Step 2: Build transaction based on payment selection
 			const amount = purchased.price?.amount?.toFixed(2) ?? "0.00";
 			const purchasedCurrency = purchased.price?.currencyCode ?? "NOK";
+
+			let transaction: CardPaymentTransaction | RecurringPaymentTransaction;
+			if (paymentMethod.kind === "recurring") {
+				const t: RecurringPaymentTransaction = {
+					amount,
+					currency: purchasedCurrency,
+					recurringPaymentId: paymentMethod.recurringPaymentId,
+				};
+				transaction = t;
+			} else if (paymentMethod.kind === "vipps") {
+				const t: CardPaymentTransaction = {
+					amount,
+					currency: purchasedCurrency,
+					paymentType: "VIPPS",
+					isImport: false,
+					paymentTypeGroup: "MOBILE",
+				};
+				transaction = t;
+			} else {
+				const t: CardPaymentTransaction = {
+					amount,
+					currency: purchasedCurrency,
+					paymentType: paymentMethod.paymentType,
+					isImport: false,
+					paymentTypeGroup: "PAYMENTCARD",
+				};
+				transaction = t;
+			}
+
 			const payment = await createPaymentMutation.mutateAsync({
 				orderId: packageId,
 				orderVersion: purchased.orderVersion ?? 1,
 				totalAmount: amount,
-				transaction: {
-					amount,
-					currency: purchasedCurrency,
-					paymentType: paymentMethod,
-					isImport: false,
-					paymentTypeGroup:
-						paymentMethod === "VIPPS" ? "WALLET" : "PAYMENTCARD",
-				},
+				transaction,
 			});
 			const paymentId = String(payment.paymentId ?? "");
 			const transactionId = String(
 				payment.transactionHistory?.[0]?.transactionId ?? "",
 			);
 
-			// Step 3: Start terminal session
-			const redirectUrl = `${window.location.origin}/payment-return?packageId=${packageId}&enturPaymentId=${paymentId}&enturTransactionId=${transactionId}`;
-			const terminal = await startTerminalMutation.mutateAsync({
-				paymentId,
-				transactionId,
-				redirectUrl,
-				terminalLanguage: "en_GB",
-			});
-
-			// Step 4: Redirect user to Nets terminal
-			window.location.href = terminal.terminalUri ?? "";
+			// Step 3: Initiate payment via terminal (card) or app-claim (Vipps)
+			if (paymentMethod.kind === "vipps") {
+				const returnUrl = `${window.location.origin}/payment-return?packageId=${packageId}&enturPaymentId=${paymentId}&enturTransactionId=${transactionId}&paymentType=VIPPS`;
+				const description =
+					selectedOffers[0]?.properties?.products?.[0]?.productName ??
+					"Entur ticket";
+				const appClaim = await startAppClaimMutation.mutateAsync({
+					paymentId,
+					transactionId,
+					description,
+					phoneNumber: paymentMethod.phone,
+					redirectUrl: returnUrl,
+				});
+				window.location.href = appClaim.appClaimUrl ?? "";
+			} else {
+				const returnUrl = `${window.location.origin}/payment-return?packageId=${packageId}&enturPaymentId=${paymentId}&enturTransactionId=${transactionId}`;
+				const terminal = await startTerminalMutation.mutateAsync({
+					paymentId,
+					transactionId,
+					redirectUrl: returnUrl,
+					terminalLanguage: "en_GB",
+				});
+				window.location.href = terminal.terminalUri ?? "";
+			}
 		} catch (err) {
 			dispatch({
 				type: "FAILED",
@@ -293,6 +365,7 @@ function CheckoutScreen() {
 							</div>
 							<Link
 								to="/settings"
+								search={{ tab: "profile", pendingCardId: undefined }}
 								className="text-xs no-underline"
 								style={{ color: "var(--wayfare-primary)" }}
 							>
@@ -308,6 +381,7 @@ function CheckoutScreen() {
 								No profile selected.{" "}
 								<Link
 									to="/settings"
+									search={{ tab: "profile", pendingCardId: undefined }}
 									className="no-underline"
 									style={{ color: "var(--wayfare-primary)" }}
 								>
@@ -322,7 +396,7 @@ function CheckoutScreen() {
 										className="mb-1 block text-xs font-medium"
 										style={{ color: "var(--wayfare-text-secondary)" }}
 									>
-										First name *
+										First name
 									</label>
 									<input
 										id="checkout-firstName"
@@ -349,7 +423,7 @@ function CheckoutScreen() {
 										className="mb-1 block text-xs font-medium"
 										style={{ color: "var(--wayfare-text-secondary)" }}
 									>
-										Last name *
+										Last name
 									</label>
 									<input
 										id="checkout-lastName"
@@ -377,7 +451,7 @@ function CheckoutScreen() {
 									className="mb-1 block text-xs font-medium"
 									style={{ color: "var(--wayfare-text-secondary)" }}
 								>
-									Email *
+									Email
 								</label>
 								<input
 									id="checkout-email"
@@ -409,9 +483,10 @@ function CheckoutScreen() {
 						border: "1px solid var(--wayfare-line)",
 					}}
 				>
-					<PaymentMethodPicker
-						selected={paymentMethod}
+					<SavedPaymentPicker
 						onSelect={setPaymentMethod}
+						offerId={offerId}
+						autoSelectRecurringPaymentId={authorizedCardId}
 					/>
 				</div>
 
@@ -442,7 +517,7 @@ function CheckoutScreen() {
 					<Button
 						variant="primary"
 						className="flex-1"
-						disabled={!paymentMethod || !guestCustomerComplete || isProcessing}
+						disabled={!paymentMethodComplete || !guestCustomerComplete || isProcessing}
 						loading={isProcessing}
 						onClick={handlePurchase}
 					>

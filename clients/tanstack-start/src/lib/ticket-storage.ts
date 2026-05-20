@@ -1,8 +1,12 @@
-import type { StoredPackage } from "../types/documents";
-
-const STORAGE_KEY = "wayfare_tickets";
+import type { StoredPackage, StoredPackageContact } from "../types/documents";
+import { getDevConfigOverrides } from "./dev-config-storage";
 
 const isClient = typeof window !== "undefined";
+
+function storageKey(): string {
+	const { envMode } = getDevConfigOverrides();
+	return envMode ? `wayfare_tickets_${envMode}` : "wayfare_tickets";
+}
 
 export function savePackage(pkg: StoredPackage): void {
 	if (!isClient) return;
@@ -12,7 +16,7 @@ export function savePackage(pkg: StoredPackage): void {
 		...existing.filter((p) => p.packageId !== pkg.packageId),
 	];
 	try {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+		localStorage.setItem(storageKey(), JSON.stringify(updated));
 	} catch {
 		// storage may be full or unavailable
 	}
@@ -21,7 +25,7 @@ export function savePackage(pkg: StoredPackage): void {
 export function getPackages(): StoredPackage[] {
 	if (!isClient) return [];
 	try {
-		const raw = localStorage.getItem(STORAGE_KEY);
+		const raw = localStorage.getItem(storageKey());
 		if (!raw) return [];
 		return JSON.parse(raw) as StoredPackage[];
 	} catch {
@@ -37,7 +41,7 @@ export function removePackage(id: string): void {
 	if (!isClient) return;
 	const updated = getPackages().filter((p) => p.packageId !== id);
 	try {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+		localStorage.setItem(storageKey(), JSON.stringify(updated));
 	} catch {
 		// ignore
 	}
@@ -46,8 +50,42 @@ export function removePackage(id: string): void {
 export function clearPackages(): void {
 	if (!isClient) return;
 	try {
-		localStorage.removeItem(STORAGE_KEY);
+		localStorage.removeItem(storageKey());
 	} catch {
 		// ignore
+	}
+}
+
+function guestContactKey(packageId: string): string {
+	const { envMode } = getDevConfigOverrides();
+	return envMode
+		? `wayfare_guest_contact_${envMode}_${packageId}`
+		: `wayfare_guest_contact_${packageId}`;
+}
+
+export function setPendingGuestContact(
+	packageId: string,
+	contact: StoredPackageContact,
+): void {
+	if (!isClient) return;
+	try {
+		localStorage.setItem(guestContactKey(packageId), JSON.stringify(contact));
+	} catch {
+		// ignore
+	}
+}
+
+export function popPendingGuestContact(
+	packageId: string,
+): StoredPackageContact | undefined {
+	if (!isClient) return undefined;
+	try {
+		const key = guestContactKey(packageId);
+		const raw = localStorage.getItem(key);
+		localStorage.removeItem(key);
+		if (!raw) return undefined;
+		return JSON.parse(raw) as StoredPackageContact;
+	} catch {
+		return undefined;
 	}
 }
