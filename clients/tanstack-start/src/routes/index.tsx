@@ -391,7 +391,7 @@ function SearchScreen() {
 							/>
 						)}
 
-						<div className="sm:col-span-2 lg:col-span-1">
+						<div className="lg:col-span-1">
 							<DateTimePicker
 								label="When"
 								value={state.travelDate}
@@ -406,7 +406,7 @@ function SearchScreen() {
 							/>
 						</div>
 
-						<div className="sm:col-span-2 lg:col-span-1">
+						<div className="lg:col-span-1">
 							<TravelerPicker
 								travelers={state.travelers}
 								onChange={(t) =>
