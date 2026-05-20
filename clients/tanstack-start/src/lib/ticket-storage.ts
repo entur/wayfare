@@ -56,16 +56,20 @@ export function clearPackages(): void {
 	}
 }
 
+function guestContactKey(packageId: string): string {
+	const { envMode } = getDevConfigOverrides();
+	return envMode
+		? `wayfare_guest_contact_${envMode}_${packageId}`
+		: `wayfare_guest_contact_${packageId}`;
+}
+
 export function setPendingGuestContact(
 	packageId: string,
 	contact: StoredPackageContact,
 ): void {
 	if (!isClient) return;
 	try {
-		localStorage.setItem(
-			`wayfare_guest_contact_${packageId}`,
-			JSON.stringify(contact),
-		);
+		localStorage.setItem(guestContactKey(packageId), JSON.stringify(contact));
 	} catch {
 		// ignore
 	}
@@ -76,8 +80,9 @@ export function popPendingGuestContact(
 ): StoredPackageContact | undefined {
 	if (!isClient) return undefined;
 	try {
-		const raw = localStorage.getItem(`wayfare_guest_contact_${packageId}`);
-		localStorage.removeItem(`wayfare_guest_contact_${packageId}`);
+		const key = guestContactKey(packageId);
+		const raw = localStorage.getItem(key);
+		localStorage.removeItem(key);
 		if (!raw) return undefined;
 		return JSON.parse(raw) as StoredPackageContact;
 	} catch {
