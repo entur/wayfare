@@ -1,8 +1,9 @@
 import { UserIcon } from "@entur/icons";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import PageShell from "../components/layout/PageShell";
+import PaymentMethodsTab from "../components/settings/PaymentMethodsTab";
 import Button from "../components/ui/Button";
 import SegmentedControl from "../components/ui/SegmentedControl";
 import { useDevConfig } from "../context/dev-config";
@@ -14,9 +15,17 @@ import { getResolvedDevConfig } from "../server-functions/dev-config";
 import type { CustomerSearchParams, OmsaCustomer } from "../types/customer";
 import type { OmsaRuntimeMode } from "../server/runtime-config";
 
-export const Route = createFileRoute("/settings")({ component: SettingsPage });
+type Tab = "profile" | "payment" | "app" | "developer";
 
-type Tab = "profile" | "app" | "developer";
+export const Route = createFileRoute("/settings")({
+	validateSearch: (search: Record<string, unknown>) => ({
+		tab: (search.tab as Tab | undefined) ?? "profile",
+		pendingCardId: search.pendingCardId
+			? Number(search.pendingCardId)
+			: undefined,
+	}),
+	component: SettingsPage,
+});
 
 function customerDisplayName(c: OmsaCustomer): string {
 	const parts = [c.firstName, c.lastName].filter(Boolean);
@@ -632,7 +641,16 @@ function DeveloperTab() {
 }
 
 function SettingsPage() {
-	const [tab, setTab] = useState<Tab>("profile");
+	const { tab, pendingCardId } = Route.useSearch();
+	const navigate = useNavigate({ from: "/settings" });
+
+	function setTab(t: Tab) {
+		navigate({ search: (prev) => ({ ...prev, tab: t, pendingCardId: undefined }) });
+	}
+
+	function clearPendingCard() {
+		navigate({ search: (prev) => ({ ...prev, pendingCardId: undefined }) });
+	}
 
 	return (
 		<PageShell title="Settings">
@@ -642,6 +660,7 @@ function SettingsPage() {
 						legend="Settings section"
 						options={[
 							{ value: "profile", label: "Profile" },
+							{ value: "payment", label: "Payment" },
 							{ value: "app", label: "App" },
 							{ value: "developer", label: "Developer" },
 						] as const}
@@ -651,6 +670,12 @@ function SettingsPage() {
 				</div>
 
 				{tab === "profile" && <ProfileTab />}
+				{tab === "payment" && (
+					<PaymentMethodsTab
+						pendingCardId={pendingCardId}
+						onCardAuthorized={clearPendingCard}
+					/>
+				)}
 				{tab === "app" && <AppTab />}
 				{tab === "developer" && <DeveloperTab />}
 			</div>
