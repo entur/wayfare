@@ -89,6 +89,9 @@ export default function Header() {
 					<Link
 						to="/settings"
 						search={{ tab: "profile", pendingCardId: undefined }}
+						aria-label={
+							customer ? `Profile – ${customer.firstName}` : "Profile"
+						}
 						className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium no-underline transition-colors ${
 							isSettingsActive
 								? "bg-[var(--wayfare-accent-soft)] text-[var(--wayfare-primary)]"
