@@ -152,11 +152,11 @@ function SignedInPicker({
 	offerId,
 }: SignedInPickerProps) {
 	const { customer } = useProfile();
-	const customerNumber = customer?.customerNumber ?? "";
+	const customerNumber = customer?.customerNumber;
 
 	const { data: recurringPayments = [], isLoading } =
 		useRecurringPayments(customerNumber);
-	const addCard = useAddCard(customerNumber);
+	const addCard = useAddCard(customerNumber ?? "");
 
 	const activeCards = useMemo(
 		() => recurringPayments.filter((p) => p.recurringStatus === "ACTIVE"),
@@ -364,9 +364,18 @@ function SignedInPicker({
 					variant="secondary"
 					onClick={handleAddCard}
 					loading={addCard.isPending}
+					disabled={!customerNumber}
 				>
 					+ Add new card
 				</Button>
+				{!customerNumber && (
+					<p
+						className="mt-1 text-xs"
+						style={{ color: "var(--wayfare-text-secondary)" }}
+					>
+						Customer number missing — sign out and sign in again to save cards.
+					</p>
+				)}
 			</div>
 		</div>
 	);

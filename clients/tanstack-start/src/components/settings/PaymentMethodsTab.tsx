@@ -349,17 +349,17 @@ function SignedInPaymentMethods({
 }: SignedInPaymentMethodsProps) {
 	const { customer, signIn } = useProfile();
 	const customerId = customer?.id ?? "";
-	const customerNumber = customer?.customerNumber ?? "";
+	const customerNumber = customer?.customerNumber;
 
 	const {
 		data: recurringPayments,
 		isLoading,
 		error,
 	} = useRecurringPayments(customerNumber);
-	const setPrimary = useSetPrimaryPayment(customerNumber);
-	const deletePayment = useDeletePayment(customerNumber);
-	const addCard = useAddCard(customerNumber);
-	const authorizeCard = useAuthorizeCard(customerNumber);
+	const setPrimary = useSetPrimaryPayment(customerNumber ?? "");
+	const deletePayment = useDeletePayment(customerNumber ?? "");
+	const addCard = useAddCard(customerNumber ?? "");
+	const authorizeCard = useAuthorizeCard(customerNumber ?? "");
 
 	const [primaryPendingId, setPrimaryPendingId] = useState<number | null>(null);
 	const [deletePendingId, setDeletePendingId] = useState<number | null>(null);
@@ -520,9 +520,16 @@ function SignedInPaymentMethods({
 								variant="secondary"
 								onClick={handleAddCard}
 								loading={addCard.isPending}
+								disabled={!customerNumber}
 							>
 								+ Add new card
 							</Button>
+							{!customerNumber && (
+								<p className="mt-1 text-sm" style={labelStyle}>
+									Customer number missing — sign out and sign in again to manage
+									saved cards.
+								</p>
+							)}
 						</div>
 					</>
 				)}
