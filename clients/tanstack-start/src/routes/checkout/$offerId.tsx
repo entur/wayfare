@@ -1,9 +1,9 @@
 import { CardIcon, LeftArrowIcon } from "@entur/icons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import SavedPaymentPicker from "../../components/checkout/SavedPaymentPicker";
 import PurchaseProgress from "../../components/checkout/PurchaseProgress";
 import PurchaseSuccess from "../../components/checkout/PurchaseSuccess";
+import SavedPaymentPicker from "../../components/checkout/SavedPaymentPicker";
 import PageShell from "../../components/layout/PageShell";
 import Button from "../../components/ui/Button";
 import { useProfile } from "../../context/profile";
@@ -16,8 +16,8 @@ import {
 	useStartAppClaim,
 	useStartTerminalSession,
 } from "../../hooks/use-payments";
-import { useAuthorizeCard } from "../../hooks/use-recurring-payments";
 import { usePurchaseOffers } from "../../hooks/use-purchase";
+import { useAuthorizeCard } from "../../hooks/use-recurring-payments";
 import { formatPrice } from "../../lib/format-price";
 import { readSearchSession } from "../../lib/search-session";
 import { setPendingGuestContact } from "../../lib/ticket-storage";
@@ -248,8 +248,12 @@ function CheckoutScreen() {
 	}
 
 	return (
-		<PageShell title="Checkout" subtitle="Review your order and pay">
-			<div className="mx-auto max-w-xl">
+		<PageShell
+			title="Checkout"
+			subtitle="Review your order and pay"
+			contentClassName="mx-auto max-w-xl"
+		>
+			<div>
 				{isProcessing && (
 					<div className="mb-6">
 						<PurchaseProgress flowState={state.flowState} />

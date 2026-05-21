@@ -217,8 +217,9 @@ function OffersScreen() {
 		<PageShell
 			title="Available offers"
 			subtitle={`${bundles.length} option${bundles.length !== 1 ? "s" : ""} found`}
+			contentClassName="mx-auto max-w-xl"
 		>
-			<div className="mx-auto max-w-xl">
+			<div>
 				{context && (
 					<div
 						className="mb-5 rounded-lg p-4"

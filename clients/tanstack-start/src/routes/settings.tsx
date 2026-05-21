@@ -667,34 +667,32 @@ function SettingsPage() {
 	}
 
 	return (
-		<PageShell title="Settings">
-			<div className="mx-auto max-w-lg">
-				<div className="mb-6">
-					<SegmentedControl
-						legend="Settings section"
-						options={
-							[
-								{ value: "profile", label: "Profile" },
-								{ value: "payment", label: "Payment" },
-								{ value: "app", label: "App" },
-								{ value: "developer", label: "Developer" },
-							] as const
-						}
-						value={tab}
-						onChange={setTab}
-					/>
-				</div>
-
-				{tab === "profile" && <ProfileTab />}
-				{tab === "payment" && (
-					<PaymentMethodsTab
-						pendingCardId={pendingCardId}
-						onCardAuthorized={clearPendingCard}
-					/>
-				)}
-				{tab === "app" && <AppTab />}
-				{tab === "developer" && <DeveloperTab />}
+		<PageShell title="Settings" contentClassName="mx-auto max-w-lg">
+			<div className="mb-6">
+				<SegmentedControl
+					legend="Settings section"
+					options={
+						[
+							{ value: "profile", label: "Profile" },
+							{ value: "payment", label: "Payment" },
+							{ value: "app", label: "App" },
+							{ value: "developer", label: "Developer" },
+						] as const
+					}
+					value={tab}
+					onChange={setTab}
+				/>
 			</div>
+
+			{tab === "profile" && <ProfileTab />}
+			{tab === "payment" && (
+				<PaymentMethodsTab
+					pendingCardId={pendingCardId}
+					onCardAuthorized={clearPendingCard}
+				/>
+			)}
+			{tab === "app" && <AppTab />}
+			{tab === "developer" && <DeveloperTab />}
 		</PageShell>
 	);
 }
