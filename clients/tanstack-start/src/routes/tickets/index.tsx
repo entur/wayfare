@@ -1,12 +1,29 @@
 import { ValidTicketIcon } from "@entur/icons";
+import { useQueries } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PageShell from "../../components/layout/PageShell";
 import TicketCard from "../../components/tickets/TicketCard";
 import { getPackages } from "../../lib/ticket-storage";
-import type { StoredPackage } from "../../types/documents";
+import {
+	getPackageItem,
+	getTravelDocuments,
+} from "../../server-functions/documents";
+import type {
+	StoredPackage,
+	TravelDocumentProperties,
+} from "../../types/documents";
 
 export const Route = createFileRoute("/tickets/")({ component: TicketsPage });
+
+function isDocExpired(
+	props: TravelDocumentProperties | undefined,
+	now: Date,
+): boolean {
+	if (!props) return false;
+	if (props.type === "binary_ticket" && props.status === "EXPIRED") return true;
+	return new Date(props.endvalidity) < now;
+}
 
 function TicketsPage() {
 	const [packages, setPackages] = useState<StoredPackage[]>([]);
@@ -14,6 +31,44 @@ function TicketsPage() {
 	useEffect(() => {
 		setPackages(getPackages());
 	}, []);
+
+	const itemQueries = useQueries({
+		queries: packages.map((pkg) => ({
+			queryKey: ["package-item", pkg.packageId],
+			queryFn: () => getPackageItem({ data: pkg.packageId }),
+			staleTime: 60_000,
+		})),
+	});
+
+	const docQueries = useQueries({
+		queries: packages.map((pkg) => ({
+			queryKey: ["travel-documents", pkg.packageId],
+			queryFn: () => getTravelDocuments({ data: pkg.packageId }),
+			staleTime: 60_000,
+		})),
+	});
+
+	const now = new Date();
+	const active: StoredPackage[] = [];
+	const past: StoredPackage[] = [];
+
+	packages.forEach((pkg, i) => {
+		const props = itemQueries[i]?.data?.properties;
+		const travelDocs = docQueries[i]?.data?.travelDocuments ?? [];
+
+		const endTime = props?.endTime ? new Date(props.endTime) : null;
+		const packageNotConfirmed =
+			props?.status !== undefined && props.status !== "CONFIRMED";
+		const packageEndTimePast = endTime !== null && endTime < now;
+		const allDocsExpired =
+			travelDocs.length > 0 &&
+			travelDocs.every((doc) => isDocExpired(doc.properties, now));
+
+		(packageNotConfirmed || packageEndTimePast || allDocsExpired
+			? past
+			: active
+		).push(pkg);
+	});
 
 	if (packages.length === 0) {
 		return (
@@ -58,12 +113,39 @@ function TicketsPage() {
 			title="My tickets"
 			subtitle={`${packages.length} ticket${packages.length !== 1 ? "s" : ""}`}
 		>
-			<div className="mx-auto max-w-xl">
-				<div className="flex flex-col gap-3">
-					{packages.map((pkg) => (
-						<TicketCard key={pkg.packageId} pkg={pkg} />
-					))}
-				</div>
+			<div className="flex flex-col gap-8">
+				{active.length > 0 && (
+					<section className="flex flex-col gap-3">
+						{past.length > 0 && (
+							<h2
+								className="mb-1 text-xs font-semibold uppercase tracking-widest"
+								style={{ color: "var(--wayfare-text-secondary)" }}
+							>
+								Active
+							</h2>
+						)}
+						<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+							{active.map((pkg) => (
+								<TicketCard key={pkg.packageId} pkg={pkg} />
+							))}
+						</div>
+					</section>
+				)}
+				{past.length > 0 && (
+					<section className="flex flex-col gap-3">
+						<h2
+							className="mb-1 text-xs font-semibold uppercase tracking-widest"
+							style={{ color: "var(--wayfare-text-secondary)" }}
+						>
+							Past
+						</h2>
+						<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+							{past.map((pkg) => (
+								<TicketCard key={pkg.packageId} pkg={pkg} />
+							))}
+						</div>
+					</section>
+				)}
 			</div>
 		</PageShell>
 	);
