@@ -24,7 +24,6 @@ export interface TravelerGroup {
 	individuals?: TravelerIndividual[];
 }
 
-export type SearchType = "zone" | "stop" | "trip";
 export type TimeMode = "now" | "depart" | "arrive";
 
 interface SearchFormState {
@@ -33,7 +32,6 @@ interface SearchFormState {
 	travelDate: string;
 	timeMode: TimeMode;
 	travelers: TravelerGroup[];
-	searchType: SearchType;
 }
 
 type Action =
@@ -41,8 +39,7 @@ type Action =
 	| { type: "SET_TO"; payload: PlaceReference | null }
 	| { type: "SET_TRAVEL_DATE"; payload: string }
 	| { type: "SET_TIME_MODE"; payload: TimeMode }
-	| { type: "SET_TRAVELERS"; payload: TravelerGroup[] }
-	| { type: "SET_SEARCH_TYPE"; payload: SearchType };
+	| { type: "SET_TRAVELERS"; payload: TravelerGroup[] };
 
 function todayIsoLocal(): string {
 	const now = new Date();
@@ -56,7 +53,6 @@ const defaultState: SearchFormState = {
 	travelDate: "", // set on client after mount to avoid SSR/hydration mismatch
 	timeMode: "depart",
 	travelers: [{ id: "adult", ageGroup: "ADULT", count: 1, minAge: 18 }],
-	searchType: "zone",
 };
 
 function reducer(state: SearchFormState, action: Action): SearchFormState {
@@ -71,9 +67,6 @@ function reducer(state: SearchFormState, action: Action): SearchFormState {
 			return { ...state, timeMode: action.payload };
 		case "SET_TRAVELERS":
 			return { ...state, travelers: action.payload };
-		case "SET_SEARCH_TYPE":
-			// Reset locations when switching mode — they're incompatible across types
-			return { ...state, searchType: action.payload, from: null, to: null };
 		default:
 			return state;
 	}

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TripsRouteImport } from './routes/trips'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PaymentReturnRouteImport } from './routes/payment-return'
 import { Route as OffersRouteImport } from './routes/offers'
@@ -17,6 +18,11 @@ import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
 import { Route as TicketsPackageIdRouteImport } from './routes/tickets/$packageId'
 import { Route as CheckoutOfferIdRouteImport } from './routes/checkout/$offerId'
 
+const TripsRoute = TripsRouteImport.update({
+  id: '/trips',
+  path: '/trips',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
   '/settings': typeof SettingsRoute
+  '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
   '/tickets/$packageId': typeof TicketsPackageIdRoute
   '/tickets/': typeof TicketsIndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
   '/settings': typeof SettingsRoute
+  '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
   '/tickets/$packageId': typeof TicketsPackageIdRoute
   '/tickets': typeof TicketsIndexRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
   '/settings': typeof SettingsRoute
+  '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
   '/tickets/$packageId': typeof TicketsPackageIdRoute
   '/tickets/': typeof TicketsIndexRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/offers'
     | '/payment-return'
     | '/settings'
+    | '/trips'
     | '/checkout/$offerId'
     | '/tickets/$packageId'
     | '/tickets/'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/offers'
     | '/payment-return'
     | '/settings'
+    | '/trips'
     | '/checkout/$offerId'
     | '/tickets/$packageId'
     | '/tickets'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/offers'
     | '/payment-return'
     | '/settings'
+    | '/trips'
     | '/checkout/$offerId'
     | '/tickets/$packageId'
     | '/tickets/'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   OffersRoute: typeof OffersRoute
   PaymentReturnRoute: typeof PaymentReturnRoute
   SettingsRoute: typeof SettingsRoute
+  TripsRoute: typeof TripsRoute
   CheckoutOfferIdRoute: typeof CheckoutOfferIdRoute
   TicketsPackageIdRoute: typeof TicketsPackageIdRoute
   TicketsIndexRoute: typeof TicketsIndexRoute
@@ -123,6 +136,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trips': {
+      id: '/trips'
+      path: '/trips'
+      fullPath: '/trips'
+      preLoaderRoute: typeof TripsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   OffersRoute: OffersRoute,
   PaymentReturnRoute: PaymentReturnRoute,
   SettingsRoute: SettingsRoute,
+  TripsRoute: TripsRoute,
   CheckoutOfferIdRoute: CheckoutOfferIdRoute,
   TicketsPackageIdRoute: TicketsPackageIdRoute,
   TicketsIndexRoute: TicketsIndexRoute,

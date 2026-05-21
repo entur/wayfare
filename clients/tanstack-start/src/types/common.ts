@@ -1,6 +1,7 @@
 export interface PlaceReference {
 	placeId: string;
 	name?: string;
+	type?: "zone" | "stop";
 }
 
 export interface AmountOfMoney {

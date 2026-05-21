@@ -1,4 +1,3 @@
-import type { SearchType } from "../context/search-form";
 import type { PlaceReference } from "../types/common";
 import type {
 	IndividualTraveller,
@@ -13,7 +12,6 @@ export interface SearchContext {
 	from: PlaceReference;
 	to: PlaceReference;
 	travelDate: string;
-	searchType: SearchType;
 	profiles?: UserProfile[];
 	travellers?: IndividualTraveller[];
 }
