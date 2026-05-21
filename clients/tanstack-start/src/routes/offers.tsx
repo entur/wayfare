@@ -6,6 +6,7 @@ import BundleCard, {
 	type OfferBundle,
 } from "../components/checkout/BundleCard";
 import PageShell from "../components/layout/PageShell";
+import FavoriteToggle from "../components/search/FavoriteToggle";
 import Illustration from "../components/shared/Illustration";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
@@ -228,26 +229,29 @@ function OffersScreen() {
 							border: "1px solid var(--wayfare-line)",
 						}}
 					>
-						<div className="flex items-center gap-2">
-							<span
-								className="text-sm font-semibold"
-								style={{ color: "var(--wayfare-text)" }}
-							>
-								{context.from.name ?? context.from.placeId}
-							</span>
-							<RightArrowIcon
-								aria-hidden="true"
-								style={{
-									color: "var(--wayfare-text-secondary)",
-									flexShrink: 0,
-								}}
-							/>
-							<span
-								className="text-sm font-semibold"
-								style={{ color: "var(--wayfare-text)" }}
-							>
-								{context.to.name ?? context.to.placeId}
-							</span>
+						<div className="flex items-center justify-between gap-2">
+							<div className="flex min-w-0 items-center gap-2">
+								<span
+									className="truncate text-sm font-semibold"
+									style={{ color: "var(--wayfare-text)" }}
+								>
+									{context.from.name ?? context.from.placeId}
+								</span>
+								<RightArrowIcon
+									aria-hidden="true"
+									style={{
+										color: "var(--wayfare-text-secondary)",
+										flexShrink: 0,
+									}}
+								/>
+								<span
+									className="truncate text-sm font-semibold"
+									style={{ color: "var(--wayfare-text)" }}
+								>
+									{context.to.name ?? context.to.placeId}
+								</span>
+							</div>
+							<FavoriteToggle from={context.from} to={context.to} />
 						</div>
 						{formattedDate && (
 							<p

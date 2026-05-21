@@ -101,6 +101,10 @@ export interface StoredPackage {
 	price: { amount: number; currencyCode?: string };
 	offerIds?: string[];
 	guestContact?: StoredPackageContact;
+	route?: {
+		from: { placeId: string; name?: string };
+		to: { placeId: string; name?: string };
+	};
 }
 
 export interface PackageItemProperties {

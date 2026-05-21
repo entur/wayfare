@@ -4,6 +4,7 @@ import PageShell from "../components/layout/PageShell";
 import Illustration from "../components/shared/Illustration";
 import { useCaptureTransaction } from "../hooks/use-payments";
 import { useConfirmPackage } from "../hooks/use-purchase";
+import { readSearchSession } from "../lib/search-session";
 import { popPendingGuestContact, savePackage } from "../lib/ticket-storage";
 import { getTransaction } from "../server-functions/payments";
 
@@ -60,6 +61,7 @@ function PaymentReturnPage() {
 					inputs: { type: "package_input", packageId: resolvedPackageId },
 				});
 				const guestContact = popPendingGuestContact(resolvedPackageId);
+				const searchContext = readSearchSession().context;
 				savePackage({
 					packageId: resolvedPackageId,
 					savedAt: new Date().toISOString(),
@@ -69,6 +71,20 @@ function PaymentReturnPage() {
 						currencyCode: confirmed.price?.currencyCode,
 					},
 					...(guestContact ? { guestContact } : {}),
+					...(searchContext
+						? {
+								route: {
+									from: {
+										placeId: searchContext.from.placeId,
+										name: searchContext.from.name,
+									},
+									to: {
+										placeId: searchContext.to.placeId,
+										name: searchContext.to.name,
+									},
+								},
+							}
+						: {}),
 				});
 				navigate({
 					to: "/tickets/$packageId",

@@ -11,12 +11,17 @@ import { useDevConfig } from "../context/dev-config";
 import { useProfile } from "../context/profile";
 import { useCustomerSearch } from "../hooks/use-customers";
 import type { DevConfigOverrides } from "../lib/dev-config-storage";
+import {
+	type FavoriteRoute,
+	getFavorites,
+	removeFavorite,
+} from "../lib/favorites-storage";
 import { clearPackages, getPackages } from "../lib/ticket-storage";
 import type { OmsaRuntimeMode } from "../server/runtime-config";
 import { getResolvedDevConfig } from "../server-functions/dev-config";
 import type { CustomerSearchParams, OmsaCustomer } from "../types/customer";
 
-type Tab = "profile" | "payment" | "app" | "developer";
+type Tab = "profile" | "payment" | "favorites" | "app" | "developer";
 
 export const Route = createFileRoute("/settings")({
 	validateSearch: (search: Record<string, unknown>) => ({
@@ -652,6 +657,113 @@ function DeveloperTab() {
 	);
 }
 
+function FavoritesTab() {
+	const [favorites, setFavorites] = useState<FavoriteRoute[]>(() =>
+		getFavorites(),
+	);
+
+	function handleRemove(id: string) {
+		removeFavorite(id);
+		setFavorites(getFavorites());
+	}
+
+	const sectionStyle = {
+		background: "var(--wayfare-surface-strong)",
+		border: "1px solid var(--wayfare-line)",
+	};
+
+	if (favorites.length === 0) {
+		return (
+			<div className="flex flex-col items-center py-8 text-center">
+				<Illustration
+					name="turtle-food-bowl"
+					size="lg"
+					decorative
+					className="mb-4"
+				/>
+				<p
+					className="text-sm font-semibold"
+					style={{ color: "var(--wayfare-text)" }}
+				>
+					No saved routes
+				</p>
+				<p
+					className="mt-1 max-w-xs text-xs"
+					style={{ color: "var(--wayfare-text-secondary)" }}
+				>
+					Star a route from the trips or offers page to save it here.
+				</p>
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-2">
+			{favorites.map((fav) => (
+				<div
+					key={fav.id}
+					className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
+					style={sectionStyle}
+				>
+					<div className="flex min-w-0 items-center gap-2 text-sm">
+						<span
+							className="truncate font-medium"
+							style={{ color: "var(--wayfare-text)" }}
+						>
+							{fav.from.name ?? fav.from.placeId}
+						</span>
+						<svg
+							width="12"
+							height="12"
+							viewBox="0 0 12 12"
+							fill="none"
+							aria-hidden="true"
+							className="shrink-0"
+							style={{ color: "var(--wayfare-text-secondary)" }}
+						>
+							<path
+								d="M2 6h8M7 3l3 3-3 3"
+								stroke="currentColor"
+								strokeWidth="1.5"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							/>
+						</svg>
+						<span
+							className="truncate font-medium"
+							style={{ color: "var(--wayfare-text)" }}
+						>
+							{fav.to.name ?? fav.to.placeId}
+						</span>
+					</div>
+					<button
+						type="button"
+						onClick={() => handleRemove(fav.id)}
+						aria-label={`Remove ${fav.from.name ?? fav.from.placeId} to ${fav.to.name ?? fav.to.placeId} from favorites`}
+						className="shrink-0 rounded-lg p-1.5 transition-colors hover:opacity-70 focus:outline-none"
+						style={{ color: "var(--wayfare-text-secondary)" }}
+					>
+						<svg
+							width="12"
+							height="12"
+							viewBox="0 0 12 12"
+							fill="none"
+							aria-hidden="true"
+						>
+							<path
+								d="M1 1l10 10M11 1L1 11"
+								stroke="currentColor"
+								strokeWidth="1.5"
+								strokeLinecap="round"
+							/>
+						</svg>
+					</button>
+				</div>
+			))}
+		</div>
+	);
+}
+
 function SettingsPage() {
 	const { tab, pendingCardId } = Route.useSearch();
 	const navigate = useNavigate({ from: "/settings" });
@@ -675,6 +787,7 @@ function SettingsPage() {
 						[
 							{ value: "profile", label: "Profile" },
 							{ value: "payment", label: "Payment" },
+							{ value: "favorites", label: "Favorites" },
 							{ value: "app", label: "App" },
 							{ value: "developer", label: "Developer" },
 						] as const
@@ -691,6 +804,7 @@ function SettingsPage() {
 					onCardAuthorized={clearPendingCard}
 				/>
 			)}
+			{tab === "favorites" && <FavoritesTab />}
 			{tab === "app" && <AppTab />}
 			{tab === "developer" && <DeveloperTab />}
 		</PageShell>

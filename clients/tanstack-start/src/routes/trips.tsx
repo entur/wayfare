@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PageShell from "../components/layout/PageShell";
+import FavoriteToggle from "../components/search/FavoriteToggle";
 import TripResults from "../components/search/TripResults";
 import Button from "../components/ui/Button";
 import type { TimeMode, TravelerGroup } from "../context/search-form";
@@ -210,9 +211,12 @@ function TripsPage() {
 			</Button>
 
 			<div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-				<SummaryChip icon={RouteIcon}>
-					{fromName} → {toName}
-				</SummaryChip>
+				<div className="flex items-center gap-2">
+					<SummaryChip icon={RouteIcon}>
+						{fromName} → {toName}
+					</SummaryChip>
+					<FavoriteToggle from={params.from} to={params.to} />
+				</div>
 				<SummaryChip icon={DateIcon}>
 					{formatDateTime(params.dateTime, params.timeMode)}
 				</SummaryChip>
