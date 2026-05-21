@@ -10,9 +10,14 @@ import type { PlaceReference } from "../../types/common";
 interface FavoriteToggleProps {
 	from: PlaceReference;
 	to: PlaceReference;
+	variant?: "icon" | "text";
 }
 
-export default function FavoriteToggle({ from, to }: FavoriteToggleProps) {
+export default function FavoriteToggle({
+	from,
+	to,
+	variant = "icon",
+}: FavoriteToggleProps) {
 	const [favorite, setFavorite] = useState(() => isFavorite(from, to));
 
 	function toggle() {
@@ -23,6 +28,28 @@ export default function FavoriteToggle({ from, to }: FavoriteToggleProps) {
 			const entry = addFavorite(from, to);
 			setFavorite(entry);
 		}
+	}
+
+	if (variant === "text") {
+		return (
+			<button
+				type="button"
+				onClick={toggle}
+				className="flex cursor-pointer items-center gap-1 text-xs transition-opacity hover:opacity-70 focus:outline-none"
+				style={{
+					color: favorite
+						? "var(--wayfare-primary)"
+						: "var(--wayfare-text-secondary)",
+				}}
+			>
+				{favorite ? (
+					<StarredIcon aria-hidden="true" />
+				) : (
+					<UnstarredIcon aria-hidden="true" />
+				)}
+				{favorite ? "Saved" : "Save route"}
+			</button>
+		);
 	}
 
 	return (

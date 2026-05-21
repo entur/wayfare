@@ -70,20 +70,22 @@ function formatDateTime(dateTime: string, timeMode: TimeMode): string {
 function SummaryChip({
 	icon: Icon,
 	children,
+	className,
 }: {
 	icon: React.ComponentType;
 	children: React.ReactNode;
+	className?: string;
 }) {
 	return (
 		<div
-			className="flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm"
+			className={`flex h-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm${className ? ` ${className}` : ""}`}
 			style={{
 				background: "var(--wayfare-surface-strong)",
 				borderColor: "var(--wayfare-line)",
 				color: "var(--wayfare-text)",
 			}}
 		>
-			<span className="truncate">{children}</span>
+			<span>{children}</span>
 			<Icon
 				aria-hidden="true"
 				// @ts-expect-error - style prop accepted at runtime
@@ -210,19 +212,21 @@ function TripsPage() {
 				Back
 			</Button>
 
-			<div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-				<div className="flex items-center gap-2">
-					<SummaryChip icon={RouteIcon}>
+			<div className="mb-6">
+				<div className="mb-1.5 flex justify-end">
+					<FavoriteToggle from={params.from} to={params.to} variant="text" />
+				</div>
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+					<SummaryChip icon={RouteIcon} className="min-w-0">
 						{fromName} → {toName}
 					</SummaryChip>
-					<FavoriteToggle from={params.from} to={params.to} />
+					<SummaryChip icon={DateIcon}>
+						{formatDateTime(params.dateTime, params.timeMode)}
+					</SummaryChip>
+					<SummaryChip icon={UsersIcon}>
+						{formatTravelers(params.travelers)}
+					</SummaryChip>
 				</div>
-				<SummaryChip icon={DateIcon}>
-					{formatDateTime(params.dateTime, params.timeMode)}
-				</SummaryChip>
-				<SummaryChip icon={UsersIcon}>
-					{formatTravelers(params.travelers)}
-				</SummaryChip>
 			</div>
 
 			{planTrip.isPending && (
