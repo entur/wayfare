@@ -8,7 +8,7 @@ type IllustrationName =
 
 type IllustrationSize = "sm" | "md" | "lg";
 
-const SIZES: Record<IllustrationSize, number> = { sm: 96, md: 160, lg: 240 };
+const WIDTHS: Record<IllustrationSize, number> = { sm: 96, md: 160, lg: 240 };
 
 const ALT: Record<IllustrationName, string> = {
 	"turtle-magnifying-glass": "A turtle inspecting with a magnifying glass",
@@ -32,14 +32,14 @@ export default function Illustration({
 	decorative = false,
 	className,
 }: IllustrationProps) {
-	const px = SIZES[size];
+	const w = WIDTHS[size];
 	return (
 		<img
 			src={`/wayfare-${name}.svg`}
 			alt={decorative ? "" : ALT[name]}
 			aria-hidden={decorative || undefined}
-			width={px}
-			height={px}
+			width={w}
+			style={{ height: "auto" }}
 			loading="lazy"
 			className={className}
 		/>

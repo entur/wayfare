@@ -1,14 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "../server/middleware";
 import { createOmsaClient } from "../server/omsa-client";
-import type {
-	CustomerCollection,
-	CustomerSearchParams,
-	OmsaCustomer,
-} from "../types/customer";
 import {
+	type CustomerCollection,
+	type CustomerSearchParams,
 	normalizeCustomer,
 	normalizeCustomerCollection,
+	type OmsaCustomer,
 } from "../types/customer";
 
 export const getCustomers = createServerFn({ method: "GET" })
