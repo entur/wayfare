@@ -526,7 +526,8 @@ function SignedInPaymentMethods({
 							</Button>
 							{!customerNumber && (
 								<p className="mt-1 text-sm" style={labelStyle}>
-									Customer number missing — sign out and sign in again to manage saved cards.
+									Customer number missing — sign out and sign in again to manage
+									saved cards.
 								</p>
 							)}
 						</div>
