@@ -110,8 +110,18 @@ export default function TicketCard({ pkg }: TicketCardProps) {
 
 	const from = props?.from?.name;
 	const to = props?.to?.name;
-	const startTime = props?.startTime ? new Date(props.startTime) : null;
-	const endTime = props?.endTime ? new Date(props.endTime) : null;
+
+	const firstDoc = docs?.travelDocuments?.[0]?.properties;
+	const startTime = props?.startTime
+		? new Date(props.startTime)
+		: firstDoc?.startvalidity
+			? new Date(firstDoc.startvalidity)
+			: null;
+	const endTime = props?.endTime
+		? new Date(props.endTime)
+		: firstDoc?.endvalidity
+			? new Date(firstDoc.endvalidity)
+			: null;
 
 	const now = new Date();
 	const travelDocs = docs?.travelDocuments ?? [];
@@ -119,7 +129,7 @@ export default function TicketCard({ pkg }: TicketCardProps) {
 		travelDocs.length > 0 &&
 		travelDocs.every((doc) => isDocExpired(doc.properties, now));
 	const isExpired = (endTime !== null && endTime < now) || allDocsExpired;
-	const baseStatus = props?.status ?? pkg.status;
+	const baseStatus = item?.status ?? props?.status ?? pkg.status;
 	const displayStatus =
 		isExpired && baseStatus === "CONFIRMED" ? "EXPIRED" : baseStatus;
 

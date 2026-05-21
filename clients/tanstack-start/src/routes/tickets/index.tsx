@@ -57,8 +57,9 @@ function TicketsPage() {
 		const travelDocs = docQueries[i]?.data?.travelDocuments ?? [];
 
 		const endTime = props?.endTime ? new Date(props.endTime) : null;
+		const liveStatus = itemQueries[i]?.data?.status ?? props?.status;
 		const packageNotConfirmed =
-			props?.status !== undefined && props.status !== "CONFIRMED";
+			liveStatus !== undefined && liveStatus !== "CONFIRMED";
 		const packageEndTimePast = endTime !== null && endTime < now;
 		const allDocsExpired =
 			travelDocs.length > 0 &&

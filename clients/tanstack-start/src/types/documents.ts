@@ -114,8 +114,71 @@ export interface PackageItemProperties {
 	price?: { amount: number; currencyCode?: string };
 }
 
+export interface ZonalValidity {
+	zones?: string[];
+	fareZones?: string[];
+}
+
+export interface GeographicalValidity {
+	zonalValidity?: ZonalValidity;
+}
+
+export interface OfferProduct {
+	type?: string;
+	productId?: { productId?: string; name?: string };
+	productName?: string;
+}
+
+export interface OfferLeg {
+	id?: string;
+	type?: string;
+	sequenceNumber?: number;
+	traveller?: string;
+	state?: string;
+	price?: { amount?: number; currencyCode?: string };
+	products?: string[];
+}
+
+export interface PackageOfferProperties {
+	legs?: OfferLeg[];
+	products?: OfferProduct[];
+	price?: { amount?: number; currencyCode?: string };
+	summary?: {
+		geographicalValidity?: GeographicalValidity;
+	};
+}
+
+export interface PackageOffer {
+	id?: string;
+	type?: string;
+	properties?: PackageOfferProperties;
+}
+
+export interface PackageTraveller {
+	type?: string;
+	id?: string;
+	age?: number;
+	count?: number;
+	minimumAge?: number;
+	maximumAge?: number;
+	monthDayOnWhichAgeApplies?: number;
+	minimumHeight?: number;
+	maximumHeight?: number;
+}
+
 export interface PackageItem {
 	id?: string;
+	type?: string;
+	status?: string;
+	price?: { amount?: number; currencyCode?: string };
+	offers?: PackageOffer[];
+	travellers?: PackageTraveller[];
+	links?: {
+		href: string;
+		rel: string;
+		type?: string;
+		method?: string;
+		description?: string;
+	}[];
 	properties?: PackageItemProperties;
-	links?: { href: string; rel: string; type?: string; method?: string }[];
 }
