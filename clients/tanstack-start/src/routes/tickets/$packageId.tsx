@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PageShell from "../../components/layout/PageShell";
+import Illustration from "../../components/shared/Illustration";
 import DocumentViewer from "../../components/tickets/DocumentViewer";
 import Button from "../../components/ui/Button";
 import {
@@ -70,6 +71,7 @@ function TicketDetailPage() {
 	const to = itemProps?.to?.name;
 	const validFrom = itemProps?.startTime ? new Date(itemProps.startTime) : null;
 	const validTo = itemProps?.endTime ? new Date(itemProps.endTime) : null;
+	const isExpired = validTo ? validTo.getTime() < Date.now() : false;
 	const purchased = new Date(pkg.savedAt);
 
 	const formatDateTime = (d: Date) =>
@@ -92,11 +94,41 @@ function TicketDetailPage() {
 					← My tickets
 				</Link>
 
+				{isExpired && (
+					<div
+						className="mb-4 flex flex-col items-center rounded-xl p-5 text-center"
+						style={{
+							background: "var(--wayfare-accent-soft)",
+							border: "1px solid var(--wayfare-line)",
+						}}
+					>
+						<Illustration
+							name="crab-ticket-expired"
+							size="md"
+							decorative
+							className="mb-3"
+						/>
+						<p
+							className="text-sm font-semibold"
+							style={{ color: "var(--wayfare-text)" }}
+						>
+							This ticket has expired
+						</p>
+						<p
+							className="mt-1 text-xs"
+							style={{ color: "var(--wayfare-text-secondary)" }}
+						>
+							It can no longer be used for travel.
+						</p>
+					</div>
+				)}
+
 				<div
 					className="mb-4 rounded-lg p-4"
 					style={{
 						background: "var(--wayfare-surface-strong)",
 						border: "1px solid var(--wayfare-line)",
+						opacity: isExpired ? 0.6 : undefined,
 					}}
 				>
 					<div className="flex items-start justify-between gap-3">
@@ -128,16 +160,16 @@ function TicketDetailPage() {
 								className="mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold"
 								style={{
 									background:
-										pkg.status === "CONFIRMED"
+										!isExpired && pkg.status === "CONFIRMED"
 											? "rgba(0,160,80,0.1)"
 											: "var(--wayfare-accent-soft)",
 									color:
-										pkg.status === "CONFIRMED"
+										!isExpired && pkg.status === "CONFIRMED"
 											? "#006630"
 											: "var(--wayfare-primary)",
 								}}
 							>
-								{pkg.status}
+								{isExpired ? "EXPIRED" : pkg.status}
 							</span>
 						</div>
 					</div>
@@ -190,7 +222,7 @@ function TicketDetailPage() {
 					</div>
 				</div>
 
-				<div className="mb-4">
+				<div className="mb-4" style={{ opacity: isExpired ? 0.6 : undefined }}>
 					<h2
 						className="mb-3 text-sm font-semibold"
 						style={{ color: "var(--wayfare-text)" }}

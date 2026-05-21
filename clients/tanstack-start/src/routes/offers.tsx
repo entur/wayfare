@@ -6,6 +6,7 @@ import BundleCard, {
 	type OfferBundle,
 } from "../components/checkout/BundleCard";
 import PageShell from "../components/layout/PageShell";
+import Illustration from "../components/shared/Illustration";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
 import { readSearchSession, type SearchContext } from "../lib/search-session";
@@ -153,7 +154,27 @@ function OffersScreen() {
 	if (!hydrated) {
 		return (
 			<PageShell title="Loading offers">
-				<p style={{ color: "var(--wayfare-text-secondary)" }}>Loading…</p>
+				<div className="flex flex-col items-center py-12 text-center">
+					<Illustration
+						name="crocodile-on-bus"
+						size="lg"
+						decorative
+						className="mb-6"
+					/>
+					<div
+						className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+						style={{
+							borderColor: "var(--wayfare-line)",
+							borderTopColor: "var(--wayfare-primary)",
+						}}
+					/>
+					<p
+						className="text-sm"
+						style={{ color: "var(--wayfare-text-secondary)" }}
+					>
+						Finding the best routes…
+					</p>
+				</div>
 			</PageShell>
 		);
 	}
@@ -161,13 +182,28 @@ function OffersScreen() {
 	if (bundles.length === 0) {
 		return (
 			<PageShell title="No offers found">
-				<div className="mt-8 text-center">
-					<p style={{ color: "var(--wayfare-text-secondary)" }}>
+				<div className="flex flex-col items-center py-12 text-center">
+					<Illustration
+						name="turtle-magnifying-glass"
+						size="lg"
+						decorative
+						className="mb-6"
+					/>
+					<p
+						className="text-sm font-semibold"
+						style={{ color: "var(--wayfare-text)" }}
+					>
+						No offers found
+					</p>
+					<p
+						className="mt-1 max-w-xs text-xs"
+						style={{ color: "var(--wayfare-text-secondary)" }}
+					>
 						No travel offers were found for your search.
 					</p>
 					<Link
 						to="/"
-						className="mt-4 inline-block rounded-xl px-5 py-2.5 text-sm font-semibold no-underline"
+						className="mt-6 inline-block rounded-xl px-5 py-2.5 text-sm font-semibold no-underline"
 						style={{ background: "var(--wayfare-primary)", color: "#fff" }}
 					>
 						Back to search

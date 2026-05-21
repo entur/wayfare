@@ -6,6 +6,10 @@ import type {
 	CustomerSearchParams,
 	OmsaCustomer,
 } from "../types/customer";
+import {
+	normalizeCustomer,
+	normalizeCustomerCollection,
+} from "../types/customer";
 
 export const getCustomers = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
@@ -18,7 +22,11 @@ export const getCustomers = createServerFn({ method: "GET" })
 		if (data.lastName) params.lastName = data.lastName;
 		if (data.email) params.email = data.email;
 		if (data.phoneNumber) params.phoneNumber = data.phoneNumber;
-		return omsa.get<CustomerCollection>("/collections/customers/items", params);
+		const raw = await omsa.get<CustomerCollection>(
+			"/collections/customers/items",
+			params,
+		);
+		return normalizeCustomerCollection(raw);
 	});
 
 export const getCustomer = createServerFn({ method: "GET" })
@@ -26,9 +34,10 @@ export const getCustomer = createServerFn({ method: "GET" })
 	.inputValidator((data: { customerId: string }) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
-		return omsa.get<OmsaCustomer>(
+		const raw = await omsa.get<OmsaCustomer>(
 			`/collections/customers/items/${encodeURIComponent(data.customerId)}`,
 		);
+		return normalizeCustomer(raw);
 	});
 
 export interface UpdateCustomerRequest {
