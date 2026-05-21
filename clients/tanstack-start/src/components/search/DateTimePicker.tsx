@@ -218,6 +218,9 @@ export default function DateTimePicker({
 					borderColor: "var(--wayfare-line)",
 					background: "var(--wayfare-surface-strong)",
 					color: "var(--wayfare-text)",
+					// @ts-expect-error - css custom prop
+					"--tw-ring-color":
+						"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
 				}}
 			>
 				<span className="truncate">{formatTrigger(timeMode, value)}</span>

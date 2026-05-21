@@ -179,21 +179,20 @@ function SearchScreen() {
 							onChange={(p) => dispatch({ type: "SET_FROM", payload: p })}
 						/>
 
-						{/* Swap button — desktop only. Phantom label spacer keeps the button
-						    flush with the input row rather than the top of the cell. */}
-						<div className="hidden lg:flex lg:flex-col">
-							<span className="mb-1.5 block text-sm" aria-hidden="true">
-								&nbsp;
-							</span>
+						{/* Swap button — desktop only. Grid items-end handles vertical alignment. */}
+						<div className="hidden lg:flex lg:items-end">
 							<button
 								type="button"
 								onClick={handleSwap}
 								aria-label="Swap from and to"
-								className="flex items-center justify-center rounded-xl border px-2 py-2.5 transition-colors"
+								className="flex h-[42px] items-center justify-center rounded-xl border px-2 transition-colors focus:outline-none focus:ring-2"
 								style={{
 									borderColor: "var(--wayfare-line)",
 									background: "var(--wayfare-surface-strong)",
 									color: "var(--wayfare-text-secondary)",
+									// @ts-expect-error - css custom prop
+									"--tw-ring-color":
+										"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
 								}}
 							>
 								<svg
