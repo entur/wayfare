@@ -1,16 +1,22 @@
 import { BackArrowIcon, DateIcon, RouteIcon, UsersIcon } from "@entur/icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import TripResults from "../components/search/TripResults";
 import Button from "../components/ui/Button";
 import type { TimeMode, TravelerGroup } from "../context/search-form";
-import { useSearchOffers } from "../hooks/use-search-offers";
 import { useTripPlanner } from "../hooks/use-trip-planner";
 import { buildRequest } from "../lib/build-request";
+import {
+	buildOfferQuery,
+	extractOfferPreview,
+	type OfferPreview,
+	offerQueryKey,
+} from "../lib/offer-query";
 import { writeSearchSession } from "../lib/search-session";
 import { readTripSearchParams } from "../lib/trip-session";
-import type { TripPatternLeg } from "../types/search";
+import type { OfferCollection } from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
 
 export const Route = createFileRoute("/trips")({ component: TripsPage });
@@ -88,9 +94,16 @@ function SummaryChip({
 
 function TripsPage() {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const params = readTripSearchParams();
 	const planTrip = useTripPlanner();
-	const { mutateAsync, isPending, error: offerError } = useSearchOffers();
+
+	const [selectingPatternKey, setSelectingPatternKey] = useState<string | null>(
+		null,
+	);
+	const [offerPreviews, setOfferPreviews] = useState<
+		Map<string, OfferPreview | "loading" | "empty" | "error">
+	>(new Map());
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: run once on mount with session params
 	useEffect(() => {
@@ -105,45 +118,81 @@ function TripsPage() {
 		});
 	}, []);
 
+	// Prefetch offers for all transit patterns as soon as trip results arrive
+	// biome-ignore lint/correctness/useExhaustiveDependencies: params and queryClient are stable for the session
+	useEffect(() => {
+		if (!planTrip.data || !params) return;
+		const transitPatterns = planTrip.data.filter((p) =>
+			p.legs.some((l) => l.serviceJourney != null),
+		);
+
+		for (const pattern of transitPatterns) {
+			const query = buildOfferQuery(pattern, params.travelers);
+			const key = query.queryKey.join("|");
+
+			setOfferPreviews((prev) => {
+				if (prev.has(key)) return prev;
+				const next = new Map(prev);
+				next.set(key, "loading");
+				return next;
+			});
+
+			queryClient
+				.fetchQuery(query)
+				.then((collection) => {
+					const preview = extractOfferPreview(collection, query._legCount);
+					setOfferPreviews((prev) => {
+						const next = new Map(prev);
+						next.set(key, preview ?? "empty");
+						return next;
+					});
+				})
+				.catch(() => {
+					setOfferPreviews((prev) => {
+						const next = new Map(prev);
+						next.set(key, "error");
+						return next;
+					});
+				});
+		}
+	}, [planTrip.data]);
+
 	if (!params) return null;
 
 	async function handleSelectTrip(pattern: TripPattern) {
 		if (!params) return;
-		const { profiles, travellers } = buildRequest(params.travelers);
+		const query = buildOfferQuery(pattern, params.travelers);
+		const key = query.queryKey.join("|");
+		setSelectingPatternKey(key);
 
-		const omsaPattern: TripPatternLeg[] = pattern.legs.flatMap((leg) => {
-			if (!leg.serviceJourney) return [];
-			const entry: TripPatternLeg = {
-				serviceJourney: leg.serviceJourney.id,
-				date: leg.expectedStartTime.slice(0, 10),
-			};
-			const fromStopId = leg.fromPlace.quay?.stopPlace?.id;
-			const toStopId = leg.toPlace.quay?.stopPlace?.id;
-			if (fromStopId)
-				entry.from = { placeId: fromStopId, name: leg.fromPlace.name };
-			if (toStopId) entry.to = { placeId: toStopId, name: leg.toPlace.name };
-			return [entry];
-		});
+		try {
+			const result = await queryClient.fetchQuery(query);
+			const { profiles, travellers } = buildRequest(params.travelers);
+			writeSearchSession(result as OfferCollection, {
+				from: params.from,
+				to: params.to,
+				travelDate: params.dateTime,
+				profiles,
+				travellers,
+			});
+			navigate({ to: "/offers" });
+		} finally {
+			setSelectingPatternKey(null);
+		}
+	}
 
-		if (omsaPattern.length === 0) return;
+	function getPatternPreview(
+		pattern: TripPattern,
+	): OfferPreview | "loading" | "empty" | "error" | undefined {
+		if (!params) return undefined;
+		const key = offerQueryKey(pattern, params.travelers).join("|");
+		return offerPreviews.get(key);
+	}
 
-		const result = await mutateAsync({
-			inputs: {
-				type: "search_offer",
-				...(profiles.length > 0 ? { profiles } : {}),
-				...(travellers.length > 0 ? { travellers } : {}),
-				pattern: omsaPattern,
-			},
-		});
-
-		writeSearchSession(result, {
-			from: params.from,
-			to: params.to,
-			travelDate: params.dateTime,
-			profiles,
-			travellers,
-		});
-		navigate({ to: "/offers" });
+	function isPatternSelecting(pattern: TripPattern): boolean {
+		if (!params) return false;
+		const key = offerQueryKey(pattern, params.travelers).join("|");
+		return selectingPatternKey === key;
 	}
 
 	const fromName = params.from.name ?? params.from.placeId;
@@ -201,7 +250,7 @@ function TripsPage() {
 				</div>
 			)}
 
-			{(planTrip.error || offerError) && (
+			{planTrip.error && (
 				<p
 					className="rounded-lg px-3 py-2 text-sm"
 					style={{
@@ -209,7 +258,7 @@ function TripsPage() {
 						color: "var(--wayfare-primary)",
 					}}
 				>
-					{(planTrip.error ?? offerError)?.message}
+					{planTrip.error.message}
 				</p>
 			)}
 
@@ -217,7 +266,10 @@ function TripsPage() {
 				<TripResults
 					patterns={planTrip.data}
 					onSelect={handleSelectTrip}
-					isPending={isPending}
+					getPreview={getPatternPreview}
+					isSelecting={isPatternSelecting}
+					anySelecting={selectingPatternKey != null}
+					travelers={params.travelers}
 				/>
 			)}
 		</PageShell>
