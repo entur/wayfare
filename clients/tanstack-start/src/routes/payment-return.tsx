@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import PageShell from "../components/layout/PageShell";
+import Illustration from "../components/shared/Illustration";
 import { useCaptureTransaction } from "../hooks/use-payments";
 import { useConfirmPackage } from "../hooks/use-purchase";
-import { getTransaction } from "../server-functions/payments";
 import { popPendingGuestContact, savePackage } from "../lib/ticket-storage";
+import { getTransaction } from "../server-functions/payments";
 
 export const Route = createFileRoute("/payment-return")({
 	validateSearch: (search: Record<string, unknown>) => ({
@@ -92,8 +93,14 @@ function PaymentReturnPage() {
 	return (
 		<PageShell title="Completing your purchase">
 			<div className="flex flex-col items-center py-12 text-center">
+				<Illustration
+					name="octopus-payment-processing"
+					size="lg"
+					decorative
+					className="mb-6"
+				/>
 				<div
-					className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-t-transparent"
+					className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
 					style={{
 						borderColor: "var(--wayfare-line)",
 						borderTopColor: "var(--wayfare-primary)",

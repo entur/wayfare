@@ -4,6 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import PaymentMethodsTab from "../components/settings/PaymentMethodsTab";
+import Illustration from "../components/shared/Illustration";
 import Button from "../components/ui/Button";
 import SegmentedControl from "../components/ui/SegmentedControl";
 import { useDevConfig } from "../context/dev-config";
@@ -11,9 +12,9 @@ import { useProfile } from "../context/profile";
 import { useCustomerSearch } from "../hooks/use-customers";
 import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { clearPackages, getPackages } from "../lib/ticket-storage";
+import type { OmsaRuntimeMode } from "../server/runtime-config";
 import { getResolvedDevConfig } from "../server-functions/dev-config";
 import type { CustomerSearchParams, OmsaCustomer } from "../types/customer";
-import type { OmsaRuntimeMode } from "../server/runtime-config";
 
 type Tab = "profile" | "payment" | "app" | "developer";
 
@@ -30,10 +31,6 @@ export const Route = createFileRoute("/settings")({
 function customerDisplayName(c: OmsaCustomer): string {
 	const parts = [c.firstName, c.lastName].filter(Boolean);
 	return parts.length > 0 ? parts.join(" ") : (c.id ?? "Unknown");
-}
-
-function customerInitials(c: OmsaCustomer): string {
-	return [c.firstName?.[0], c.lastName?.[0]].filter(Boolean).join("") || "?";
 }
 
 function ProfileTab() {
@@ -66,6 +63,29 @@ function ProfileTab() {
 
 	return (
 		<div className="space-y-4">
+			{!customer && !hasSearched && (
+				<div className="flex flex-col items-center py-8 text-center">
+					<Illustration
+						name="ninja-turtle"
+						size="lg"
+						decorative
+						className="mb-4"
+					/>
+					<p
+						className="text-sm font-semibold"
+						style={{ color: "var(--wayfare-text)" }}
+					>
+						Not signed in
+					</p>
+					<p
+						className="mt-1 max-w-xs text-xs"
+						style={{ color: "var(--wayfare-text-secondary)" }}
+					>
+						Search to pick a customer profile, or stay incognito.
+					</p>
+				</div>
+			)}
+
 			{customer && (
 				<section
 					className="rounded-xl p-5"
@@ -82,12 +102,7 @@ function ProfileTab() {
 					</p>
 					<div className="flex items-center justify-between gap-4">
 						<div className="flex items-center gap-3">
-							<span
-								className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold"
-								style={{ background: "var(--wayfare-primary)", color: "#fff" }}
-							>
-								{customerInitials(customer)}
-							</span>
+							<Illustration name="turtle-food-bowl" size="sm" decorative />
 							<div>
 								<p
 									className="text-sm font-semibold"
