@@ -14,24 +14,13 @@ export default function EmptyState({
 	return (
 		<div className="flex flex-col items-center py-16 text-center">
 			{icon && (
-				<div
-					className="mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-					style={{ background: "var(--wayfare-accent-soft)" }}
-				>
+				<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-wayfare-accent-soft">
 					{icon}
 				</div>
 			)}
-			<p
-				className="text-sm font-semibold"
-				style={{ color: "var(--wayfare-text)" }}
-			>
-				{title}
-			</p>
+			<p className="text-sm font-semibold text-wayfare-text">{title}</p>
 			{description && (
-				<p
-					className="mt-1 max-w-xs text-xs"
-					style={{ color: "var(--wayfare-text-secondary)" }}
-				>
+				<p className="mt-1 max-w-xs text-xs text-wayfare-text-secondary">
 					{description}
 				</p>
 			)}

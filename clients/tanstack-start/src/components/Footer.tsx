@@ -7,8 +7,8 @@ export default function Footer() {
 		<footer
 			className="mt-20 border-t px-4 pb-10 pt-8"
 			style={{
-				borderColor: "var(--wayfare-line)",
-				color: "var(--wayfare-text-secondary)",
+				borderColor: "var(--color-wayfare-line)",
+				color: "var(--color-wayfare-text-secondary)",
 			}}
 		>
 			<div className="page-wrap flex flex-col items-center justify-between gap-2 text-center sm:flex-row sm:text-left">

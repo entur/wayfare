@@ -30,14 +30,14 @@ function cardLabel(id?: CardPaymentType) {
 }
 
 const sectionStyle = {
-	background: "var(--wayfare-surface-strong)",
-	border: "1px solid var(--wayfare-line)",
+	background: "var(--color-wayfare-surface-strong)",
+	border: "1px solid var(--color-wayfare-line)",
 };
-const labelStyle = { color: "var(--wayfare-text-secondary)" };
+const labelStyle = { color: "var(--color-wayfare-text-secondary)" };
 const inputStyle = {
-	background: "var(--wayfare-surface)",
-	borderColor: "var(--wayfare-line)",
-	color: "var(--wayfare-text)",
+	background: "var(--color-wayfare-surface)",
+	borderColor: "var(--color-wayfare-line)",
+	color: "var(--color-wayfare-text)",
 };
 
 // ─── Guest form ───────────────────────────────────────────────────────────────
@@ -70,7 +70,7 @@ function GuestPaymentPrefsForm() {
 			<section className="rounded-xl p-5" style={sectionStyle}>
 				<h2
 					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--wayfare-text)" }}
+					style={{ color: "var(--color-wayfare-text)" }}
 				>
 					Default card type
 				</h2>
@@ -83,10 +83,10 @@ function GuestPaymentPrefsForm() {
 								className="flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-all"
 								style={{
 									borderColor: selected
-										? "var(--wayfare-primary)"
-										: "var(--wayfare-line)",
+										? "var(--color-wayfare-primary)"
+										: "var(--color-wayfare-line)",
 									background: selected
-										? "var(--wayfare-accent-soft)"
+										? "var(--color-wayfare-accent-soft)"
 										: "transparent",
 								}}
 							>
@@ -102,20 +102,20 @@ function GuestPaymentPrefsForm() {
 									className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2"
 									style={{
 										borderColor: selected
-											? "var(--wayfare-primary)"
-											: "var(--wayfare-line)",
+											? "var(--color-wayfare-primary)"
+											: "var(--color-wayfare-line)",
 									}}
 								>
 									{selected && (
 										<div
 											className="h-2 w-2 rounded-full"
-											style={{ background: "var(--wayfare-primary)" }}
+											style={{ background: "var(--color-wayfare-primary)" }}
 										/>
 									)}
 								</div>
 								<p
 									className="text-sm font-medium"
-									style={{ color: "var(--wayfare-text)", margin: 0 }}
+									style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 								>
 									{opt.label}
 								</p>
@@ -128,7 +128,7 @@ function GuestPaymentPrefsForm() {
 			<section className="rounded-xl p-5" style={sectionStyle}>
 				<h2
 					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--wayfare-text)" }}
+					style={{ color: "var(--color-wayfare-text)" }}
 				>
 					Vipps
 				</h2>
@@ -195,7 +195,7 @@ function VippsPhoneEditor({
 				<div>
 					<p
 						className="text-sm font-medium"
-						style={{ color: "var(--wayfare-text)", margin: 0 }}
+						style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 					>
 						{currentPhone}
 					</p>
@@ -282,14 +282,17 @@ function RecurringPaymentRow({
 				<div>
 					<p
 						className="text-sm font-medium"
-						style={{ color: "var(--wayfare-text)", margin: 0 }}
+						style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 					>
 						{payment.nickname ?? cardLabel(payment.paymentType)}
 					</p>
 					{payment.maskedPan && (
 						<p
 							className="text-xs font-mono"
-							style={{ color: "var(--wayfare-text-secondary)", margin: 0 }}
+							style={{
+								color: "var(--color-wayfare-text-secondary)",
+								margin: 0,
+							}}
 						>
 							•••• {payment.maskedPan}
 						</p>
@@ -299,8 +302,8 @@ function RecurringPaymentRow({
 							<span
 								className="rounded px-1.5 py-0.5 text-xs font-semibold"
 								style={{
-									background: "var(--wayfare-accent-soft)",
-									color: "var(--wayfare-primary)",
+									background: "var(--color-wayfare-accent-soft)",
+									color: "var(--color-wayfare-primary)",
 								}}
 							>
 								Default
@@ -436,8 +439,8 @@ function SignedInPaymentMethods({
 				<div
 					className="h-5 w-5 animate-spin rounded-full border-2 border-t-transparent shrink-0"
 					style={{
-						borderColor: "var(--wayfare-line)",
-						borderTopColor: "var(--wayfare-primary)",
+						borderColor: "var(--color-wayfare-line)",
+						borderTopColor: "var(--color-wayfare-primary)",
 					}}
 				/>
 				<p className="text-sm" style={labelStyle}>
@@ -454,7 +457,7 @@ function SignedInPaymentMethods({
 					className="rounded-xl px-4 py-3 text-sm"
 					style={{
 						background: "rgba(233,0,55,0.08)",
-						color: "var(--wayfare-primary)",
+						color: "var(--color-wayfare-primary)",
 					}}
 				>
 					{authError}
@@ -464,7 +467,7 @@ function SignedInPaymentMethods({
 			<section className="rounded-xl p-5" style={sectionStyle}>
 				<h2
 					className="mb-1 text-sm font-semibold"
-					style={{ color: "var(--wayfare-text)" }}
+					style={{ color: "var(--color-wayfare-text)" }}
 				>
 					Saved cards
 				</h2>
@@ -477,7 +480,7 @@ function SignedInPaymentMethods({
 				{error && !isLoading && (
 					<p
 						className="py-3 text-sm"
-						style={{ color: "var(--wayfare-primary)" }}
+						style={{ color: "var(--color-wayfare-primary)" }}
 					>
 						{error instanceof Error
 							? error.message
@@ -509,7 +512,7 @@ function SignedInPaymentMethods({
 						{addError && (
 							<p
 								className="mt-2 text-sm"
-								style={{ color: "var(--wayfare-primary)" }}
+								style={{ color: "var(--color-wayfare-primary)" }}
 							>
 								{addError}
 							</p>
@@ -538,7 +541,7 @@ function SignedInPaymentMethods({
 			<section className="rounded-xl p-5" style={sectionStyle}>
 				<h2
 					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--wayfare-text)" }}
+					style={{ color: "var(--color-wayfare-text)" }}
 				>
 					Vipps
 				</h2>

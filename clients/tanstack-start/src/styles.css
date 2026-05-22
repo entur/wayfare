@@ -12,34 +12,29 @@
 
 @theme {
 	--font-sans: "National 2", system-ui, -apple-system, sans-serif;
-}
-
-:root {
-	--wayfare-primary: #e90037;
-	--wayfare-primary-hover: #c7002f;
-	--wayfare-primary-dark: #ff3355;
-	--wayfare-primary-dark-hover: #ff5577;
-	--wayfare-text: #181c20;
-	--wayfare-text-secondary: #555e68;
-	--wayfare-surface: rgba(255, 255, 255, 0.92);
-	--wayfare-surface-strong: #ffffff;
-	--wayfare-bg: #f5f6f7;
-	--wayfare-line: rgba(24, 28, 32, 0.12);
-	--wayfare-header-bg: rgba(255, 255, 255, 0.88);
-	--wayfare-accent-soft: rgba(233, 0, 55, 0.08);
+	--color-wayfare-primary: #e90037;
+	--color-wayfare-primary-hover: #c7002f;
+	--color-wayfare-text: #181c20;
+	--color-wayfare-text-secondary: #555e68;
+	--color-wayfare-surface: rgba(255, 255, 255, 0.92);
+	--color-wayfare-surface-strong: #ffffff;
+	--color-wayfare-bg: #f5f6f7;
+	--color-wayfare-line: rgba(24, 28, 32, 0.12);
+	--color-wayfare-header-bg: rgba(255, 255, 255, 0.88);
+	--color-wayfare-accent-soft: rgba(233, 0, 55, 0.08);
 }
 
 :root[data-color-mode="dark"] {
-	--wayfare-primary: #ff3355;
-	--wayfare-primary-hover: #ff5577;
-	--wayfare-text: #e8eaed;
-	--wayfare-text-secondary: #9aa3ae;
-	--wayfare-surface: rgba(30, 34, 40, 0.92);
-	--wayfare-surface-strong: #1e2228;
-	--wayfare-bg: #12151a;
-	--wayfare-line: rgba(232, 234, 237, 0.12);
-	--wayfare-header-bg: rgba(18, 21, 26, 0.88);
-	--wayfare-accent-soft: rgba(255, 51, 85, 0.1);
+	--color-wayfare-primary: #ff3355;
+	--color-wayfare-primary-hover: #ff5577;
+	--color-wayfare-text: #e8eaed;
+	--color-wayfare-text-secondary: #9aa3ae;
+	--color-wayfare-surface: rgba(30, 34, 40, 0.92);
+	--color-wayfare-surface-strong: #1e2228;
+	--color-wayfare-bg: #12151a;
+	--color-wayfare-line: rgba(232, 234, 237, 0.12);
+	--color-wayfare-header-bg: rgba(18, 21, 26, 0.88);
+	--color-wayfare-accent-soft: rgba(255, 51, 85, 0.1);
 }
 
 
@@ -67,16 +62,16 @@ body,
 
 body {
 	margin: 0;
-	color: var(--wayfare-text);
+	color: var(--color-wayfare-text);
 	font-family: var(--font-sans);
-	background-color: var(--wayfare-bg);
+	background-color: var(--color-wayfare-bg);
 	overflow-x: hidden;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
 
 a:not([class]) {
-	color: var(--wayfare-primary);
+	color: var(--color-wayfare-primary);
 	text-decoration: none;
 }
 

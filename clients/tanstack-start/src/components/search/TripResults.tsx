@@ -9,6 +9,7 @@ import type {
 	TripLeg,
 	TripPattern,
 } from "../../types/trip-planner";
+import Spinner from "../ui/Spinner";
 
 type Transport =
 	| "metro"
@@ -169,58 +170,30 @@ function LegTimeline({ legs, endTime }: { legs: TripLeg[]; endTime: string }) {
 					<React.Fragment key={getLegKey(leg)}>
 						<div className="flex shrink-0 flex-col items-start">
 							<TransitLegPill leg={leg} />
-							<span
-								className="mt-1 text-xs tabular-nums whitespace-nowrap"
-								style={{ color: "var(--wayfare-text-secondary)" }}
-							>
+							<span className="mt-1 whitespace-nowrap text-xs tabular-nums text-wayfare-text-secondary">
 								{formatTime(leg.expectedStartTime)}
 							</span>
 						</div>
-						<div
-							className="mx-1 mt-4 h-px flex-1"
-							style={{ background: "var(--wayfare-line)", minWidth: "1rem" }}
-						/>
+						<div className="mx-1 mt-4 h-px min-w-4 flex-1 bg-wayfare-line" />
 					</React.Fragment>
 				))}
 
 				{overflowCount > 0 && (
 					<>
 						<div className="flex shrink-0 flex-col items-start">
-							<div
-								className="flex h-8 items-center justify-center rounded-md px-2 text-xs font-semibold"
-								style={{
-									background: "var(--wayfare-bg)",
-									border: "1px solid var(--wayfare-line)",
-									color: "var(--wayfare-text-secondary)",
-								}}
-							>
+							<div className="flex h-8 items-center justify-center rounded-md border border-wayfare-line bg-wayfare-bg px-2 text-xs font-semibold text-wayfare-text-secondary">
 								+{overflowCount}
 							</div>
 						</div>
-						<div
-							className="mx-1 mt-4 h-px flex-1"
-							style={{ background: "var(--wayfare-line)", minWidth: "1rem" }}
-						/>
+						<div className="mx-1 mt-4 h-px min-w-4 flex-1 bg-wayfare-line" />
 					</>
 				)}
 
 				<div className="flex shrink-0 flex-col items-start">
-					<div
-						className="flex h-8 w-8 items-center justify-center rounded-md"
-						style={{
-							background: "var(--wayfare-bg)",
-							border: "1px solid var(--wayfare-line)",
-						}}
-					>
-						<DestinationIcon
-							aria-hidden="true"
-							style={{ color: "var(--wayfare-text)" }}
-						/>
+					<div className="flex h-8 w-8 items-center justify-center rounded-md border border-wayfare-line bg-wayfare-bg">
+						<DestinationIcon aria-hidden="true" className="text-wayfare-text" />
 					</div>
-					<span
-						className="mt-1 text-xs tabular-nums whitespace-nowrap"
-						style={{ color: "var(--wayfare-text-secondary)" }}
-					>
+					<span className="mt-1 whitespace-nowrap text-xs tabular-nums text-wayfare-text-secondary">
 						{formatTime(endTime)}
 					</span>
 				</div>
@@ -237,40 +210,15 @@ function PriceLine({
 	travelerCount: number;
 }) {
 	return (
-		<div
-			className="flex items-center justify-between pt-3"
-			style={{ borderTop: "1px solid var(--wayfare-line)" }}
-		>
-			<div
-				className="flex items-center gap-1.5 text-sm"
-				style={{ color: "var(--wayfare-text-secondary)" }}
-			>
+		<div className="flex items-center justify-between border-t border-wayfare-line pt-3">
+			<div className="flex items-center gap-1.5 text-sm text-wayfare-text-secondary">
 				<ValidTicketIcon
 					aria-hidden="true"
-					style={{ color: "var(--wayfare-text-secondary)", flexShrink: 0 }}
+					className="shrink-0 text-wayfare-text-secondary"
 				/>
 				{preview === "loading" ? (
 					<span className="flex items-center gap-1.5">
-						<svg
-							className="h-3 w-3 animate-spin"
-							fill="none"
-							viewBox="0 0 24 24"
-							aria-hidden="true"
-						>
-							<circle
-								className="opacity-25"
-								cx="12"
-								cy="12"
-								r="10"
-								stroke="currentColor"
-								strokeWidth="4"
-							/>
-							<path
-								className="opacity-75"
-								fill="currentColor"
-								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-							/>
-						</svg>
+						<Spinner size="sm" />
 						Checking prices…
 					</span>
 				) : preview === "error" ? (
@@ -284,16 +232,13 @@ function PriceLine({
 				) : (
 					<span>
 						{travelerCount} traveller{travelerCount !== 1 ? "s" : ""} from{" "}
-						<strong style={{ color: "var(--wayfare-text)" }}>
+						<strong className="text-wayfare-text">
 							{formatPrice(preview.minPrice, preview.currency)}
 						</strong>
 					</span>
 				)}
 			</div>
-			<span
-				className="shrink-0 text-sm font-medium"
-				style={{ color: "var(--wayfare-primary)" }}
-			>
+			<span className="shrink-0 text-sm font-medium text-wayfare-primary">
 				See details →
 			</span>
 		</div>
@@ -324,10 +269,7 @@ export default function TripResults({
 
 	if (transitPatterns.length === 0) {
 		return (
-			<p
-				className="text-center text-sm"
-				style={{ color: "var(--wayfare-text-secondary)" }}
-			>
+			<p className="text-center text-sm text-wayfare-text-secondary">
 				No trip options found. Try a different time or route.
 			</p>
 		);
@@ -351,28 +293,21 @@ export default function TripResults({
 						type="button"
 						disabled={disabled}
 						onClick={() => onSelect(pattern)}
-						className={`w-full rounded-xl border p-4 text-left transition-all ${selecting ? "border-[var(--wayfare-primary)]" : "border-[var(--wayfare-line)] hover:border-[var(--wayfare-primary)]"}`}
-						style={{
-							background: "var(--wayfare-surface-strong)",
-							opacity: disabled && !selecting ? 0.5 : 1,
-							cursor: disabled ? "not-allowed" : "pointer",
-						}}
+						className={`w-full rounded-xl border p-4 text-left transition-all bg-wayfare-surface-strong ${
+							selecting
+								? "border-wayfare-primary"
+								: "border-wayfare-line hover:border-wayfare-primary"
+						} ${disabled && !selecting ? "opacity-50" : ""} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
 					>
 						{/* Row 1: origin + duration */}
 						<div className="mb-3 flex items-center justify-between gap-2">
-							<span
-								className="text-sm font-bold"
-								style={{ color: "var(--wayfare-text)" }}
-							>
+							<span className="text-sm font-bold text-wayfare-text">
 								From {originName}
 							</span>
-							<span
-								className="flex shrink-0 items-center gap-1 text-sm"
-								style={{ color: "var(--wayfare-text-secondary)" }}
-							>
+							<span className="flex shrink-0 items-center gap-1 text-sm text-wayfare-text-secondary">
 								<ClockIcon
 									aria-hidden="true"
-									style={{ color: "var(--wayfare-text-secondary)" }}
+									className="text-wayfare-text-secondary"
 								/>
 								{formatDuration(pattern.duration)}
 							</span>
@@ -383,33 +318,8 @@ export default function TripResults({
 
 						{/* Row 3: price + CTA */}
 						{selecting ? (
-							<div
-								className="flex items-center gap-1.5 pt-3 text-sm"
-								style={{
-									borderTop: "1px solid var(--wayfare-line)",
-									color: "var(--wayfare-text-secondary)",
-								}}
-							>
-								<svg
-									className="h-3.5 w-3.5 animate-spin"
-									fill="none"
-									viewBox="0 0 24 24"
-									aria-hidden="true"
-								>
-									<circle
-										className="opacity-25"
-										cx="12"
-										cy="12"
-										r="10"
-										stroke="currentColor"
-										strokeWidth="4"
-									/>
-									<path
-										className="opacity-75"
-										fill="currentColor"
-										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-									/>
-								</svg>
+							<div className="flex items-center gap-1.5 border-t border-wayfare-line pt-3 text-sm text-wayfare-text-secondary">
+								<Spinner className="h-3.5 w-3.5" />
 								Loading offers…
 							</div>
 						) : (

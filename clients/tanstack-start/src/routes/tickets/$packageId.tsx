@@ -72,7 +72,7 @@ function TicketDetailPage() {
 					<Link
 						to="/tickets"
 						className="text-sm font-medium"
-						style={{ color: "var(--wayfare-primary)" }}
+						style={{ color: "var(--color-wayfare-primary)" }}
 					>
 						← Back to tickets
 					</Link>
@@ -128,8 +128,8 @@ function TicketDetailPage() {
 		});
 
 	const summaryCardStyle = {
-		background: "var(--wayfare-surface-strong)",
-		border: "1px solid var(--wayfare-line)",
+		background: "var(--color-wayfare-surface-strong)",
+		border: "1px solid var(--color-wayfare-line)",
 		opacity: isExpired ? 0.6 : undefined,
 	};
 
@@ -138,7 +138,7 @@ function TicketDetailPage() {
 			<Link
 				to="/tickets"
 				className="mb-6 inline-block text-sm font-medium no-underline"
-				style={{ color: "var(--wayfare-text-secondary)" }}
+				style={{ color: "var(--color-wayfare-text-secondary)" }}
 			>
 				← My tickets
 			</Link>
@@ -149,8 +149,8 @@ function TicketDetailPage() {
 						<div
 							className="flex flex-col items-center rounded-xl p-5 text-center"
 							style={{
-								background: "var(--wayfare-accent-soft)",
-								border: "1px solid var(--wayfare-line)",
+								background: "var(--color-wayfare-accent-soft)",
+								border: "1px solid var(--color-wayfare-line)",
 							}}
 						>
 							<Illustration
@@ -161,13 +161,13 @@ function TicketDetailPage() {
 							/>
 							<p
 								className="text-sm font-semibold"
-								style={{ color: "var(--wayfare-text)" }}
+								style={{ color: "var(--color-wayfare-text)" }}
 							>
 								This ticket has expired
 							</p>
 							<p
 								className="mt-1 text-xs"
-								style={{ color: "var(--wayfare-text-secondary)" }}
+								style={{ color: "var(--color-wayfare-text-secondary)" }}
 							>
 								It can no longer be used for travel.
 							</p>
@@ -180,14 +180,14 @@ function TicketDetailPage() {
 								{from && to ? (
 									<p
 										className="text-base font-bold"
-										style={{ color: "var(--wayfare-text)", margin: 0 }}
+										style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 									>
 										{from} → {to}
 									</p>
 								) : (
 									<p
 										className="font-mono text-sm font-semibold"
-										style={{ color: "var(--wayfare-text)", margin: 0 }}
+										style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 									>
 										{pkg.packageId}
 									</p>
@@ -196,7 +196,7 @@ function TicketDetailPage() {
 									<p
 										className="mt-0.5 text-xs"
 										style={{
-											color: "var(--wayfare-text-secondary)",
+											color: "var(--color-wayfare-text-secondary)",
 											margin: 0,
 										}}
 									>
@@ -207,7 +207,7 @@ function TicketDetailPage() {
 							<div className="shrink-0 text-right">
 								<p
 									className="text-base font-bold"
-									style={{ color: "var(--wayfare-primary)", margin: 0 }}
+									style={{ color: "var(--color-wayfare-primary)", margin: 0 }}
 								>
 									{pkg.price.currencyCode ?? "NOK"}{" "}
 									{pkg.price.amount.toFixed(2)}
@@ -220,13 +220,13 @@ function TicketDetailPage() {
 												? "rgba(0,160,80,0.1)"
 												: displayStatus === "EXPIRED"
 													? "rgba(0,0,0,0.06)"
-													: "var(--wayfare-accent-soft)",
+													: "var(--color-wayfare-accent-soft)",
 										color:
 											displayStatus === "CONFIRMED"
 												? "#006630"
 												: displayStatus === "EXPIRED"
-													? "var(--wayfare-text-secondary)"
-													: "var(--wayfare-primary)",
+													? "var(--color-wayfare-text-secondary)"
+													: "var(--color-wayfare-primary)",
 									}}
 								>
 									{displayStatus}
@@ -236,54 +236,62 @@ function TicketDetailPage() {
 
 						<div
 							className="mt-3 grid gap-y-2 border-t pt-3 text-sm"
-							style={{ borderColor: "var(--wayfare-line)" }}
+							style={{ borderColor: "var(--color-wayfare-line)" }}
 						>
 							{validFrom && (
 								<div className="flex justify-between gap-4">
-									<span style={{ color: "var(--wayfare-text-secondary)" }}>
+									<span
+										style={{ color: "var(--color-wayfare-text-secondary)" }}
+									>
 										Valid from
 									</span>
-									<span style={{ color: "var(--wayfare-text)" }}>
+									<span style={{ color: "var(--color-wayfare-text)" }}>
 										{formatDateTime(validFrom)}
 									</span>
 								</div>
 							)}
 							{validTo && (
 								<div className="flex justify-between gap-4">
-									<span style={{ color: "var(--wayfare-text-secondary)" }}>
+									<span
+										style={{ color: "var(--color-wayfare-text-secondary)" }}
+									>
 										Valid to
 									</span>
-									<span style={{ color: "var(--wayfare-text)" }}>
+									<span style={{ color: "var(--color-wayfare-text)" }}>
 										{formatDateTime(validTo)}
 									</span>
 								</div>
 							)}
 							{fareZones.length > 0 && (
 								<div className="flex justify-between gap-4">
-									<span style={{ color: "var(--wayfare-text-secondary)" }}>
+									<span
+										style={{ color: "var(--color-wayfare-text-secondary)" }}
+									>
 										Zones
 									</span>
-									<span style={{ color: "var(--wayfare-text)" }}>
+									<span style={{ color: "var(--color-wayfare-text)" }}>
 										{fareZones.map(formatFareZone).join(", ")}
 									</span>
 								</div>
 							)}
 							<div className="flex justify-between gap-4">
-								<span style={{ color: "var(--wayfare-text-secondary)" }}>
+								<span style={{ color: "var(--color-wayfare-text-secondary)" }}>
 									Purchased
 								</span>
-								<span style={{ color: "var(--wayfare-text)" }}>
+								<span style={{ color: "var(--color-wayfare-text)" }}>
 									{formatDateTime(purchased)}
 								</span>
 							</div>
 							{(!from || !to) && (
 								<div className="flex justify-between gap-4">
-									<span style={{ color: "var(--wayfare-text-secondary)" }}>
+									<span
+										style={{ color: "var(--color-wayfare-text-secondary)" }}
+									>
 										Package ID
 									</span>
 									<span
 										className="font-mono text-xs"
-										style={{ color: "var(--wayfare-text)" }}
+										style={{ color: "var(--color-wayfare-text)" }}
 									>
 										{pkg.packageId}
 									</span>
@@ -296,13 +304,13 @@ function TicketDetailPage() {
 						<div
 							className="rounded-xl p-4"
 							style={{
-								background: "var(--wayfare-surface-strong)",
-								border: "1px solid var(--wayfare-line)",
+								background: "var(--color-wayfare-surface-strong)",
+								border: "1px solid var(--color-wayfare-line)",
 							}}
 						>
 							<h2
 								className="mb-3 text-sm font-semibold"
-								style={{ color: "var(--wayfare-text)" }}
+								style={{ color: "var(--color-wayfare-text)" }}
 							>
 								Refund options
 							</h2>
@@ -316,13 +324,13 @@ function TicketDetailPage() {
 									>
 										<p
 											className="text-sm"
-											style={{ color: "var(--wayfare-text)", margin: 0 }}
+											style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 										>
 											{opt.properties?.refundType ?? "Refund"}
 											{opt.properties?.consequences?.[0]?.amount && (
 												<span
 													className="ml-2 font-semibold"
-													style={{ color: "var(--wayfare-primary)" }}
+													style={{ color: "var(--color-wayfare-primary)" }}
 												>
 													{opt.properties.consequences[0].amount.currencyCode ??
 														opt.properties.consequences[0].currencyCode ??
@@ -338,8 +346,8 @@ function TicketDetailPage() {
 											onClick={() => opt.id && handleClaimRefund(opt.id)}
 											className="rounded-lg px-3 py-1.5 text-xs font-semibold"
 											style={{
-												background: "var(--wayfare-accent-soft)",
-												color: "var(--wayfare-primary)",
+												background: "var(--color-wayfare-accent-soft)",
+												color: "var(--color-wayfare-primary)",
 												border: "none",
 												cursor: "pointer",
 											}}
@@ -367,7 +375,7 @@ function TicketDetailPage() {
 					{docsLoading ? (
 						<p
 							className="text-sm"
-							style={{ color: "var(--wayfare-text-secondary)" }}
+							style={{ color: "var(--color-wayfare-text-secondary)" }}
 						>
 							Loading…
 						</p>

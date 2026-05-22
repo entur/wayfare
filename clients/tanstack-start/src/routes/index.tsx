@@ -248,11 +248,7 @@ function SearchScreen() {
 			<div className="flex flex-col gap-4">
 				<form
 					onSubmit={handleSearch}
-					className="relative z-10 rise-in rounded-lg p-6"
-					style={{
-						background: "var(--wayfare-surface-strong)",
-						border: "1px solid var(--wayfare-line)",
-					}}
+					className="relative z-10 rise-in rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-6"
 				>
 					<div className="flex flex-col gap-4">
 						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_1fr_1fr_10rem] lg:items-end">
@@ -269,15 +265,7 @@ function SearchScreen() {
 									type="button"
 									onClick={handleSwap}
 									aria-label="Swap from and to"
-									className="flex h-[42px] items-center justify-center rounded-xl border px-2 transition-colors focus:outline-none focus:ring-2"
-									style={{
-										borderColor: "var(--wayfare-line)",
-										background: "var(--wayfare-surface-strong)",
-										color: "var(--wayfare-text-secondary)",
-										// @ts-expect-error - css custom prop
-										"--tw-ring-color":
-											"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
-									}}
+									className="flex h-[42px] items-center justify-center rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-2 text-wayfare-text-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30"
 								>
 									<svg
 										width="14"
@@ -349,13 +337,7 @@ function SearchScreen() {
 						</div>
 
 						{error && (
-							<p
-								className="rounded-lg px-3 py-2 text-sm"
-								style={{
-									background: "rgba(233,0,55,0.08)",
-									color: "var(--wayfare-primary)",
-								}}
-							>
+							<p className="rounded-lg bg-wayfare-accent-soft px-3 py-2 text-sm text-wayfare-primary">
 								{error.message}
 							</p>
 						)}

@@ -14,7 +14,7 @@ export default function DepartureTimePicker({
 			<label
 				htmlFor="departure-datetime"
 				className="mb-1.5 block text-sm font-medium"
-				style={{ color: "var(--wayfare-text)" }}
+				style={{ color: "var(--color-wayfare-text)" }}
 			>
 				Departure
 			</label>
@@ -26,9 +26,9 @@ export default function DepartureTimePicker({
 				onChange={(e) => onChange(e.target.value)}
 				className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition-shadow focus:ring-2"
 				style={{
-					borderColor: "var(--wayfare-line)",
-					background: "var(--wayfare-surface-strong)",
-					color: "var(--wayfare-text)",
+					borderColor: "var(--color-wayfare-line)",
+					background: "var(--color-wayfare-surface-strong)",
+					color: "var(--color-wayfare-text)",
 				}}
 			/>
 		</div>

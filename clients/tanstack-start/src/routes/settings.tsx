@@ -76,64 +76,34 @@ function ProfileTab() {
 						decorative
 						className="mb-4"
 					/>
-					<p
-						className="text-sm font-semibold"
-						style={{ color: "var(--wayfare-text)" }}
-					>
+					<p className="text-sm font-semibold text-wayfare-text">
 						Not signed in
 					</p>
-					<p
-						className="mt-1 max-w-xs text-xs"
-						style={{ color: "var(--wayfare-text-secondary)" }}
-					>
+					<p className="mt-1 max-w-xs text-xs text-wayfare-text-secondary">
 						Search to pick a customer profile, or stay incognito.
 					</p>
 				</div>
 			)}
 
 			{customer && (
-				<section
-					className="rounded-xl p-5"
-					style={{
-						background: "var(--wayfare-surface-strong)",
-						border: "1px solid var(--wayfare-line)",
-					}}
-				>
-					<p
-						className="mb-3 text-xs font-semibold uppercase tracking-wide"
-						style={{ color: "var(--wayfare-text-secondary)" }}
-					>
+				<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+					<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 						Signed in as
 					</p>
 					<div className="flex items-center justify-between gap-4">
 						<div className="flex items-center gap-3">
 							<Illustration name="turtle-food-bowl" size="sm" decorative />
 							<div>
-								<p
-									className="text-sm font-semibold"
-									style={{ color: "var(--wayfare-text)", margin: 0 }}
-								>
+								<p className="m-0 text-sm font-semibold text-wayfare-text">
 									{customerDisplayName(customer)}
 								</p>
 								{customer.email && (
-									<p
-										className="text-xs"
-										style={{
-											color: "var(--wayfare-text-secondary)",
-											margin: 0,
-										}}
-									>
+									<p className="m-0 text-xs text-wayfare-text-secondary">
 										{customer.email}
 									</p>
 								)}
 								{customer.id && (
-									<p
-										className="font-mono text-xs"
-										style={{
-											color: "var(--wayfare-text-secondary)",
-											margin: 0,
-										}}
-									>
+									<p className="m-0 font-mono text-xs text-wayfare-text-secondary">
 										{customer.id}
 									</p>
 								)}
@@ -146,17 +116,8 @@ function ProfileTab() {
 				</section>
 			)}
 
-			<section
-				className="rounded-xl p-5"
-				style={{
-					background: "var(--wayfare-surface-strong)",
-					border: "1px solid var(--wayfare-line)",
-				}}
-			>
-				<h2
-					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--wayfare-text)" }}
-				>
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">
 					Find a customer
 				</h2>
 				<form onSubmit={handleSearch} className="space-y-3">
@@ -164,8 +125,7 @@ function ProfileTab() {
 						<div>
 							<label
 								htmlFor="settings-firstName"
-								className="mb-1 block text-xs font-medium"
-								style={{ color: "var(--wayfare-text-secondary)" }}
+								className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 							>
 								First name
 							</label>
@@ -176,20 +136,14 @@ function ProfileTab() {
 								onChange={(e) =>
 									setSearchInput((s) => ({ ...s, firstName: e.target.value }))
 								}
-								className="w-full rounded-lg border px-3 py-2 text-sm"
-								style={{
-									background: "var(--wayfare-surface)",
-									borderColor: "var(--wayfare-line)",
-									color: "var(--wayfare-text)",
-								}}
+								className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
 								placeholder="e.g. Ola"
 							/>
 						</div>
 						<div>
 							<label
 								htmlFor="settings-lastName"
-								className="mb-1 block text-xs font-medium"
-								style={{ color: "var(--wayfare-text-secondary)" }}
+								className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 							>
 								Last name
 							</label>
@@ -200,12 +154,7 @@ function ProfileTab() {
 								onChange={(e) =>
 									setSearchInput((s) => ({ ...s, lastName: e.target.value }))
 								}
-								className="w-full rounded-lg border px-3 py-2 text-sm"
-								style={{
-									background: "var(--wayfare-surface)",
-									borderColor: "var(--wayfare-line)",
-									color: "var(--wayfare-text)",
-								}}
+								className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
 								placeholder="e.g. Nordmann"
 							/>
 						</div>
@@ -213,8 +162,7 @@ function ProfileTab() {
 					<div>
 						<label
 							htmlFor="settings-email"
-							className="mb-1 block text-xs font-medium"
-							style={{ color: "var(--wayfare-text-secondary)" }}
+							className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 						>
 							Email
 						</label>
@@ -225,12 +173,7 @@ function ProfileTab() {
 							onChange={(e) =>
 								setSearchInput((s) => ({ ...s, email: e.target.value }))
 							}
-							className="w-full rounded-lg border px-3 py-2 text-sm"
-							style={{
-								background: "var(--wayfare-surface)",
-								borderColor: "var(--wayfare-line)",
-								color: "var(--wayfare-text)",
-							}}
+							className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
 							placeholder="e.g. ola@example.com"
 						/>
 					</div>
@@ -251,46 +194,25 @@ function ProfileTab() {
 			</section>
 
 			{error && (
-				<p
-					className="rounded-xl px-4 py-3 text-sm"
-					style={{
-						background: "rgba(233,0,55,0.08)",
-						color: "var(--wayfare-primary)",
-					}}
-				>
+				<p className="rounded-xl bg-wayfare-accent-soft px-4 py-3 text-sm text-wayfare-primary">
 					{error instanceof Error ? error.message : "Search failed"}
 				</p>
 			)}
 
 			{hasSearched && !isFetching && data && (
-				<section
-					className="rounded-xl p-5"
-					style={{
-						background: "var(--wayfare-surface-strong)",
-						border: "1px solid var(--wayfare-line)",
-					}}
-				>
-					<p
-						className="mb-3 text-xs font-semibold uppercase tracking-wide"
-						style={{ color: "var(--wayfare-text-secondary)" }}
-					>
+				<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+					<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 						{data.numberMatched ?? data.customers?.length ?? 0} result
 						{(data.numberMatched ?? data.customers?.length ?? 0) !== 1
 							? "s"
 							: ""}
 					</p>
 					{!data.customers?.length ? (
-						<p
-							className="text-sm"
-							style={{ color: "var(--wayfare-text-secondary)" }}
-						>
+						<p className="text-sm text-wayfare-text-secondary">
 							No customers found.
 						</p>
 					) : (
-						<ul
-							className="divide-y"
-							style={{ borderColor: "var(--wayfare-line)" }}
-						>
+						<ul className="divide-y divide-wayfare-line">
 							{data.customers.map((c) => (
 								<li
 									key={c.id}
@@ -298,37 +220,22 @@ function ProfileTab() {
 								>
 									<div className="flex items-center gap-3">
 										<span
-											className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-											style={{
-												background:
-													customer?.id === c.id
-														? "var(--wayfare-primary)"
-														: "var(--wayfare-accent-soft)",
-												color:
-													customer?.id === c.id
-														? "#fff"
-														: "var(--wayfare-primary)",
-											}}
+											className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+												customer?.id === c.id
+													? "bg-wayfare-primary text-white"
+													: "bg-wayfare-accent-soft text-wayfare-primary"
+											}`}
 										>
 											{[c.firstName?.[0], c.lastName?.[0]]
 												.filter(Boolean)
 												.join("") || <UserIcon aria-hidden="true" />}
 										</span>
 										<div>
-											<p
-												className="text-sm font-medium"
-												style={{ color: "var(--wayfare-text)", margin: 0 }}
-											>
+											<p className="m-0 text-sm font-medium text-wayfare-text">
 												{customerDisplayName(c)}
 											</p>
 											{c.email && (
-												<p
-													className="text-xs"
-													style={{
-														color: "var(--wayfare-text-secondary)",
-														margin: 0,
-													}}
-												>
+												<p className="m-0 text-xs text-wayfare-text-secondary">
 													{c.email}
 												</p>
 											)}
@@ -368,31 +275,14 @@ function AppTab() {
 
 	return (
 		<div className="space-y-4">
-			<section
-				className="rounded-xl p-5"
-				style={{
-					background: "var(--wayfare-surface-strong)",
-					border: "1px solid var(--wayfare-line)",
-				}}
-			>
-				<h2
-					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--wayfare-text)" }}
-				>
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">
 					Ticket wallet
 				</h2>
 				<div className="flex items-center justify-between">
 					<div>
-						<p
-							className="text-sm"
-							style={{ color: "var(--wayfare-text)", margin: 0 }}
-						>
-							Saved tickets
-						</p>
-						<p
-							className="text-xs"
-							style={{ color: "var(--wayfare-text-secondary)", margin: 0 }}
-						>
+						<p className="m-0 text-sm text-wayfare-text">Saved tickets</p>
+						<p className="m-0 text-xs text-wayfare-text-secondary">
 							{cleared ? 0 : count} ticket{count !== 1 ? "s" : ""} stored
 							locally
 						</p>
@@ -407,37 +297,20 @@ function AppTab() {
 				</div>
 			</section>
 
-			<section
-				className="rounded-xl p-5"
-				style={{
-					background: "var(--wayfare-surface-strong)",
-					border: "1px solid var(--wayfare-line)",
-				}}
-			>
-				<h2
-					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--wayfare-text)" }}
-				>
-					About
-				</h2>
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">About</h2>
 				<dl className="space-y-2 text-sm">
 					<div className="flex justify-between">
-						<dt style={{ color: "var(--wayfare-text-secondary)" }}>App</dt>
-						<dd style={{ color: "var(--wayfare-text)", fontWeight: 600 }}>
-							Wayfare
-						</dd>
+						<dt className="text-wayfare-text-secondary">App</dt>
+						<dd className="font-semibold text-wayfare-text">Wayfare</dd>
 					</div>
 					<div className="flex justify-between">
-						<dt style={{ color: "var(--wayfare-text-secondary)" }}>API</dt>
-						<dd style={{ color: "var(--wayfare-text)" }}>
-							OMSA v1 (OMSA_ENV_MODE)
-						</dd>
+						<dt className="text-wayfare-text-secondary">API</dt>
+						<dd className="text-wayfare-text">OMSA v1 (OMSA_ENV_MODE)</dd>
 					</div>
 					<div className="flex justify-between">
-						<dt style={{ color: "var(--wayfare-text-secondary)" }}>Stack</dt>
-						<dd style={{ color: "var(--wayfare-text)" }}>
-							TanStack Start + Entur DS
-						</dd>
+						<dt className="text-wayfare-text-secondary">Stack</dt>
+						<dd className="text-wayfare-text">TanStack Start + Entur DS</dd>
 					</div>
 				</dl>
 			</section>
@@ -509,28 +382,10 @@ function DeveloperTab() {
 		setFormPos("");
 	}
 
-	const sectionStyle = {
-		background: "var(--wayfare-surface-strong)",
-		border: "1px solid var(--wayfare-line)",
-	};
-
-	const inputStyle = {
-		background: "var(--wayfare-surface)",
-		borderColor: "var(--wayfare-line)",
-		color: "var(--wayfare-text)",
-	};
-
-	const labelStyle = {
-		color: "var(--wayfare-text-secondary)",
-	};
-
 	return (
 		<div className="space-y-4">
-			<section className="rounded-xl p-5" style={sectionStyle}>
-				<h2
-					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--wayfare-text)" }}
-				>
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">
 					Environment
 				</h2>
 				<SegmentedControl
@@ -539,18 +394,15 @@ function DeveloperTab() {
 					value={formMode}
 					onChange={setFormMode}
 				/>
-				<p className="mt-2 text-xs" style={labelStyle}>
+				<p className="mt-2 text-xs text-wayfare-text-secondary">
 					.env default:{" "}
 					<span className="font-mono">{resolved?.envDefaults.mode ?? "…"}</span>
 				</p>
 			</section>
 
 			{resolved && (
-				<section className="rounded-xl p-5" style={sectionStyle}>
-					<h2
-						className="mb-3 text-sm font-semibold"
-						style={{ color: "var(--wayfare-text)" }}
-					>
+				<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+					<h2 className="mb-3 text-sm font-semibold text-wayfare-text">
 						Resolved endpoints
 					</h2>
 					<dl className="space-y-2 text-xs">
@@ -563,10 +415,9 @@ function DeveloperTab() {
 							] as const
 						).map(([label, url]) => (
 							<div key={label} className="flex justify-between gap-4">
-								<dt style={labelStyle}>{label}</dt>
+								<dt className="text-wayfare-text-secondary">{label}</dt>
 								<dd
-									className="truncate font-mono text-right"
-									style={{ color: "var(--wayfare-text)" }}
+									className="truncate font-mono text-right text-wayfare-text"
 									title={url}
 								>
 									{url}
@@ -577,19 +428,15 @@ function DeveloperTab() {
 				</section>
 			)}
 
-			<section className="rounded-xl p-5" style={sectionStyle}>
-				<h2
-					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--wayfare-text)" }}
-				>
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">
 					Entur headers
 				</h2>
 				<div className="space-y-3">
 					<div>
 						<label
 							htmlFor="dev-distribution-channel"
-							className="mb-1 block text-xs font-medium"
-							style={labelStyle}
+							className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 						>
 							Entur-Distribution-Channel
 						</label>
@@ -602,15 +449,13 @@ function DeveloperTab() {
 								resolved?.envDefaults.distributionChannel ??
 								"WAY:DistributionChannel:App"
 							}
-							className="w-full rounded-lg border px-3 py-2 text-sm font-mono"
-							style={inputStyle}
+							className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm font-mono text-wayfare-text"
 						/>
 					</div>
 					<div>
 						<label
 							htmlFor="dev-client-name"
-							className="mb-1 block text-xs font-medium"
-							style={labelStyle}
+							className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 						>
 							Entur-Client-Name
 						</label>
@@ -620,15 +465,13 @@ function DeveloperTab() {
 							value={formClientName}
 							onChange={(e) => setFormClientName(e.target.value)}
 							placeholder={resolved?.envDefaults.clientName ?? "Wayfare-Web"}
-							className="w-full rounded-lg border px-3 py-2 text-sm font-mono"
-							style={inputStyle}
+							className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm font-mono text-wayfare-text"
 						/>
 					</div>
 					<div>
 						<label
 							htmlFor="dev-pos"
-							className="mb-1 block text-xs font-medium"
-							style={labelStyle}
+							className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 						>
 							Entur-POS
 						</label>
@@ -638,8 +481,7 @@ function DeveloperTab() {
 							value={formPos}
 							onChange={(e) => setFormPos(e.target.value)}
 							placeholder={resolved?.envDefaults.pos ?? "Wayfare"}
-							className="w-full rounded-lg border px-3 py-2 text-sm font-mono"
-							style={inputStyle}
+							className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm font-mono text-wayfare-text"
 						/>
 					</div>
 				</div>
@@ -667,11 +509,6 @@ function FavoritesTab() {
 		setFavorites(getFavorites());
 	}
 
-	const sectionStyle = {
-		background: "var(--wayfare-surface-strong)",
-		border: "1px solid var(--wayfare-line)",
-	};
-
 	if (favorites.length === 0) {
 		return (
 			<div className="flex flex-col items-center py-8 text-center">
@@ -681,16 +518,10 @@ function FavoritesTab() {
 					decorative
 					className="mb-4"
 				/>
-				<p
-					className="text-sm font-semibold"
-					style={{ color: "var(--wayfare-text)" }}
-				>
+				<p className="text-sm font-semibold text-wayfare-text">
 					No saved routes
 				</p>
-				<p
-					className="mt-1 max-w-xs text-xs"
-					style={{ color: "var(--wayfare-text-secondary)" }}
-				>
+				<p className="mt-1 max-w-xs text-xs text-wayfare-text-secondary">
 					Star a route from the trips or offers page to save it here.
 				</p>
 			</div>
@@ -702,14 +533,10 @@ function FavoritesTab() {
 			{favorites.map((fav) => (
 				<div
 					key={fav.id}
-					className="flex items-center justify-between gap-3 rounded-xl px-4 py-3"
-					style={sectionStyle}
+					className="flex items-center justify-between gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-4 py-3"
 				>
 					<div className="flex min-w-0 items-center gap-2 text-sm">
-						<span
-							className="truncate font-medium"
-							style={{ color: "var(--wayfare-text)" }}
-						>
+						<span className="truncate font-medium text-wayfare-text">
 							{fav.from.name ?? fav.from.placeId}
 						</span>
 						<svg
@@ -718,8 +545,7 @@ function FavoritesTab() {
 							viewBox="0 0 12 12"
 							fill="none"
 							aria-hidden="true"
-							className="shrink-0"
-							style={{ color: "var(--wayfare-text-secondary)" }}
+							className="shrink-0 text-wayfare-text-secondary"
 						>
 							<path
 								d="M2 6h8M7 3l3 3-3 3"
@@ -729,10 +555,7 @@ function FavoritesTab() {
 								strokeLinejoin="round"
 							/>
 						</svg>
-						<span
-							className="truncate font-medium"
-							style={{ color: "var(--wayfare-text)" }}
-						>
+						<span className="truncate font-medium text-wayfare-text">
 							{fav.to.name ?? fav.to.placeId}
 						</span>
 					</div>
@@ -740,8 +563,7 @@ function FavoritesTab() {
 						type="button"
 						onClick={() => handleRemove(fav.id)}
 						aria-label={`Remove ${fav.from.name ?? fav.from.placeId} to ${fav.to.name ?? fav.to.placeId} from favorites`}
-						className="shrink-0 rounded-lg p-1.5 transition-colors hover:opacity-70 focus:outline-none"
-						style={{ color: "var(--wayfare-text-secondary)" }}
+						className="shrink-0 rounded-lg p-1.5 text-wayfare-text-secondary transition-colors hover:opacity-70 focus:outline-none"
 					>
 						<svg
 							width="12"

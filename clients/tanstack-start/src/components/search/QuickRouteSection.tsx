@@ -66,10 +66,7 @@ function RouteCard({
 	const toName = route.to.name ?? route.to.placeId;
 
 	return (
-		<div
-			className="flex min-w-0 cursor-pointer items-start gap-2 rounded-xl border p-3 transition-colors [border-color:var(--wayfare-line)] hover:[border-color:var(--wayfare-primary)]"
-			style={{ background: "var(--wayfare-surface-strong)" }}
-		>
+		<div className="flex min-w-0 cursor-pointer items-start gap-2 rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-3 transition-colors hover:border-wayfare-primary">
 			{/* Route — clickable, takes remaining space */}
 			<button
 				type="button"
@@ -77,17 +74,15 @@ function RouteCard({
 				className="min-w-0 flex-1 cursor-pointer text-left focus:outline-none"
 				aria-label={`Search ${fromName} to ${toName}`}
 				style={{
-					// @ts-expect-error - css custom props
-					"--components-travel-travelheader-standard-text": "#000000",
+					// @ts-expect-error - css custom props for Entur TravelHeader
+					"--components-travel-travelheader-standard-text":
+						"var(--color-wayfare-text)",
 					"--components-travel-travelheader-standard-stroke-line":
-						"var(--wayfare-primary)",
+						"var(--color-wayfare-primary)",
 				}}
 			>
 				<TravelHeader from={fromName} to={toName} size="medium" />
-				<span
-					className="mt-1 flex items-center gap-1 text-xs"
-					style={{ color: "var(--wayfare-text-secondary)" }}
-				>
+				<span className="mt-1 flex items-center gap-1 text-xs text-wayfare-text-secondary">
 					<UsersIcon aria-hidden="true" style={{ width: 12, height: 12 }} />
 					{(() => {
 						const total = route.travelers.reduce((sum, t) => sum + t.count, 0);
@@ -102,7 +97,7 @@ function RouteCard({
 					<FavoriteRouteIcon
 						aria-hidden="true"
 						// @ts-expect-error - style prop accepted at runtime
-						style={{ color: "var(--wayfare-primary)" }}
+						style={{ color: "var(--color-wayfare-primary)" }}
 					/>
 				) : (
 					<>
@@ -110,12 +105,7 @@ function RouteCard({
 							type="button"
 							onClick={toggleFavorite}
 							aria-label={fav ? "Remove from favorites" : "Save as favorite"}
-							className="flex h-6 w-6 items-center justify-center rounded-lg transition-colors hover:opacity-70 focus:outline-none"
-							style={{
-								color: fav
-									? "var(--wayfare-primary)"
-									: "var(--wayfare-text-secondary)",
-							}}
+							className={`flex h-6 w-6 items-center justify-center rounded-lg transition-colors hover:opacity-70 focus:outline-none ${fav ? "text-wayfare-primary" : "text-wayfare-text-secondary"}`}
 						>
 							{fav ? (
 								<StarredIcon aria-hidden="true" />
@@ -128,8 +118,7 @@ function RouteCard({
 								type="button"
 								onClick={handleRemove}
 								aria-label="Remove"
-								className="flex h-6 w-6 items-center justify-center rounded-lg transition-colors hover:opacity-70 focus:outline-none"
-								style={{ color: "var(--wayfare-text-secondary)" }}
+								className="flex h-6 w-6 items-center justify-center rounded-lg text-wayfare-text-secondary transition-colors hover:opacity-70 focus:outline-none"
 							>
 								<svg
 									width="10"
@@ -187,18 +176,14 @@ export default function QuickRouteSection({
 	return (
 		<div>
 			<div className="mb-2 flex items-center justify-between">
-				<p
-					className="text-xs font-semibold uppercase tracking-wide"
-					style={{ color: "var(--wayfare-text-secondary)" }}
-				>
+				<p className="text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 					{title}
 				</p>
 				{showManageLink && (
 					<Link
 						to="/settings"
 						search={{ tab: "favorites" }}
-						className="text-xs transition-opacity hover:opacity-70"
-						style={{ color: "var(--wayfare-primary)" }}
+						className="text-xs text-wayfare-primary transition-opacity hover:opacity-70"
 					>
 						Manage
 					</Link>

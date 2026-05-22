@@ -6,6 +6,7 @@ import PageShell from "../components/layout/PageShell";
 import FavoriteToggle from "../components/search/FavoriteToggle";
 import TripResults from "../components/search/TripResults";
 import Button from "../components/ui/Button";
+import Spinner from "../components/ui/Spinner";
 import type { TimeMode, TravelerGroup } from "../context/search-form";
 import { useTripPlanner } from "../hooks/use-trip-planner";
 import { buildRequest } from "../lib/build-request";
@@ -78,18 +79,13 @@ function SummaryChip({
 }) {
 	return (
 		<div
-			className={`flex h-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm${className ? ` ${className}` : ""}`}
-			style={{
-				background: "var(--wayfare-surface-strong)",
-				borderColor: "var(--wayfare-line)",
-				color: "var(--wayfare-text)",
-			}}
+			className={`flex h-full items-center justify-between gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-4 py-3 text-sm text-wayfare-text${className ? ` ${className}` : ""}`}
 		>
 			<span>{children}</span>
 			<Icon
 				aria-hidden="true"
 				// @ts-expect-error - style prop accepted at runtime
-				style={{ color: "var(--wayfare-primary)", flexShrink: 0 }}
+				style={{ color: "var(--color-wayfare-primary)", flexShrink: 0 }}
 			/>
 		</div>
 	);
@@ -230,42 +226,14 @@ function TripsPage() {
 			</div>
 
 			{planTrip.isPending && (
-				<div
-					className="flex items-center gap-2 text-sm"
-					style={{ color: "var(--wayfare-text-secondary)" }}
-				>
-					<svg
-						className="h-4 w-4 animate-spin"
-						fill="none"
-						viewBox="0 0 24 24"
-						aria-hidden="true"
-					>
-						<circle
-							className="opacity-25"
-							cx="12"
-							cy="12"
-							r="10"
-							stroke="currentColor"
-							strokeWidth="4"
-						/>
-						<path
-							className="opacity-75"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-						/>
-					</svg>
+				<div className="flex items-center gap-2 text-sm text-wayfare-text-secondary">
+					<Spinner />
 					Finding journeys…
 				</div>
 			)}
 
 			{planTrip.error && (
-				<p
-					className="rounded-lg px-3 py-2 text-sm"
-					style={{
-						background: "rgba(233,0,55,0.08)",
-						color: "var(--wayfare-primary)",
-					}}
-				>
+				<p className="rounded-lg bg-wayfare-accent-soft px-3 py-2 text-sm text-wayfare-primary">
 					{planTrip.error.message}
 				</p>
 			)}

@@ -20,8 +20,8 @@ function NavItem({
 			to={to}
 			className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium no-underline transition-colors ${
 				active
-					? "bg-[var(--wayfare-accent-soft)] text-[var(--wayfare-primary)]"
-					: "text-[var(--wayfare-text-secondary)] hover:bg-[var(--wayfare-bg)]"
+					? "bg-wayfare-accent-soft text-wayfare-primary"
+					: "text-wayfare-text-secondary hover:bg-wayfare-bg"
 			}`}
 		>
 			<span className="flex shrink-0 items-center" aria-hidden="true">
@@ -44,10 +44,7 @@ export default function Header() {
 	const profileActive = isSettingsActive || !!customer;
 
 	const profileIcon = initials ? (
-		<span
-			className="flex h-[1.1rem] w-[1.1rem] items-center justify-center rounded-full text-[0.5rem] font-bold"
-			style={{ background: "var(--wayfare-primary)", color: "#fff" }}
-		>
+		<span className="flex h-[1.1rem] w-[1.1rem] items-center justify-center rounded-full bg-wayfare-primary text-[0.5rem] font-bold text-white">
 			{initials}
 		</span>
 	) : (
@@ -55,18 +52,11 @@ export default function Header() {
 	);
 
 	return (
-		<header
-			className="sticky top-0 z-50 border-b backdrop-blur-lg"
-			style={{
-				borderColor: "var(--wayfare-line)",
-				backgroundColor: "var(--wayfare-header-bg)",
-			}}
-		>
+		<header className="sticky top-0 z-50 border-b border-wayfare-line bg-wayfare-header-bg backdrop-blur-lg">
 			<nav className="page-wrap flex items-center gap-4 px-4 py-3 sm:py-4">
 				<Link
 					to="/"
-					className="flex items-center no-underline"
-					style={{ color: "var(--wayfare-primary)" }}
+					className="flex items-center text-wayfare-primary no-underline"
 				>
 					<WayfareWordmark height={16} />
 				</Link>
@@ -94,8 +84,8 @@ export default function Header() {
 						}
 						className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium no-underline transition-colors ${
 							isSettingsActive
-								? "bg-[var(--wayfare-accent-soft)] text-[var(--wayfare-primary)]"
-								: `hover:bg-[var(--wayfare-bg)] ${profileActive ? "text-[var(--wayfare-primary)]" : "text-[var(--wayfare-text-secondary)]"}`
+								? "bg-wayfare-accent-soft text-wayfare-primary"
+								: `hover:bg-wayfare-bg ${profileActive ? "text-wayfare-primary" : "text-wayfare-text-secondary"}`
 						}`}
 					>
 						<span className="flex shrink-0 items-center" aria-hidden="true">
@@ -104,8 +94,7 @@ export default function Header() {
 						{customer?.firstName ?? "Profile"}
 					</Link>
 					<div
-						className="mx-1 h-4 w-px self-center"
-						style={{ background: "var(--wayfare-line)" }}
+						className="mx-1 h-4 w-px self-center bg-wayfare-line"
 						aria-hidden="true"
 					/>
 					<ThemeToggle />

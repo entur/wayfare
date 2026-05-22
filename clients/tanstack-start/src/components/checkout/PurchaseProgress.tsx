@@ -41,8 +41,8 @@ export default function PurchaseProgress({ flowState }: PurchaseProgressProps) {
 								className="h-px w-6"
 								style={{
 									background: isDone
-										? "var(--wayfare-primary)"
-										: "var(--wayfare-line)",
+										? "var(--color-wayfare-primary)"
+										: "var(--color-wayfare-line)",
 								}}
 							/>
 						)}
@@ -52,12 +52,12 @@ export default function PurchaseProgress({ flowState }: PurchaseProgressProps) {
 								style={{
 									background:
 										isDone || isActive
-											? "var(--wayfare-primary)"
-											: "var(--wayfare-line)",
+											? "var(--color-wayfare-primary)"
+											: "var(--color-wayfare-line)",
 									color:
 										isDone || isActive
 											? "#fff"
-											: "var(--wayfare-text-secondary)",
+											: "var(--color-wayfare-text-secondary)",
 								}}
 							>
 								{isDone ? "✓" : i + 1}
@@ -66,8 +66,8 @@ export default function PurchaseProgress({ flowState }: PurchaseProgressProps) {
 								className="hidden text-xs sm:block"
 								style={{
 									color: isActive
-										? "var(--wayfare-primary)"
-										: "var(--wayfare-text-secondary)",
+										? "var(--color-wayfare-primary)"
+										: "var(--color-wayfare-text-secondary)",
 								}}
 							>
 								{step.label}

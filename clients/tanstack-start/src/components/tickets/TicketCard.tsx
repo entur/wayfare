@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import type React from "react";
 import { usePackageItem, useTravelDocuments } from "../../hooks/use-documents";
 import type {
 	StoredPackage,
@@ -40,23 +39,17 @@ function formatJourneyTime(start: Date, end: Date | null): string {
 	return `${dateStr} ${startTime} – ${endDateStr} ${endTime}`;
 }
 
-function badgeStyle(status: string): React.CSSProperties {
+function badgeClass(status: string): string {
 	switch (status) {
 		case "CONFIRMED":
-			return { background: "rgba(0,160,80,0.1)", color: "#006630" };
+			return "bg-[rgba(0,160,80,0.1)] text-[#006630]";
 		case "EXPIRED":
-			return {
-				background: "rgba(0,0,0,0.06)",
-				color: "var(--wayfare-text-secondary)",
-			};
+			return "bg-[rgba(0,0,0,0.06)] text-wayfare-text-secondary";
 		case "CANCELLED":
 		case "REFUNDED":
-			return { background: "rgba(200,0,0,0.08)", color: "#a00" };
+			return "bg-[rgba(200,0,0,0.08)] text-[#a00]";
 		default:
-			return {
-				background: "var(--wayfare-accent-soft)",
-				color: "var(--wayfare-primary)",
-			};
+			return "bg-wayfare-accent-soft text-wayfare-primary";
 	}
 }
 
@@ -69,11 +62,6 @@ function isDocExpired(
 	return new Date(props.endvalidity) < now;
 }
 
-const cardStyle = {
-	background: "var(--wayfare-surface-strong)",
-	border: "1px solid var(--wayfare-line)",
-};
-
 export default function TicketCard({ pkg }: TicketCardProps) {
 	const { data: item, isLoading } = usePackageItem(pkg.packageId);
 	const { data: docs } = useTravelDocuments(pkg.packageId);
@@ -81,27 +69,15 @@ export default function TicketCard({ pkg }: TicketCardProps) {
 
 	if (isLoading) {
 		return (
-			<div className="animate-pulse rounded-xl p-4" style={cardStyle}>
+			<div className="animate-pulse rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4">
 				<div className="flex items-start justify-between gap-4">
 					<div className="flex-1 space-y-2">
-						<div
-							className="h-4 w-36 rounded"
-							style={{ background: "var(--wayfare-line)" }}
-						/>
-						<div
-							className="h-3 w-28 rounded"
-							style={{ background: "var(--wayfare-line)" }}
-						/>
+						<div className="h-4 w-36 rounded bg-wayfare-line" />
+						<div className="h-3 w-28 rounded bg-wayfare-line" />
 					</div>
 					<div className="flex flex-col items-end gap-2">
-						<div
-							className="h-4 w-16 rounded"
-							style={{ background: "var(--wayfare-line)" }}
-						/>
-						<div
-							className="h-5 w-20 rounded-full"
-							style={{ background: "var(--wayfare-line)" }}
-						/>
+						<div className="h-4 w-16 rounded bg-wayfare-line" />
+						<div className="h-5 w-20 rounded-full bg-wayfare-line" />
 					</div>
 				</div>
 			</div>
@@ -145,43 +121,29 @@ export default function TicketCard({ pkg }: TicketCardProps) {
 		<Link
 			to="/tickets/$packageId"
 			params={{ packageId: pkg.packageId }}
-			className="block rounded-xl p-4 no-underline transition-opacity hover:opacity-80"
-			style={cardStyle}
+			className="block rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 no-underline transition-opacity hover:opacity-80"
 		>
 			<div className="flex items-start justify-between gap-4">
 				<div className="min-w-0 flex-1">
 					{from && to ? (
-						<p
-							className="truncate text-sm font-semibold"
-							style={{ color: "var(--wayfare-text)", margin: 0 }}
-						>
+						<p className="m-0 truncate text-sm font-semibold text-wayfare-text">
 							{from} → {to}
 						</p>
 					) : (
-						<p
-							className="font-mono text-sm font-semibold"
-							style={{ color: "var(--wayfare-text)", margin: 0 }}
-						>
+						<p className="m-0 font-mono text-sm font-semibold text-wayfare-text">
 							{pkg.packageId}
 						</p>
 					)}
-					<p
-						className="mt-1 text-xs"
-						style={{ color: "var(--wayfare-text-secondary)", margin: 0 }}
-					>
+					<p className="m-0 mt-1 text-xs text-wayfare-text-secondary">
 						{dateLabel}
 					</p>
 				</div>
 				<div className="shrink-0 text-right">
-					<p
-						className="text-sm font-bold"
-						style={{ color: "var(--wayfare-primary)", margin: 0 }}
-					>
+					<p className="m-0 text-sm font-bold text-wayfare-primary">
 						{pkg.price.currencyCode ?? "NOK"} {pkg.price.amount.toFixed(2)}
 					</p>
 					<span
-						className="mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold"
-						style={badgeStyle(displayStatus)}
+						className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${badgeClass(displayStatus)}`}
 					>
 						{displayStatus}
 					</span>

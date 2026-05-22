@@ -27,7 +27,7 @@ export default function RecentPurchasesSection({
 		<div>
 			<p
 				className="mb-2 text-xs font-semibold uppercase tracking-wide"
-				style={{ color: "var(--wayfare-text-secondary)" }}
+				style={{ color: "var(--color-wayfare-text-secondary)" }}
 			>
 				Recent purchases
 			</p>
@@ -42,8 +42,8 @@ export default function RecentPurchasesSection({
 							key={pkg.packageId}
 							className="flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-sm"
 							style={{
-								background: "var(--wayfare-surface-strong)",
-								borderColor: "var(--wayfare-line)",
+								background: "var(--color-wayfare-surface-strong)",
+								borderColor: "var(--color-wayfare-line)",
 							}}
 						>
 							{/* Route */}
@@ -54,7 +54,7 @@ export default function RecentPurchasesSection({
 							>
 								<span
 									className="truncate font-medium"
-									style={{ color: "var(--wayfare-text)" }}
+									style={{ color: "var(--color-wayfare-text)" }}
 								>
 									{fromName}
 								</span>
@@ -65,7 +65,7 @@ export default function RecentPurchasesSection({
 									fill="none"
 									aria-hidden="true"
 									className="shrink-0"
-									style={{ color: "var(--wayfare-text-secondary)" }}
+									style={{ color: "var(--color-wayfare-text-secondary)" }}
 								>
 									<path
 										d="M2 6h8M7 3l3 3-3 3"
@@ -77,7 +77,7 @@ export default function RecentPurchasesSection({
 								</svg>
 								<span
 									className="truncate font-medium"
-									style={{ color: "var(--wayfare-text)" }}
+									style={{ color: "var(--color-wayfare-text)" }}
 								>
 									{toName}
 								</span>
@@ -87,7 +87,7 @@ export default function RecentPurchasesSection({
 							<div className="flex shrink-0 items-center gap-3">
 								<span
 									className="text-xs"
-									style={{ color: "var(--wayfare-text-secondary)" }}
+									style={{ color: "var(--color-wayfare-text-secondary)" }}
 								>
 									{formatPrice(
 										pkg.price.amount,
@@ -99,13 +99,13 @@ export default function RecentPurchasesSection({
 									onClick={() => onRebook({ from, to })}
 									className="rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors hover:opacity-80 focus:outline-none focus:ring-2"
 									style={{
-										borderColor: "var(--wayfare-primary)",
-										color: "var(--wayfare-primary)",
+										borderColor: "var(--color-wayfare-primary)",
+										color: "var(--color-wayfare-primary)",
 										background:
-											"color-mix(in srgb, var(--wayfare-primary) 8%, transparent)",
+											"color-mix(in srgb, var(--color-wayfare-primary) 8%, transparent)",
 										// @ts-expect-error - css custom prop
 										"--tw-ring-color":
-											"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
+											"color-mix(in srgb, var(--color-wayfare-primary) 30%, transparent)",
 									}}
 								>
 									Rebook

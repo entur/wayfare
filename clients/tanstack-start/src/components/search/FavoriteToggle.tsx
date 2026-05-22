@@ -35,12 +35,7 @@ export default function FavoriteToggle({
 			<button
 				type="button"
 				onClick={toggle}
-				className="flex cursor-pointer items-center gap-1 text-xs transition-opacity hover:opacity-70 focus:outline-none"
-				style={{
-					color: favorite
-						? "var(--wayfare-primary)"
-						: "var(--wayfare-text-secondary)",
-				}}
+				className={`flex cursor-pointer items-center gap-1 text-xs transition-opacity hover:opacity-70 focus:outline-none ${favorite ? "text-wayfare-primary" : "text-wayfare-text-secondary"}`}
 			>
 				{favorite ? (
 					<StarredIcon aria-hidden="true" />
@@ -57,21 +52,11 @@ export default function FavoriteToggle({
 			type="button"
 			onClick={toggle}
 			aria-label={favorite ? "Remove from favorites" : "Save as favorite"}
-			className="flex h-9 w-9 items-center justify-center rounded-xl border transition-colors focus:outline-none focus:ring-2"
-			style={{
-				borderColor: favorite
-					? "var(--wayfare-primary)"
-					: "var(--wayfare-line)",
-				background: favorite
-					? "color-mix(in srgb, var(--wayfare-primary) 10%, transparent)"
-					: "var(--wayfare-surface-strong)",
-				color: favorite
-					? "var(--wayfare-primary)"
-					: "var(--wayfare-text-secondary)",
-				// @ts-expect-error - css custom prop
-				"--tw-ring-color":
-					"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
-			}}
+			className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30 ${
+				favorite
+					? "border-wayfare-primary bg-wayfare-primary/10 text-wayfare-primary"
+					: "border-wayfare-line bg-wayfare-surface-strong text-wayfare-text-secondary"
+			}`}
 		>
 			{favorite ? (
 				<StarredIcon aria-hidden="true" />

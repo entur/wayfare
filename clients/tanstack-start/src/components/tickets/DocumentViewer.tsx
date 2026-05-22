@@ -74,7 +74,10 @@ function groupDocuments(documents: TravelDocumentItem[]): TicketGroup[] {
 export default function DocumentViewer({ documents }: DocumentViewerProps) {
 	if (documents.length === 0) {
 		return (
-			<p className="text-sm" style={{ color: "var(--wayfare-text-secondary)" }}>
+			<p
+				className="text-sm"
+				style={{ color: "var(--color-wayfare-text-secondary)" }}
+			>
 				No travel documents available yet.
 			</p>
 		);
@@ -102,13 +105,13 @@ export default function DocumentViewer({ documents }: DocumentViewerProps) {
 							key={group.key}
 							className="rounded-xl p-4"
 							style={{
-								background: "var(--wayfare-surface-strong)",
-								border: "1px solid var(--wayfare-line)",
+								background: "var(--color-wayfare-surface-strong)",
+								border: "1px solid var(--color-wayfare-line)",
 							}}
 						>
 							<p
 								className="mb-3 text-xs font-semibold uppercase tracking-wide"
-								style={{ color: "var(--wayfare-text-secondary)" }}
+								style={{ color: "var(--color-wayfare-text-secondary)" }}
 							>
 								Travel ticket
 								{props.status && (
@@ -118,11 +121,11 @@ export default function DocumentViewer({ documents }: DocumentViewerProps) {
 											background:
 												props.status === "ACTIVATED"
 													? "rgba(0,160,80,0.12)"
-													: "var(--wayfare-accent-soft)",
+													: "var(--color-wayfare-accent-soft)",
 											color:
 												props.status === "ACTIVATED"
 													? "#006630"
-													: "var(--wayfare-primary)",
+													: "var(--color-wayfare-primary)",
 										}}
 									>
 										{props.status}
@@ -134,7 +137,7 @@ export default function DocumentViewer({ documents }: DocumentViewerProps) {
 								{/* Primary: QR code (binary) or image */}
 								<div
 									className="flex flex-col items-center gap-2 rounded-lg p-3 sm:flex-1"
-									style={{ background: "var(--wayfare-surface)" }}
+									style={{ background: "var(--color-wayfare-surface)" }}
 								>
 									{isImagePrimary ? (
 										<img
@@ -148,7 +151,7 @@ export default function DocumentViewer({ documents }: DocumentViewerProps) {
 									)}
 									<p
 										className="text-center text-xs"
-										style={{ color: "var(--wayfare-text-secondary)" }}
+										style={{ color: "var(--color-wayfare-text-secondary)" }}
 									>
 										Scan to validate
 									</p>
@@ -158,7 +161,7 @@ export default function DocumentViewer({ documents }: DocumentViewerProps) {
 								{animProps && (
 									<div
 										className="flex flex-col items-center gap-2 rounded-lg p-3 sm:flex-1"
-										style={{ background: "var(--wayfare-surface)" }}
+										style={{ background: "var(--color-wayfare-surface)" }}
 									>
 										<img
 											src={`data:${animProps.contentType};base64,${animProps.base64}`}
@@ -168,7 +171,7 @@ export default function DocumentViewer({ documents }: DocumentViewerProps) {
 										/>
 										<p
 											className="text-center text-xs"
-											style={{ color: "var(--wayfare-text-secondary)" }}
+											style={{ color: "var(--color-wayfare-text-secondary)" }}
 										>
 											Show to inspector
 										</p>
@@ -178,7 +181,7 @@ export default function DocumentViewer({ documents }: DocumentViewerProps) {
 
 							<p
 								className="mt-3 text-center text-xs"
-								style={{ color: "var(--wayfare-text-secondary)" }}
+								style={{ color: "var(--color-wayfare-text-secondary)" }}
 							>
 								{formatValidity(props.startvalidity, props.endvalidity)}
 							</p>
@@ -191,19 +194,19 @@ export default function DocumentViewer({ documents }: DocumentViewerProps) {
 						key={group.key}
 						className="rounded-xl p-4"
 						style={{
-							background: "var(--wayfare-surface-strong)",
-							border: "1px solid var(--wayfare-line)",
+							background: "var(--color-wayfare-surface-strong)",
+							border: "1px solid var(--color-wayfare-line)",
 						}}
 					>
 						<p
 							className="text-xs font-semibold uppercase tracking-wide"
-							style={{ color: "var(--wayfare-text-secondary)" }}
+							style={{ color: "var(--color-wayfare-text-secondary)" }}
 						>
 							External ticket
 						</p>
 						<p
 							className="mt-1 text-sm"
-							style={{ color: "var(--wayfare-text)" }}
+							style={{ color: "var(--color-wayfare-text)" }}
 						>
 							{"startvalidity" in props
 								? formatValidity(props.startvalidity, props.endvalidity)
@@ -216,7 +219,7 @@ export default function DocumentViewer({ documents }: DocumentViewerProps) {
 								target="_blank"
 								rel="noreferrer"
 								className="mt-2 inline-block text-sm font-medium"
-								style={{ color: "var(--wayfare-primary)" }}
+								style={{ color: "var(--color-wayfare-primary)" }}
 							>
 								{link.title ?? link.rel} →
 							</a>

@@ -51,7 +51,7 @@ export default function PaymentMethodPicker({
 		<div className="flex flex-col gap-3">
 			<p
 				className="text-xs font-semibold uppercase tracking-wide"
-				style={{ color: "var(--wayfare-text-secondary)" }}
+				style={{ color: "var(--color-wayfare-text-secondary)" }}
 			>
 				Payment method
 			</p>
@@ -64,10 +64,10 @@ export default function PaymentMethodPicker({
 							className="flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all"
 							style={{
 								borderColor: isSelected
-									? "var(--wayfare-primary)"
-									: "var(--wayfare-line)",
+									? "var(--color-wayfare-primary)"
+									: "var(--color-wayfare-line)",
 								background: isSelected
-									? "var(--wayfare-accent-soft)"
+									? "var(--color-wayfare-accent-soft)"
 									: "transparent",
 							}}
 						>
@@ -83,14 +83,14 @@ export default function PaymentMethodPicker({
 								className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2"
 								style={{
 									borderColor: isSelected
-										? "var(--wayfare-primary)"
-										: "var(--wayfare-line)",
+										? "var(--color-wayfare-primary)"
+										: "var(--color-wayfare-line)",
 								}}
 							>
 								{isSelected && (
 									<div
 										className="h-2 w-2 rounded-full"
-										style={{ background: "var(--wayfare-primary)" }}
+										style={{ background: "var(--color-wayfare-primary)" }}
 									/>
 								)}
 							</div>
@@ -98,13 +98,16 @@ export default function PaymentMethodPicker({
 							<div className="min-w-0">
 								<p
 									className="text-sm font-semibold"
-									style={{ color: "var(--wayfare-text)", margin: 0 }}
+									style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 								>
 									{method.label}
 								</p>
 								<p
 									className="text-xs"
-									style={{ color: "var(--wayfare-text-secondary)", margin: 0 }}
+									style={{
+										color: "var(--color-wayfare-text-secondary)",
+										margin: 0,
+									}}
 								>
 									{method.description}
 								</p>

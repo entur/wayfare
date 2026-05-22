@@ -77,30 +77,33 @@ function TicketsPage() {
 				<div className="mt-12 flex flex-col items-center text-center">
 					<div
 						className="mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-						style={{ background: "var(--wayfare-accent-soft)" }}
+						style={{ background: "var(--color-wayfare-accent-soft)" }}
 					>
 						<ValidTicketIcon
 							size="32"
 							aria-hidden="true"
-							style={{ color: "var(--wayfare-primary)" }}
+							style={{ color: "var(--color-wayfare-primary)" }}
 						/>
 					</div>
 					<p
 						className="text-sm font-medium"
-						style={{ color: "var(--wayfare-text)" }}
+						style={{ color: "var(--color-wayfare-text)" }}
 					>
 						No tickets yet
 					</p>
 					<p
 						className="mt-1 text-xs"
-						style={{ color: "var(--wayfare-text-secondary)" }}
+						style={{ color: "var(--color-wayfare-text-secondary)" }}
 					>
 						Your purchased tickets will appear here.
 					</p>
 					<Link
 						to="/"
 						className="mt-4 inline-flex items-center rounded-xl px-5 py-2.5 text-sm font-semibold no-underline"
-						style={{ background: "var(--wayfare-primary)", color: "#fff" }}
+						style={{
+							background: "var(--color-wayfare-primary)",
+							color: "#fff",
+						}}
 					>
 						Search for tickets
 					</Link>
@@ -120,7 +123,7 @@ function TicketsPage() {
 						{past.length > 0 && (
 							<h2
 								className="mb-1 text-xs font-semibold uppercase tracking-widest"
-								style={{ color: "var(--wayfare-text-secondary)" }}
+								style={{ color: "var(--color-wayfare-text-secondary)" }}
 							>
 								Active
 							</h2>
@@ -136,7 +139,7 @@ function TicketsPage() {
 					<section className="flex flex-col gap-3">
 						<h2
 							className="mb-1 text-xs font-semibold uppercase tracking-widest"
-							style={{ color: "var(--wayfare-text-secondary)" }}
+							style={{ color: "var(--color-wayfare-text-secondary)" }}
 						>
 							Past
 						</h2>

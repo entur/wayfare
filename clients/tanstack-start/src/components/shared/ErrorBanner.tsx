@@ -15,7 +15,7 @@ export default function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
 		>
 			<p
 				className="text-sm"
-				style={{ color: "var(--wayfare-primary)", margin: 0 }}
+				style={{ color: "var(--color-wayfare-primary)", margin: 0 }}
 			>
 				{message}
 			</p>
@@ -26,8 +26,8 @@ export default function ErrorBanner({ message, onDismiss }: ErrorBannerProps) {
 					aria-label="Dismiss"
 					className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-sm font-semibold transition-colors"
 					style={{
-						borderColor: "var(--wayfare-line)",
-						color: "var(--wayfare-text-secondary)",
+						borderColor: "var(--color-wayfare-line)",
+						color: "var(--color-wayfare-text-secondary)",
 						background: "transparent",
 					}}
 				>

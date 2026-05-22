@@ -10,7 +10,6 @@ const GROUPS: {
 	id: TravelerGroup["ageGroup"];
 	label: string;
 	subtitle?: string;
-	// When true: per-person rows (age + name) always visible when count > 0, no expand toggle
 	perPerson?: boolean;
 }[] = [
 	{ id: "ADULT", label: "Adult", subtitle: "18+ yrs" },
@@ -21,20 +20,8 @@ const GROUPS: {
 	{ id: "MILITARY", label: "Military" },
 ];
 
-const ringStyle = {
-	"--tw-ring-color":
-		"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
-} as React.CSSProperties;
-
-const inputStyle: React.CSSProperties = {
-	borderColor: "var(--wayfare-line)",
-	background: "var(--wayfare-bg)",
-	color: "var(--wayfare-text)",
-	...ringStyle,
-};
-
 const inputCls =
-	"rounded-lg border px-2 py-1.5 text-xs outline-none focus:ring-1";
+	"rounded-lg border border-wayfare-line bg-wayfare-bg px-2 py-1.5 text-xs text-wayfare-text outline-none focus:ring-1 focus:ring-wayfare-primary/30";
 
 interface TravelerPickerProps {
 	travelers: TravelerGroup[];
@@ -264,10 +251,7 @@ export default function TravelerPicker({
 						}
 						className="flex items-center gap-2"
 					>
-						<span
-							className="w-16 shrink-0 text-xs"
-							style={{ color: "var(--wayfare-text-secondary)" }}
-						>
+						<span className="w-16 shrink-0 text-xs text-wayfare-text-secondary">
 							{group.count === 1 ? "" : `Person ${i + 1}`}
 						</span>
 						{showAge && (
@@ -286,7 +270,6 @@ export default function TravelerPicker({
 									})
 								}
 								className={`w-20 shrink-0 ${inputCls}`}
-								style={inputStyle}
 							/>
 						)}
 						<input
@@ -297,7 +280,6 @@ export default function TravelerPicker({
 								updateIndividual(ag, i, { name: e.target.value || undefined })
 							}
 							className={`min-w-0 flex-1 ${inputCls}`}
-							style={inputStyle}
 						/>
 					</div>
 				))}
@@ -313,92 +295,55 @@ export default function TravelerPicker({
 
 	return (
 		<div ref={containerRef} className="relative w-full">
-			<p
-				className="mb-1.5 text-sm font-medium"
-				style={{ color: "var(--wayfare-text)" }}
-			>
-				Who
-			</p>
+			<p className="mb-1.5 text-sm font-medium text-wayfare-text">Who</p>
 			<button
 				type="button"
 				onClick={() => setOpen((v) => !v)}
-				className="flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-sm font-medium transition-shadow focus:outline-none focus:ring-2"
-				style={{
-					borderColor: "var(--wayfare-line)",
-					background: "var(--wayfare-surface-strong)",
-					color:
-						total === 0
-							? "var(--wayfare-text-secondary)"
-							: "var(--wayfare-text)",
-					...ringStyle,
-				}}
+				className={`flex w-full items-center justify-between rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-3 py-2.5 text-sm font-medium transition-shadow focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30 ${total === 0 ? "text-wayfare-text-secondary" : "text-wayfare-text"}`}
 				aria-haspopup="dialog"
 				aria-expanded={open}
 			>
 				<span className="flex items-center gap-2">
 					{customerIncluded && customerInitials ? (
-						<span
-							className="flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold"
-							style={{ background: "var(--wayfare-primary)", color: "#fff" }}
-						>
+						<span className="flex h-5 w-5 items-center justify-center rounded-full bg-wayfare-primary text-xs font-bold text-white">
 							{customerInitials}
 						</span>
 					) : (
 						<UsersIcon
 							aria-hidden="true"
-							style={{ color: "var(--wayfare-text-secondary)" }}
+							className="text-wayfare-text-secondary"
 						/>
 					)}
 					{summary}
 				</span>
 				<DownArrowIcon
 					aria-hidden="true"
-					className={`transition-transform ${open ? "rotate-180" : ""}`}
-					style={{ color: "var(--wayfare-text-secondary)" }}
+					className={`text-wayfare-text-secondary transition-transform ${open ? "rotate-180" : ""}`}
 				/>
 			</button>
 
 			{open && (
 				<div
-					className="absolute z-50 mt-1 w-full min-w-[300px] rounded-xl border p-4 shadow-lg"
-					style={{
-						borderColor: "var(--wayfare-line)",
-						background: "var(--wayfare-surface-strong)",
-					}}
+					className="absolute z-50 mt-1 w-full min-w-[300px] rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 shadow-lg"
 					role="dialog"
 					aria-label="Select travelers"
 				>
 					{/* Signed-in customer row */}
 					{customer && (
-						<div
-							className="mb-1 flex items-center justify-between py-2.5"
-							style={{ borderBottom: "1px solid var(--wayfare-line)" }}
-						>
+						<div className="mb-1 flex items-center justify-between border-b border-wayfare-line py-2.5">
 							<div className="flex items-center gap-2.5">
 								<span
-									className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-									style={{
-										background: customerIncluded
-											? "var(--wayfare-primary)"
-											: "var(--wayfare-accent-soft)",
-										color: customerIncluded ? "#fff" : "var(--wayfare-primary)",
-									}}
+									className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${customerIncluded ? "bg-wayfare-primary text-white" : "bg-wayfare-accent-soft text-wayfare-primary"}`}
 								>
 									{customerInitials}
 								</span>
 								<div>
-									<span
-										className="text-sm font-medium"
-										style={{ color: "var(--wayfare-text)" }}
-									>
+									<span className="text-sm font-medium text-wayfare-text">
 										{[customer.firstName, customer.lastName]
 											.filter(Boolean)
 											.join(" ") || customer.id}
 									</span>
-									<span
-										className="ml-1.5 text-xs"
-										style={{ color: "var(--wayfare-text-secondary)" }}
-									>
+									<span className="ml-1.5 text-xs text-wayfare-text-secondary">
 										you
 									</span>
 								</div>
@@ -406,16 +351,7 @@ export default function TravelerPicker({
 							<button
 								type="button"
 								onClick={toggleCustomer}
-								className="rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors"
-								style={{
-									borderColor: customerIncluded
-										? "var(--wayfare-primary)"
-										: "var(--wayfare-line)",
-									color: customerIncluded
-										? "var(--wayfare-primary)"
-										: "var(--wayfare-text-secondary)",
-									background: "transparent",
-								}}
+								className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors bg-transparent ${customerIncluded ? "border-wayfare-primary text-wayfare-primary" : "border-wayfare-line text-wayfare-text-secondary"}`}
 							>
 								{customerIncluded ? "Remove" : "Add"}
 							</button>
@@ -428,24 +364,15 @@ export default function TravelerPicker({
 						const isExpanded = expandedId === group.id;
 
 						return (
-							<div
-								key={group.id}
-								style={{ borderBottom: "1px solid var(--wayfare-line)" }}
-							>
+							<div key={group.id} className="border-b border-wayfare-line">
 								{/* Count row */}
 								<div className="flex items-center justify-between py-2.5">
 									<div>
-										<span
-											className="text-sm font-medium"
-											style={{ color: "var(--wayfare-text)" }}
-										>
+										<span className="text-sm font-medium text-wayfare-text">
 											{group.label}
 										</span>
 										{group.subtitle && (
-											<span
-												className="ml-2 text-xs"
-												style={{ color: "var(--wayfare-text-secondary)" }}
-											>
+											<span className="ml-2 text-xs text-wayfare-text-secondary">
 												{group.subtitle}
 											</span>
 										)}
@@ -456,31 +383,18 @@ export default function TravelerPicker({
 											onClick={() => setCount(group.id, count - 1)}
 											disabled={count === 0}
 											aria-label={`Remove ${group.label}`}
-											className="flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-											style={{
-												borderColor: "var(--wayfare-line)",
-												color: "var(--wayfare-text)",
-												background: "transparent",
-											}}
+											className="flex h-7 w-7 items-center justify-center rounded-lg border border-wayfare-line bg-transparent text-sm font-semibold text-wayfare-text transition-colors disabled:cursor-not-allowed disabled:opacity-40"
 										>
 											−
 										</button>
-										<span
-											className="w-4 text-center text-sm font-semibold tabular-nums"
-											style={{ color: "var(--wayfare-text)" }}
-										>
+										<span className="w-4 text-center text-sm font-semibold tabular-nums text-wayfare-text">
 											{count}
 										</span>
 										<button
 											type="button"
 											onClick={() => setCount(group.id, count + 1)}
 											aria-label={`Add ${group.label}`}
-											className="flex h-7 w-7 items-center justify-center rounded-lg border text-sm font-semibold transition-colors"
-											style={{
-												borderColor: "var(--wayfare-line)",
-												color: "var(--wayfare-text)",
-												background: "transparent",
-											}}
+											className="flex h-7 w-7 items-center justify-center rounded-lg border border-wayfare-line bg-transparent text-sm font-semibold text-wayfare-text transition-colors"
 										>
 											+
 										</button>
@@ -492,16 +406,7 @@ export default function TravelerPicker({
 													setExpandedId(isExpanded ? null : group.id)
 												}
 												aria-label={`${isExpanded ? "Collapse" : "Expand"} ${group.label} options`}
-												className="flex h-7 w-7 items-center justify-center rounded-lg border text-xs transition-colors"
-												style={{
-													borderColor: isExpanded
-														? "var(--wayfare-primary)"
-														: "var(--wayfare-line)",
-													color: isExpanded
-														? "var(--wayfare-primary)"
-														: "var(--wayfare-text-secondary)",
-													background: "transparent",
-												}}
+												className={`flex h-7 w-7 items-center justify-center rounded-lg border bg-transparent text-xs transition-colors ${isExpanded ? "border-wayfare-primary text-wayfare-primary" : "border-wayfare-line text-wayfare-text-secondary"}`}
 											>
 												{isExpanded ? "▴" : "▾"}
 											</button>
@@ -518,27 +423,13 @@ export default function TravelerPicker({
 								{!group.perPerson && isExpanded && count > 0 && (
 									<div className="mb-3 flex flex-col gap-3 pl-1">
 										<div className="flex items-center gap-3">
-											<span
-												className="w-16 shrink-0 text-xs"
-												style={{ color: "var(--wayfare-text-secondary)" }}
-											>
+											<span className="w-16 shrink-0 text-xs text-wayfare-text-secondary">
 												Names
 											</span>
 											<button
 												type="button"
 												onClick={() => toggleNamedMode(group.id)}
-												className="rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors"
-												style={{
-													borderColor:
-														current?.individuals !== undefined
-															? "var(--wayfare-primary)"
-															: "var(--wayfare-line)",
-													color:
-														current?.individuals !== undefined
-															? "var(--wayfare-primary)"
-															: "var(--wayfare-text-secondary)",
-													background: "transparent",
-												}}
+												className={`rounded-lg border bg-transparent px-2.5 py-1 text-xs font-medium transition-colors ${current?.individuals !== undefined ? "border-wayfare-primary text-wayfare-primary" : "border-wayfare-line text-wayfare-text-secondary"}`}
 											>
 												{current?.individuals !== undefined
 													? "Remove names"
@@ -556,12 +447,7 @@ export default function TravelerPicker({
 					<button
 						type="button"
 						onClick={() => setOpen(false)}
-						className="mt-3 w-full rounded-xl border py-2 text-sm font-medium transition-colors"
-						style={{
-							borderColor: "var(--wayfare-line)",
-							color: "var(--wayfare-text)",
-							background: "transparent",
-						}}
+						className="mt-3 w-full rounded-xl border border-wayfare-line bg-transparent py-2 text-sm font-medium text-wayfare-text transition-colors"
 					>
 						Done
 					</button>

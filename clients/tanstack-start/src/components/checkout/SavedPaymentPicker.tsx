@@ -64,9 +64,11 @@ function RadioRow({
 				className="flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all"
 				style={{
 					borderColor: checked
-						? "var(--wayfare-primary)"
-						: "var(--wayfare-line)",
-					background: checked ? "var(--wayfare-accent-soft)" : "transparent",
+						? "var(--color-wayfare-primary)"
+						: "var(--color-wayfare-line)",
+					background: checked
+						? "var(--color-wayfare-accent-soft)"
+						: "transparent",
 				}}
 			>
 				<input
@@ -81,14 +83,14 @@ function RadioRow({
 					className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2"
 					style={{
 						borderColor: checked
-							? "var(--wayfare-primary)"
-							: "var(--wayfare-line)",
+							? "var(--color-wayfare-primary)"
+							: "var(--color-wayfare-line)",
 					}}
 				>
 					{checked && (
 						<div
 							className="h-2 w-2 rounded-full"
-							style={{ background: "var(--wayfare-primary)" }}
+							style={{ background: "var(--color-wayfare-primary)" }}
 						/>
 					)}
 				</div>
@@ -97,7 +99,7 @@ function RadioRow({
 					<div className="flex items-center gap-2">
 						<p
 							className="text-sm font-semibold"
-							style={{ color: "var(--wayfare-text)", margin: 0 }}
+							style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 						>
 							{label}
 						</p>
@@ -105,9 +107,9 @@ function RadioRow({
 							<span
 								className="rounded px-1.5 py-0.5 text-xs font-semibold"
 								style={{
-									background: "var(--wayfare-accent-soft)",
-									color: "var(--wayfare-primary)",
-									border: "1px solid var(--wayfare-primary)",
+									background: "var(--color-wayfare-accent-soft)",
+									color: "var(--color-wayfare-primary)",
+									border: "1px solid var(--color-wayfare-primary)",
 								}}
 							>
 								{badge}
@@ -117,7 +119,10 @@ function RadioRow({
 					{description && (
 						<p
 							className="text-xs"
-							style={{ color: "var(--wayfare-text-secondary)", margin: 0 }}
+							style={{
+								color: "var(--color-wayfare-text-secondary)",
+								margin: 0,
+							}}
 						>
 							{description}
 						</p>
@@ -127,7 +132,7 @@ function RadioRow({
 			{checked && children && (
 				<div
 					className="mx-3 rounded-b-xl border-x border-b px-4 pb-4 pt-3"
-					style={{ borderColor: "var(--wayfare-primary)" }}
+					style={{ borderColor: "var(--color-wayfare-primary)" }}
 				>
 					{children}
 				</div>
@@ -234,7 +239,7 @@ function SignedInPicker({
 		return (
 			<p
 				className="py-3 text-sm"
-				style={{ color: "var(--wayfare-text-secondary)" }}
+				style={{ color: "var(--color-wayfare-text-secondary)" }}
 			>
 				Loading payment methods…
 			</p>
@@ -245,7 +250,7 @@ function SignedInPicker({
 		<div className="flex flex-col gap-2">
 			<p
 				className="text-xs font-semibold uppercase tracking-wide"
-				style={{ color: "var(--wayfare-text-secondary)" }}
+				style={{ color: "var(--color-wayfare-text-secondary)" }}
 			>
 				Payment method
 			</p>
@@ -284,7 +289,7 @@ function SignedInPicker({
 					<label
 						htmlFor="checkout-vipps-phone"
 						className="mb-1 block text-xs font-medium"
-						style={{ color: "var(--wayfare-text-secondary)" }}
+						style={{ color: "var(--color-wayfare-text-secondary)" }}
 					>
 						Phone number
 					</label>
@@ -296,9 +301,9 @@ function SignedInPicker({
 						placeholder="e.g. 91234567"
 						className="w-full rounded-lg border px-3 py-2 text-sm"
 						style={{
-							background: "var(--wayfare-surface)",
-							borderColor: "var(--wayfare-line)",
-							color: "var(--wayfare-text)",
+							background: "var(--color-wayfare-surface)",
+							borderColor: "var(--color-wayfare-line)",
+							color: "var(--color-wayfare-text)",
 						}}
 					/>
 				</div>
@@ -326,12 +331,12 @@ function SignedInPicker({
 								className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all"
 								style={{
 									borderColor: selected
-										? "var(--wayfare-primary)"
-										: "var(--wayfare-line)",
+										? "var(--color-wayfare-primary)"
+										: "var(--color-wayfare-line)",
 									background: selected
-										? "var(--wayfare-accent-soft)"
-										: "var(--wayfare-surface)",
-									color: "var(--wayfare-text)",
+										? "var(--color-wayfare-accent-soft)"
+										: "var(--color-wayfare-surface)",
+									color: "var(--color-wayfare-text)",
 								}}
 							>
 								<Icon aria-hidden="true" />
@@ -344,18 +349,18 @@ function SignedInPicker({
 
 			<div
 				className="mt-1 rounded-xl border border-dashed p-3"
-				style={{ borderColor: "var(--wayfare-line)" }}
+				style={{ borderColor: "var(--color-wayfare-line)" }}
 			>
 				<p
 					className="mb-2 text-xs"
-					style={{ color: "var(--wayfare-text-secondary)" }}
+					style={{ color: "var(--color-wayfare-text-secondary)" }}
 				>
 					Save a card for faster checkout next time
 				</p>
 				{addError && (
 					<p
 						className="mb-2 text-xs"
-						style={{ color: "var(--wayfare-primary)" }}
+						style={{ color: "var(--color-wayfare-primary)" }}
 					>
 						{addError}
 					</p>
@@ -371,7 +376,7 @@ function SignedInPicker({
 				{!customerNumber && (
 					<p
 						className="mt-1 text-xs"
-						style={{ color: "var(--wayfare-text-secondary)" }}
+						style={{ color: "var(--color-wayfare-text-secondary)" }}
 					>
 						Customer number missing — sign out and sign in again to save cards.
 					</p>
@@ -445,7 +450,7 @@ function GuestPicker({ onSelect }: GuestPickerProps) {
 		<div className="flex flex-col gap-3">
 			<p
 				className="text-xs font-semibold uppercase tracking-wide"
-				style={{ color: "var(--wayfare-text-secondary)" }}
+				style={{ color: "var(--color-wayfare-text-secondary)" }}
 			>
 				Payment method
 			</p>
@@ -466,7 +471,7 @@ function GuestPicker({ onSelect }: GuestPickerProps) {
 								<label
 									htmlFor="checkout-guest-vipps-phone"
 									className="mb-1 block text-xs font-medium"
-									style={{ color: "var(--wayfare-text-secondary)" }}
+									style={{ color: "var(--color-wayfare-text-secondary)" }}
 								>
 									Phone number
 								</label>
@@ -478,9 +483,9 @@ function GuestPicker({ onSelect }: GuestPickerProps) {
 									placeholder="e.g. 91234567"
 									className="w-full rounded-lg border px-3 py-2 text-sm"
 									style={{
-										background: "var(--wayfare-surface)",
-										borderColor: "var(--wayfare-line)",
-										color: "var(--wayfare-text)",
+										background: "var(--color-wayfare-surface)",
+										borderColor: "var(--color-wayfare-line)",
+										color: "var(--color-wayfare-text)",
 									}}
 								/>
 							</div>

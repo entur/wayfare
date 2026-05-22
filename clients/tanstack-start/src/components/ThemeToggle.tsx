@@ -71,7 +71,7 @@ export default function ThemeToggle() {
 			onClick={toggleMode}
 			aria-label={ariaLabel}
 			title={ariaLabel}
-			className="flex cursor-pointer items-center justify-center rounded-lg p-1.5 text-[var(--wayfare-text-secondary)] transition-colors hover:bg-[var(--wayfare-bg)]"
+			className="flex cursor-pointer items-center justify-center rounded-lg p-1.5 text-wayfare-text-secondary transition-colors hover:bg-wayfare-bg"
 		>
 			{icon}
 		</button>

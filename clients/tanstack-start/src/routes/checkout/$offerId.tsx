@@ -242,7 +242,7 @@ function CheckoutScreen() {
 	if (!hydrated) {
 		return (
 			<PageShell title="Checkout" subtitle="Review your order and pay">
-				<p style={{ color: "var(--wayfare-text-secondary)" }}>Loading…</p>
+				<p style={{ color: "var(--color-wayfare-text-secondary)" }}>Loading…</p>
 			</PageShell>
 		);
 	}
@@ -263,13 +263,13 @@ function CheckoutScreen() {
 				<div
 					className="mb-4 rounded-lg p-4"
 					style={{
-						background: "var(--wayfare-surface-strong)",
-						border: "1px solid var(--wayfare-line)",
+						background: "var(--color-wayfare-surface-strong)",
+						border: "1px solid var(--color-wayfare-line)",
 					}}
 				>
 					<p
 						className="text-xs font-semibold uppercase tracking-wide mb-3"
-						style={{ color: "var(--wayfare-text-secondary)" }}
+						style={{ color: "var(--color-wayfare-text-secondary)" }}
 					>
 						{selectedOffers.length === 1
 							? "Your offer"
@@ -291,7 +291,7 @@ function CheckoutScreen() {
 									<div>
 										<p
 											className="text-sm font-medium"
-											style={{ color: "var(--wayfare-text)", margin: 0 }}
+											style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 										>
 											{offer.properties?.summary?.name ??
 												product?.productName ??
@@ -301,7 +301,7 @@ function CheckoutScreen() {
 											<p
 												className="text-xs"
 												style={{
-													color: "var(--wayfare-text-secondary)",
+													color: "var(--color-wayfare-text-secondary)",
 													margin: 0,
 												}}
 											>
@@ -313,7 +313,10 @@ function CheckoutScreen() {
 									{price && (
 										<p
 											className="text-sm font-semibold shrink-0"
-											style={{ color: "var(--wayfare-primary)", margin: 0 }}
+											style={{
+												color: "var(--color-wayfare-primary)",
+												margin: 0,
+											}}
 										>
 											{formatPrice(price.amount, price.currencyCode ?? "NOK")}
 										</p>
@@ -325,17 +328,17 @@ function CheckoutScreen() {
 					{selectedOffers.length > 1 && (
 						<div
 							className="mt-3 pt-3 flex items-center justify-between"
-							style={{ borderTop: "1px solid var(--wayfare-line)" }}
+							style={{ borderTop: "1px solid var(--color-wayfare-line)" }}
 						>
 							<p
 								className="text-sm font-semibold"
-								style={{ color: "var(--wayfare-text)", margin: 0 }}
+								style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 							>
 								Total
 							</p>
 							<p
 								className="text-base font-bold"
-								style={{ color: "var(--wayfare-primary)", margin: 0 }}
+								style={{ color: "var(--color-wayfare-primary)", margin: 0 }}
 							>
 								{formatPrice(previewTotal, currency)}
 							</p>
@@ -346,13 +349,13 @@ function CheckoutScreen() {
 				<div
 					className="mb-4 rounded-lg p-4"
 					style={{
-						background: "var(--wayfare-surface-strong)",
-						border: "1px solid var(--wayfare-line)",
+						background: "var(--color-wayfare-surface-strong)",
+						border: "1px solid var(--color-wayfare-line)",
 					}}
 				>
 					<p
 						className="text-xs font-semibold uppercase tracking-wide mb-3"
-						style={{ color: "var(--wayfare-text-secondary)" }}
+						style={{ color: "var(--color-wayfare-text-secondary)" }}
 					>
 						Customer
 					</p>
@@ -361,7 +364,7 @@ function CheckoutScreen() {
 							<div>
 								<p
 									className="text-sm font-medium"
-									style={{ color: "var(--wayfare-text)", margin: 0 }}
+									style={{ color: "var(--color-wayfare-text)", margin: 0 }}
 								>
 									{[profileCustomer.firstName, profileCustomer.lastName]
 										.filter(Boolean)
@@ -371,7 +374,7 @@ function CheckoutScreen() {
 									<p
 										className="text-xs"
 										style={{
-											color: "var(--wayfare-text-secondary)",
+											color: "var(--color-wayfare-text-secondary)",
 											margin: 0,
 										}}
 									>
@@ -383,7 +386,7 @@ function CheckoutScreen() {
 								to="/settings"
 								search={{ tab: "profile", pendingCardId: undefined }}
 								className="text-xs no-underline"
-								style={{ color: "var(--wayfare-primary)" }}
+								style={{ color: "var(--color-wayfare-primary)" }}
 							>
 								Change
 							</Link>
@@ -392,14 +395,14 @@ function CheckoutScreen() {
 						<div className="space-y-3">
 							<p
 								className="text-xs"
-								style={{ color: "var(--wayfare-text-secondary)" }}
+								style={{ color: "var(--color-wayfare-text-secondary)" }}
 							>
 								No profile selected.{" "}
 								<Link
 									to="/settings"
 									search={{ tab: "profile", pendingCardId: undefined }}
 									className="no-underline"
-									style={{ color: "var(--wayfare-primary)" }}
+									style={{ color: "var(--color-wayfare-primary)" }}
 								>
 									Sign in
 								</Link>{" "}
@@ -410,7 +413,7 @@ function CheckoutScreen() {
 									<label
 										htmlFor="checkout-firstName"
 										className="mb-1 block text-xs font-medium"
-										style={{ color: "var(--wayfare-text-secondary)" }}
+										style={{ color: "var(--color-wayfare-text-secondary)" }}
 									>
 										First name
 									</label>
@@ -426,9 +429,9 @@ function CheckoutScreen() {
 										}
 										className="w-full rounded-lg border px-3 py-2 text-sm"
 										style={{
-											background: "var(--wayfare-surface)",
-											borderColor: "var(--wayfare-line)",
-											color: "var(--wayfare-text)",
+											background: "var(--color-wayfare-surface)",
+											borderColor: "var(--color-wayfare-line)",
+											color: "var(--color-wayfare-text)",
 										}}
 										placeholder="First name"
 									/>
@@ -437,7 +440,7 @@ function CheckoutScreen() {
 									<label
 										htmlFor="checkout-lastName"
 										className="mb-1 block text-xs font-medium"
-										style={{ color: "var(--wayfare-text-secondary)" }}
+										style={{ color: "var(--color-wayfare-text-secondary)" }}
 									>
 										Last name
 									</label>
@@ -453,9 +456,9 @@ function CheckoutScreen() {
 										}
 										className="w-full rounded-lg border px-3 py-2 text-sm"
 										style={{
-											background: "var(--wayfare-surface)",
-											borderColor: "var(--wayfare-line)",
-											color: "var(--wayfare-text)",
+											background: "var(--color-wayfare-surface)",
+											borderColor: "var(--color-wayfare-line)",
+											color: "var(--color-wayfare-text)",
 										}}
 										placeholder="Last name"
 									/>
@@ -465,7 +468,7 @@ function CheckoutScreen() {
 								<label
 									htmlFor="checkout-email"
 									className="mb-1 block text-xs font-medium"
-									style={{ color: "var(--wayfare-text-secondary)" }}
+									style={{ color: "var(--color-wayfare-text-secondary)" }}
 								>
 									Email
 								</label>
@@ -481,9 +484,9 @@ function CheckoutScreen() {
 									}
 									className="w-full rounded-lg border px-3 py-2 text-sm"
 									style={{
-										background: "var(--wayfare-surface)",
-										borderColor: "var(--wayfare-line)",
-										color: "var(--wayfare-text)",
+										background: "var(--color-wayfare-surface)",
+										borderColor: "var(--color-wayfare-line)",
+										color: "var(--color-wayfare-text)",
 									}}
 									placeholder="email@example.com"
 								/>
@@ -495,8 +498,8 @@ function CheckoutScreen() {
 				<div
 					className="mb-6 rounded-lg p-4"
 					style={{
-						background: "var(--wayfare-surface-strong)",
-						border: "1px solid var(--wayfare-line)",
+						background: "var(--color-wayfare-surface-strong)",
+						border: "1px solid var(--color-wayfare-line)",
 					}}
 				>
 					<SavedPaymentPicker
@@ -511,7 +514,7 @@ function CheckoutScreen() {
 						className="mb-4 rounded-lg px-3 py-2 text-sm"
 						style={{
 							background: "rgba(233,0,55,0.08)",
-							color: "var(--wayfare-primary)",
+							color: "var(--color-wayfare-primary)",
 						}}
 					>
 						{state.error}
@@ -523,8 +526,8 @@ function CheckoutScreen() {
 						to="/offers"
 						className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-5 py-2.5 text-sm font-semibold no-underline transition-colors"
 						style={{
-							borderColor: "var(--wayfare-line)",
-							color: "var(--wayfare-text)",
+							borderColor: "var(--color-wayfare-line)",
+							color: "var(--color-wayfare-text)",
 						}}
 					>
 						<LeftArrowIcon aria-hidden="true" />

@@ -1,5 +1,6 @@
 import { CloseSmallIcon, SearchIcon } from "@entur/icons";
 import { useEffect, useId, useRef, useState } from "react";
+import Spinner from "./Spinner";
 
 export interface ComboboxOption<T = string> {
 	value: T;
@@ -187,8 +188,7 @@ export default function Combobox<T>({
 		<div ref={containerRef} className="relative w-full">
 			<label
 				htmlFor={inputId}
-				className="mb-1.5 block text-sm font-medium"
-				style={{ color: "var(--wayfare-text)" }}
+				className="mb-1.5 block text-sm font-medium text-wayfare-text"
 			>
 				{label}
 			</label>
@@ -207,44 +207,14 @@ export default function Combobox<T>({
 					onKeyDown={handleKeyDown}
 					placeholder={placeholder}
 					autoComplete="off"
-					className="w-full rounded-xl border py-2.5 pl-3 pr-10 text-sm outline-none transition-shadow focus:ring-2"
-					style={{
-						borderColor: "var(--wayfare-line)",
-						background: "var(--wayfare-surface-strong)",
-						color: "var(--wayfare-text)",
-						// @ts-expect-error - css custom prop
-						"--tw-ring-color":
-							"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
-					}}
+					className="w-full rounded-xl border border-wayfare-line bg-wayfare-surface-strong py-2.5 pl-3 pr-10 text-sm text-wayfare-text outline-none transition-shadow focus:ring-2 focus:ring-wayfare-primary/30"
 				/>
 				<div className="pointer-events-none absolute right-3 flex items-center gap-1">
-					{loading && (
-						<svg
-							className="h-4 w-4 animate-spin"
-							fill="none"
-							viewBox="0 0 24 24"
-							aria-hidden="true"
-							style={{ color: "var(--wayfare-text-secondary)" }}
-						>
-							<circle
-								className="opacity-25"
-								cx="12"
-								cy="12"
-								r="10"
-								stroke="currentColor"
-								strokeWidth="4"
-							/>
-							<path
-								className="opacity-75"
-								fill="currentColor"
-								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-							/>
-						</svg>
-					)}
+					{loading && <Spinner className="text-wayfare-text-secondary" />}
 					{!loading && !selected && (
 						<SearchIcon
 							aria-hidden="true"
-							style={{ color: "var(--wayfare-text-secondary)" }}
+							className="text-wayfare-text-secondary"
 						/>
 					)}
 				</div>
@@ -252,8 +222,7 @@ export default function Combobox<T>({
 					<button
 						type="button"
 						onPointerDown={handleClear}
-						className="absolute right-2.5 flex h-5 w-5 items-center justify-center rounded-full transition-colors hover:bg-[var(--wayfare-bg)]"
-						style={{ color: "var(--wayfare-text-secondary)" }}
+						className="absolute right-2.5 flex h-5 w-5 items-center justify-center rounded-full text-wayfare-text-secondary transition-colors hover:bg-wayfare-bg"
 						aria-label="Clear selection"
 					>
 						<CloseSmallIcon aria-hidden="true" />
@@ -265,12 +234,7 @@ export default function Combobox<T>({
 				<div
 					id={listboxId}
 					role="listbox"
-					className="absolute z-50 mt-1 w-full overflow-auto rounded-xl border shadow-lg"
-					style={{
-						maxHeight: "260px",
-						borderColor: "var(--wayfare-line)",
-						background: "var(--wayfare-surface-strong)",
-					}}
+					className="absolute z-50 mt-1 max-h-[260px] w-full overflow-auto rounded-xl border border-wayfare-line bg-wayfare-surface-strong shadow-lg"
 				>
 					{keyedOptions.map(({ option, key }, i) => {
 						const Icon = option.icon;
@@ -286,20 +250,10 @@ export default function Combobox<T>({
 									handleSelect(option);
 								}}
 								onPointerEnter={() => setActiveIndex(i)}
-								className="flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors"
-								style={{
-									background:
-										i === activeIndex
-											? "var(--wayfare-accent-soft)"
-											: undefined,
-									color: "var(--wayfare-text)",
-								}}
+								className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left text-sm text-wayfare-text transition-colors ${i === activeIndex ? "bg-wayfare-accent-soft" : ""}`}
 							>
 								{Icon && (
-									<span
-										className="flex h-4 w-4 shrink-0 items-center justify-center"
-										style={{ color: "var(--wayfare-text-secondary)" }}
-									>
+									<span className="flex h-4 w-4 shrink-0 items-center justify-center text-wayfare-text-secondary">
 										<Icon />
 									</span>
 								)}
@@ -311,14 +265,7 @@ export default function Combobox<T>({
 			)}
 
 			{showNoMatch && (
-				<div
-					className="absolute z-50 mt-1 w-full rounded-xl border px-3 py-3 text-sm shadow-lg"
-					style={{
-						borderColor: "var(--wayfare-line)",
-						background: "var(--wayfare-surface-strong)",
-						color: "var(--wayfare-text-secondary)",
-					}}
-				>
+				<div className="absolute z-50 mt-1 w-full rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-3 py-3 text-sm text-wayfare-text-secondary shadow-lg">
 					{noMatchText}
 				</div>
 			)}

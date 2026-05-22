@@ -111,11 +111,11 @@ export default function BundleCard({
 			className="block cursor-pointer rounded-xl border p-4 transition-all"
 			style={{
 				borderColor: selected
-					? "var(--wayfare-primary)"
-					: "var(--wayfare-line)",
+					? "var(--color-wayfare-primary)"
+					: "var(--color-wayfare-line)",
 				background: selected
-					? "var(--wayfare-accent-soft)"
-					: "var(--wayfare-surface-strong)",
+					? "var(--color-wayfare-accent-soft)"
+					: "var(--color-wayfare-surface-strong)",
 			}}
 		>
 			{/* sr-only radio — clicking the label anywhere (except the button) selects it */}
@@ -132,14 +132,14 @@ export default function BundleCard({
 					className="mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 flex items-center justify-center"
 					style={{
 						borderColor: selected
-							? "var(--wayfare-primary)"
-							: "var(--wayfare-text-secondary)",
+							? "var(--color-wayfare-primary)"
+							: "var(--color-wayfare-text-secondary)",
 					}}
 				>
 					{selected && (
 						<div
 							className="h-2 w-2 rounded-full"
-							style={{ background: "var(--wayfare-primary)" }}
+							style={{ background: "var(--color-wayfare-primary)" }}
 						/>
 					)}
 				</div>
@@ -161,7 +161,7 @@ export default function BundleCard({
 							) : (
 								<span
 									className="text-sm font-semibold"
-									style={{ color: "var(--wayfare-text)" }}
+									style={{ color: "var(--color-wayfare-text)" }}
 								>
 									{bundle.offers[0]?.properties?.summary?.name ??
 										bundle.offers[0]?.properties?.products?.[0]?.productName ??
@@ -171,7 +171,7 @@ export default function BundleCard({
 						</div>
 						<span
 							className="shrink-0 text-sm font-bold"
-							style={{ color: "var(--wayfare-primary)" }}
+							style={{ color: "var(--color-wayfare-primary)" }}
 						>
 							{formatPrice(bundle.totalPrice, bundle.currency)}
 						</span>
@@ -185,9 +185,9 @@ export default function BundleCard({
 									key={p.id}
 									className="inline-flex items-center rounded-full px-2 py-0.5 text-xs"
 									style={{
-										background: "var(--wayfare-bg)",
-										color: "var(--wayfare-text-secondary)",
-										border: "1px solid var(--wayfare-line)",
+										background: "var(--color-wayfare-bg)",
+										color: "var(--color-wayfare-text-secondary)",
+										border: "1px solid var(--color-wayfare-line)",
 									}}
 								>
 									{partyLabel(p)}
@@ -205,7 +205,7 @@ export default function BundleCard({
 						}}
 						className="mt-2 flex items-center gap-1 text-xs"
 						style={{
-							color: "var(--wayfare-primary)",
+							color: "var(--color-wayfare-primary)",
 							background: "none",
 							border: "none",
 							padding: 0,
@@ -222,7 +222,7 @@ export default function BundleCard({
 					{expanded && (
 						<div
 							className="mt-3 flex flex-col gap-2.5 pt-3"
-							style={{ borderTop: "1px solid var(--wayfare-line)" }}
+							style={{ borderTop: "1px solid var(--color-wayfare-line)" }}
 						>
 							{bundle.offers.map((offer) => {
 								const name =
@@ -248,7 +248,10 @@ export default function BundleCard({
 										<div className="min-w-0">
 											<p
 												className="text-xs font-medium"
-												style={{ color: "var(--wayfare-text)", margin: 0 }}
+												style={{
+													color: "var(--color-wayfare-text)",
+													margin: 0,
+												}}
 											>
 												{name}
 											</p>
@@ -256,7 +259,7 @@ export default function BundleCard({
 												<p
 													className="text-xs"
 													style={{
-														color: "var(--wayfare-text-secondary)",
+														color: "var(--color-wayfare-text-secondary)",
 														margin: 0,
 													}}
 												>
@@ -267,7 +270,7 @@ export default function BundleCard({
 										{price && (
 											<span
 												className="shrink-0 text-xs font-semibold"
-												style={{ color: "var(--wayfare-text)" }}
+												style={{ color: "var(--color-wayfare-text)" }}
 											>
 												{formatPrice(price.amount, price.currencyCode ?? "NOK")}
 											</span>

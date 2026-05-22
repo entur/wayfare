@@ -198,14 +198,13 @@ export default function DateTimePicker({
 	];
 
 	const spinnerBtnCls =
-		"flex h-5 w-5 items-center justify-center rounded text-[10px] transition-colors hover:opacity-70";
+		"flex h-5 w-5 items-center justify-center rounded text-[10px] text-wayfare-text-secondary transition-colors hover:opacity-70";
 
 	return (
 		<div ref={containerRef} className="relative w-full">
 			<label
 				htmlFor={triggerId}
-				className="mb-1.5 block text-sm font-medium"
-				style={{ color: "var(--wayfare-text)" }}
+				className="mb-1.5 block text-sm font-medium text-wayfare-text"
 			>
 				{label}
 			</label>
@@ -213,15 +212,7 @@ export default function DateTimePicker({
 				id={triggerId}
 				type="button"
 				onClick={() => setOpen((v) => !v)}
-				className="flex w-full min-w-[13rem] items-center justify-between rounded-xl border px-3 py-2.5 text-sm transition-shadow focus:outline-none focus:ring-2"
-				style={{
-					borderColor: "var(--wayfare-line)",
-					background: "var(--wayfare-surface-strong)",
-					color: "var(--wayfare-text)",
-					// @ts-expect-error - css custom prop
-					"--tw-ring-color":
-						"color-mix(in srgb, var(--wayfare-primary) 30%, transparent)",
-				}}
+				className="flex w-full min-w-[13rem] items-center justify-between rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-3 py-2.5 text-sm text-wayfare-text transition-shadow focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30"
 			>
 				<span className="truncate">{formatTrigger(timeMode, value)}</span>
 				<svg
@@ -245,38 +236,20 @@ export default function DateTimePicker({
 			{open && (
 				<div
 					ref={popupRef}
-					className={`absolute left-0 z-50 w-72 rounded-xl border p-4 shadow-lg ${openUpward ? "bottom-full mb-1" : "top-full mt-1"}`}
-					style={{
-						background: "var(--wayfare-surface-strong)",
-						borderColor: "var(--wayfare-line)",
-					}}
+					className={`absolute left-0 z-50 w-72 rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 shadow-lg ${openUpward ? "bottom-full mb-1" : "top-full mt-1"}`}
 				>
 					{/* Mode tabs */}
-					<div
-						className="mb-4 flex rounded-lg border p-0.5"
-						style={{
-							borderColor: "var(--wayfare-line)",
-							background: "var(--wayfare-bg)",
-						}}
-					>
+					<div className="mb-4 flex rounded-lg border border-wayfare-line bg-wayfare-bg p-0.5">
 						{MODES.map((m) => (
 							<button
 								key={m.value}
 								type="button"
 								onClick={() => handleModeChange(m.value)}
-								className="flex-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium transition-all"
-								style={{
-									background:
-										timeMode === m.value
-											? "var(--wayfare-surface-strong)"
-											: "transparent",
-									color:
-										timeMode === m.value
-											? "var(--wayfare-text)"
-											: "var(--wayfare-text-secondary)",
-									boxShadow:
-										timeMode === m.value ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-								}}
+								className={`flex-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium transition-all ${
+									timeMode === m.value
+										? "bg-wayfare-surface-strong text-wayfare-text shadow-sm"
+										: "bg-transparent text-wayfare-text-secondary shadow-none"
+								}`}
 							>
 								{m.label}
 							</button>
@@ -291,23 +264,18 @@ export default function DateTimePicker({
 									<button
 										type="button"
 										onClick={prevMonth}
-										className="flex h-7 w-7 items-center justify-center rounded-lg text-base transition-colors hover:opacity-70"
-										style={{ color: "var(--wayfare-text-secondary)" }}
+										className="flex h-7 w-7 items-center justify-center rounded-lg text-base text-wayfare-text-secondary transition-colors hover:opacity-70"
 										aria-label="Previous month"
 									>
 										‹
 									</button>
-									<span
-										className="text-sm font-medium"
-										style={{ color: "var(--wayfare-text)" }}
-									>
+									<span className="text-sm font-medium text-wayfare-text">
 										{MONTH_NAMES[calMonth]} {calYear}
 									</span>
 									<button
 										type="button"
 										onClick={nextMonth}
-										className="flex h-7 w-7 items-center justify-center rounded-lg text-base transition-colors hover:opacity-70"
-										style={{ color: "var(--wayfare-text-secondary)" }}
+										className="flex h-7 w-7 items-center justify-center rounded-lg text-base text-wayfare-text-secondary transition-colors hover:opacity-70"
 										aria-label="Next month"
 									>
 										›
@@ -318,8 +286,7 @@ export default function DateTimePicker({
 									{DAY_HEADERS.map((d) => (
 										<div
 											key={d}
-											className="text-center text-[10px] font-medium"
-											style={{ color: "var(--wayfare-text-secondary)" }}
+											className="text-center text-[10px] font-medium text-wayfare-text-secondary"
 										>
 											{d}
 										</div>
@@ -342,22 +309,15 @@ export default function DateTimePicker({
 												type="button"
 												disabled={isDisabled}
 												onClick={() => selectDay(day)}
-												className="flex h-7 w-full items-center justify-center rounded-full text-xs transition-colors"
-												style={{
-													background: isSelected
-														? "var(--wayfare-primary)"
-														: "transparent",
-													color: isSelected
-														? "#ffffff"
+												className={`flex h-7 w-full items-center justify-center rounded-full text-xs transition-colors ${
+													isSelected
+														? "bg-wayfare-primary text-white"
 														: isDisabled
-															? "var(--wayfare-text-secondary)"
+															? "cursor-not-allowed text-wayfare-text-secondary opacity-35"
 															: isToday
-																? "var(--wayfare-primary)"
-																: "var(--wayfare-text)",
-													fontWeight: isSelected || isToday ? 600 : 400,
-													opacity: isDisabled ? 0.35 : 1,
-													cursor: isDisabled ? "not-allowed" : "pointer",
-												}}
+																? "cursor-pointer text-wayfare-primary font-semibold"
+																: "cursor-pointer text-wayfare-text"
+												}`}
 											>
 												{day}
 											</button>
@@ -366,10 +326,7 @@ export default function DateTimePicker({
 								</div>
 							</div>
 
-							<div
-								className="mb-3 border-t"
-								style={{ borderColor: "var(--wayfare-line)" }}
-							/>
+							<div className="mb-3 border-t border-wayfare-line" />
 
 							{/* Inline time picker */}
 							<div className="flex items-center gap-2">
@@ -379,36 +336,24 @@ export default function DateTimePicker({
 										type="button"
 										onClick={() => adjustHour(1)}
 										className={spinnerBtnCls}
-										style={{ color: "var(--wayfare-text-secondary)" }}
 										aria-label="Increase hour"
 									>
 										▲
 									</button>
-									<span
-										className="flex h-8 w-9 items-center justify-center rounded-lg border text-sm font-medium tabular-nums"
-										style={{
-											borderColor: "var(--wayfare-line)",
-											background: "var(--wayfare-bg)",
-											color: "var(--wayfare-text)",
-										}}
-									>
+									<span className="flex h-8 w-9 items-center justify-center rounded-lg border border-wayfare-line bg-wayfare-bg text-sm font-medium tabular-nums text-wayfare-text">
 										{hStr}
 									</span>
 									<button
 										type="button"
 										onClick={() => adjustHour(-1)}
 										className={spinnerBtnCls}
-										style={{ color: "var(--wayfare-text-secondary)" }}
 										aria-label="Decrease hour"
 									>
 										▼
 									</button>
 								</div>
 
-								<span
-									className="mb-px text-sm font-medium"
-									style={{ color: "var(--wayfare-text)" }}
-								>
+								<span className="mb-px text-sm font-medium text-wayfare-text">
 									:
 								</span>
 
@@ -418,26 +363,17 @@ export default function DateTimePicker({
 										type="button"
 										onClick={() => adjustMinute(1)}
 										className={spinnerBtnCls}
-										style={{ color: "var(--wayfare-text-secondary)" }}
 										aria-label="Increase minute"
 									>
 										▲
 									</button>
-									<span
-										className="flex h-8 w-9 items-center justify-center rounded-lg border text-sm font-medium tabular-nums"
-										style={{
-											borderColor: "var(--wayfare-line)",
-											background: "var(--wayfare-bg)",
-											color: "var(--wayfare-text)",
-										}}
-									>
+									<span className="flex h-8 w-9 items-center justify-center rounded-lg border border-wayfare-line bg-wayfare-bg text-sm font-medium tabular-nums text-wayfare-text">
 										{mStr}
 									</span>
 									<button
 										type="button"
 										onClick={() => adjustMinute(-1)}
 										className={spinnerBtnCls}
-										style={{ color: "var(--wayfare-text-secondary)" }}
 										aria-label="Decrease minute"
 									>
 										▼
@@ -460,12 +396,7 @@ export default function DateTimePicker({
 											key={btnLabel}
 											type="button"
 											onClick={fn}
-											className="rounded-lg border px-2 py-1.5 text-xs font-medium transition-colors"
-											style={{
-												borderColor: "var(--wayfare-line)",
-												color: "var(--wayfare-text-secondary)",
-												background: "var(--wayfare-bg)",
-											}}
+											className="rounded-lg border border-wayfare-line bg-wayfare-bg px-2 py-1.5 text-xs font-medium text-wayfare-text-secondary transition-colors"
 										>
 											{btnLabel}
 										</button>
