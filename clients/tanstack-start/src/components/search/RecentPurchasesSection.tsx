@@ -25,10 +25,7 @@ export default function RecentPurchasesSection({
 
 	return (
 		<div>
-			<p
-				className="mb-2 text-xs font-semibold uppercase tracking-wide"
-				style={{ color: "var(--color-wayfare-text-secondary)" }}
-			>
+			<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 				Recent purchases
 			</p>
 			<div className="flex flex-col gap-2">
@@ -40,11 +37,7 @@ export default function RecentPurchasesSection({
 					return (
 						<div
 							key={pkg.packageId}
-							className="flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 text-sm"
-							style={{
-								background: "var(--color-wayfare-surface-strong)",
-								borderColor: "var(--color-wayfare-line)",
-							}}
+							className="flex items-center justify-between gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-3 py-2.5 text-sm"
 						>
 							{/* Route */}
 							<Link
@@ -52,10 +45,7 @@ export default function RecentPurchasesSection({
 								params={{ packageId: pkg.packageId }}
 								className="flex min-w-0 flex-1 items-center gap-2 hover:opacity-70 focus:outline-none"
 							>
-								<span
-									className="truncate font-medium"
-									style={{ color: "var(--color-wayfare-text)" }}
-								>
+								<span className="truncate font-medium text-wayfare-text">
 									{fromName}
 								</span>
 								<svg
@@ -64,8 +54,7 @@ export default function RecentPurchasesSection({
 									viewBox="0 0 12 12"
 									fill="none"
 									aria-hidden="true"
-									className="shrink-0"
-									style={{ color: "var(--color-wayfare-text-secondary)" }}
+									className="shrink-0 text-wayfare-text-secondary"
 								>
 									<path
 										d="M2 6h8M7 3l3 3-3 3"
@@ -75,20 +64,14 @@ export default function RecentPurchasesSection({
 										strokeLinejoin="round"
 									/>
 								</svg>
-								<span
-									className="truncate font-medium"
-									style={{ color: "var(--color-wayfare-text)" }}
-								>
+								<span className="truncate font-medium text-wayfare-text">
 									{toName}
 								</span>
 							</Link>
 
 							{/* Price + rebook */}
 							<div className="flex shrink-0 items-center gap-3">
-								<span
-									className="text-xs"
-									style={{ color: "var(--color-wayfare-text-secondary)" }}
-								>
+								<span className="text-xs text-wayfare-text-secondary">
 									{formatPrice(
 										pkg.price.amount,
 										pkg.price.currencyCode ?? "NOK",
@@ -97,16 +80,7 @@ export default function RecentPurchasesSection({
 								<button
 									type="button"
 									onClick={() => onRebook({ from, to })}
-									className="rounded-lg border px-2.5 py-1 text-xs font-medium transition-colors hover:opacity-80 focus:outline-none focus:ring-2"
-									style={{
-										borderColor: "var(--color-wayfare-primary)",
-										color: "var(--color-wayfare-primary)",
-										background:
-											"color-mix(in srgb, var(--color-wayfare-primary) 8%, transparent)",
-										// @ts-expect-error - css custom prop
-										"--tw-ring-color":
-											"color-mix(in srgb, var(--color-wayfare-primary) 30%, transparent)",
-									}}
+									className="rounded-lg border border-wayfare-primary bg-wayfare-accent-soft px-2.5 py-1 text-xs font-medium text-wayfare-primary transition-colors hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30"
 								>
 									Rebook
 								</button>

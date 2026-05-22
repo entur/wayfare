@@ -96,8 +96,7 @@ function RouteCard({
 				{route.isSavedFavorite ? (
 					<FavoriteRouteIcon
 						aria-hidden="true"
-						// @ts-expect-error - style prop accepted at runtime
-						style={{ color: "var(--color-wayfare-primary)" }}
+						className="text-wayfare-primary"
 					/>
 				) : (
 					<>
@@ -182,7 +181,7 @@ export default function QuickRouteSection({
 				{showManageLink && (
 					<Link
 						to="/settings"
-						search={{ tab: "favorites" }}
+						search={{ tab: "favorites", pendingCardId: undefined }}
 						className="text-xs text-wayfare-primary transition-opacity hover:opacity-70"
 					>
 						Manage

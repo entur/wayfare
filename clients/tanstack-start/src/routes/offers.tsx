@@ -28,10 +28,7 @@ function OffersPage() {
 
 function SectionLabel({ children }: { children: ReactNode }) {
 	return (
-		<p
-			className="text-xs font-semibold uppercase tracking-wide"
-			style={{ color: "var(--color-wayfare-text-secondary)", margin: 0 }}
-		>
+		<p className="m-0 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 			{children}
 		</p>
 	);
@@ -39,19 +36,12 @@ function SectionLabel({ children }: { children: ReactNode }) {
 
 function Divider({ label }: { label: string }) {
 	return (
-		<div className="flex items-center gap-3 my-1">
-			<div
-				style={{ flex: 1, height: 1, background: "var(--color-wayfare-line)" }}
-			/>
-			<span
-				className="shrink-0 text-xs"
-				style={{ color: "var(--color-wayfare-text-secondary)" }}
-			>
+		<div className="my-1 flex items-center gap-3">
+			<div className="h-px flex-1 bg-wayfare-line" />
+			<span className="shrink-0 text-xs text-wayfare-text-secondary">
 				{label}
 			</span>
-			<div
-				style={{ flex: 1, height: 1, background: "var(--color-wayfare-line)" }}
-			/>
+			<div className="h-px flex-1 bg-wayfare-line" />
 		</div>
 	);
 }
@@ -166,17 +156,8 @@ function OffersScreen() {
 						decorative
 						className="mb-6"
 					/>
-					<div
-						className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-						style={{
-							borderColor: "var(--color-wayfare-line)",
-							borderTopColor: "var(--color-wayfare-primary)",
-						}}
-					/>
-					<p
-						className="text-sm"
-						style={{ color: "var(--color-wayfare-text-secondary)" }}
-					>
+					<div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-wayfare-line border-t-wayfare-primary" />
+					<p className="text-sm text-wayfare-text-secondary">
 						Finding the best routes…
 					</p>
 				</div>
@@ -194,25 +175,15 @@ function OffersScreen() {
 						decorative
 						className="mb-6"
 					/>
-					<p
-						className="text-sm font-semibold"
-						style={{ color: "var(--color-wayfare-text)" }}
-					>
+					<p className="text-sm font-semibold text-wayfare-text">
 						No offers found
 					</p>
-					<p
-						className="mt-1 max-w-xs text-xs"
-						style={{ color: "var(--color-wayfare-text-secondary)" }}
-					>
+					<p className="mt-1 max-w-xs text-xs text-wayfare-text-secondary">
 						No travel offers were found for your search.
 					</p>
 					<Link
 						to="/"
-						className="mt-6 inline-block rounded-xl px-5 py-2.5 text-sm font-semibold no-underline"
-						style={{
-							background: "var(--color-wayfare-primary)",
-							color: "#fff",
-						}}
+						className="mt-6 inline-block rounded-xl bg-wayfare-primary px-5 py-2.5 text-sm font-semibold text-white no-underline"
 					>
 						Back to search
 					</Link>
@@ -229,45 +200,24 @@ function OffersScreen() {
 		>
 			<div>
 				{context && (
-					<div
-						className="mb-5 rounded-lg p-4"
-						style={{
-							background: "var(--color-wayfare-surface-strong)",
-							border: "1px solid var(--color-wayfare-line)",
-						}}
-					>
+					<div className="mb-5 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
 						<div className="flex items-center justify-between gap-2">
 							<div className="flex min-w-0 items-center gap-2">
-								<span
-									className="truncate text-sm font-semibold"
-									style={{ color: "var(--color-wayfare-text)" }}
-								>
+								<span className="truncate text-sm font-semibold text-wayfare-text">
 									{context.from.name ?? context.from.placeId}
 								</span>
 								<RightArrowIcon
 									aria-hidden="true"
-									style={{
-										color: "var(--color-wayfare-text-secondary)",
-										flexShrink: 0,
-									}}
+									className="shrink-0 text-wayfare-text-secondary"
 								/>
-								<span
-									className="truncate text-sm font-semibold"
-									style={{ color: "var(--color-wayfare-text)" }}
-								>
+								<span className="truncate text-sm font-semibold text-wayfare-text">
 									{context.to.name ?? context.to.placeId}
 								</span>
 							</div>
 							<FavoriteToggle from={context.from} to={context.to} />
 						</div>
 						{formattedDate && (
-							<p
-								className="mt-1 text-xs"
-								style={{
-									color: "var(--color-wayfare-text-secondary)",
-									margin: 0,
-								}}
-							>
+							<p className="m-0 mt-1 text-xs text-wayfare-text-secondary">
 								{formattedDate}
 							</p>
 						)}
@@ -276,12 +226,7 @@ function OffersScreen() {
 								{allParties.map((p) => (
 									<span
 										key={p.id}
-										className="inline-flex items-center rounded-full px-2 py-0.5 text-xs"
-										style={{
-											background: "var(--color-wayfare-bg)",
-											color: "var(--color-wayfare-text-secondary)",
-											border: "1px solid var(--color-wayfare-line)",
-										}}
+										className="inline-flex items-center rounded-full border border-wayfare-line bg-wayfare-bg px-2 py-0.5 text-xs text-wayfare-text-secondary"
 									>
 										{partyLabel(p)}
 									</span>
@@ -345,11 +290,7 @@ function OffersScreen() {
 				<div className="mt-6 flex gap-3">
 					<Link
 						to="/"
-						className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-5 py-2.5 text-sm font-semibold no-underline transition-colors"
-						style={{
-							borderColor: "var(--color-wayfare-line)",
-							color: "var(--color-wayfare-text)",
-						}}
+						className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-wayfare-line px-5 py-2.5 text-sm font-semibold text-wayfare-text no-underline transition-colors"
 					>
 						<LeftArrowIcon aria-hidden="true" />
 						Back

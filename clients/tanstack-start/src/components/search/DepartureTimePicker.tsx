@@ -13,8 +13,7 @@ export default function DepartureTimePicker({
 		<div className="w-full">
 			<label
 				htmlFor="departure-datetime"
-				className="mb-1.5 block text-sm font-medium"
-				style={{ color: "var(--color-wayfare-text)" }}
+				className="mb-1.5 block text-sm font-medium text-wayfare-text"
 			>
 				Departure
 			</label>
@@ -24,12 +23,7 @@ export default function DepartureTimePicker({
 				value={value}
 				min={minDateTime}
 				onChange={(e) => onChange(e.target.value)}
-				className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition-shadow focus:ring-2"
-				style={{
-					borderColor: "var(--color-wayfare-line)",
-					background: "var(--color-wayfare-surface-strong)",
-					color: "var(--color-wayfare-text)",
-				}}
+				className="w-full rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-3 py-2.5 text-sm text-wayfare-text outline-none transition-shadow focus:ring-2"
 			/>
 		</div>
 	);

@@ -115,17 +115,8 @@ function PaymentReturnPage() {
 					decorative
 					className="mb-6"
 				/>
-				<div
-					className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-					style={{
-						borderColor: "var(--color-wayfare-line)",
-						borderTopColor: "var(--color-wayfare-primary)",
-					}}
-				/>
-				<p
-					className="text-sm"
-					style={{ color: "var(--color-wayfare-text-secondary)" }}
-				>
+				<div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-wayfare-line border-t-wayfare-primary" />
+				<p className="text-sm text-wayfare-text-secondary">
 					Completing your purchase…
 				</p>
 			</div>

@@ -29,17 +29,6 @@ function cardLabel(id?: CardPaymentType) {
 	return id ? (CARD_META[id]?.label ?? id) : "Card";
 }
 
-const sectionStyle = {
-	background: "var(--color-wayfare-surface-strong)",
-	border: "1px solid var(--color-wayfare-line)",
-};
-const labelStyle = { color: "var(--color-wayfare-text-secondary)" };
-const inputStyle = {
-	background: "var(--color-wayfare-surface)",
-	borderColor: "var(--color-wayfare-line)",
-	color: "var(--color-wayfare-text)",
-};
-
 // ─── Guest form ───────────────────────────────────────────────────────────────
 
 const GUEST_CARD_OPTIONS: { value: CardPaymentType; label: string }[] = [
@@ -67,11 +56,8 @@ function GuestPaymentPrefsForm() {
 
 	return (
 		<div className="space-y-4">
-			<section className="rounded-xl p-5" style={sectionStyle}>
-				<h2
-					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--color-wayfare-text)" }}
-				>
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">
 					Default card type
 				</h2>
 				<div className="flex flex-col gap-2">
@@ -80,15 +66,7 @@ function GuestPaymentPrefsForm() {
 						return (
 							<label
 								key={opt.value}
-								className="flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-all"
-								style={{
-									borderColor: selected
-										? "var(--color-wayfare-primary)"
-										: "var(--color-wayfare-line)",
-									background: selected
-										? "var(--color-wayfare-accent-soft)"
-										: "transparent",
-								}}
+								className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-all ${selected ? "border-wayfare-primary bg-wayfare-accent-soft" : "border-wayfare-line bg-transparent"}`}
 							>
 								<input
 									type="radio"
@@ -99,24 +77,13 @@ function GuestPaymentPrefsForm() {
 									className="sr-only"
 								/>
 								<div
-									className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2"
-									style={{
-										borderColor: selected
-											? "var(--color-wayfare-primary)"
-											: "var(--color-wayfare-line)",
-									}}
+									className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${selected ? "border-wayfare-primary" : "border-wayfare-line"}`}
 								>
 									{selected && (
-										<div
-											className="h-2 w-2 rounded-full"
-											style={{ background: "var(--color-wayfare-primary)" }}
-										/>
+										<div className="h-2 w-2 rounded-full bg-wayfare-primary" />
 									)}
 								</div>
-								<p
-									className="text-sm font-medium"
-									style={{ color: "var(--color-wayfare-text)", margin: 0 }}
-								>
+								<p className="m-0 text-sm font-medium text-wayfare-text">
 									{opt.label}
 								</p>
 							</label>
@@ -125,18 +92,12 @@ function GuestPaymentPrefsForm() {
 				</div>
 			</section>
 
-			<section className="rounded-xl p-5" style={sectionStyle}>
-				<h2
-					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--color-wayfare-text)" }}
-				>
-					Vipps
-				</h2>
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">Vipps</h2>
 				<div>
 					<label
 						htmlFor="guest-vipps-phone"
-						className="mb-1 block text-xs font-medium"
-						style={labelStyle}
+						className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 					>
 						Phone number
 					</label>
@@ -146,10 +107,9 @@ function GuestPaymentPrefsForm() {
 						value={vippsPhone}
 						onChange={(e) => setVippsPhone(e.target.value)}
 						placeholder="e.g. 91234567"
-						className="w-full rounded-lg border px-3 py-2 text-sm"
-						style={inputStyle}
+						className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
 					/>
-					<p className="mt-1 text-xs" style={labelStyle}>
+					<p className="mt-1 text-xs text-wayfare-text-secondary">
 						Stored locally and used to pre-fill Vipps at checkout.
 					</p>
 				</div>
@@ -193,13 +153,10 @@ function VippsPhoneEditor({
 		return (
 			<div className="flex items-center justify-between">
 				<div>
-					<p
-						className="text-sm font-medium"
-						style={{ color: "var(--color-wayfare-text)", margin: 0 }}
-					>
+					<p className="m-0 text-sm font-medium text-wayfare-text">
 						{currentPhone}
 					</p>
-					<p className="text-xs" style={labelStyle}>
+					<p className="text-xs text-wayfare-text-secondary">
 						Used to pre-fill Vipps at checkout
 					</p>
 				</div>
@@ -215,8 +172,7 @@ function VippsPhoneEditor({
 			<div>
 				<label
 					htmlFor="signed-in-vipps-phone"
-					className="mb-1 block text-xs font-medium"
-					style={labelStyle}
+					className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 				>
 					Phone number
 				</label>
@@ -226,8 +182,7 @@ function VippsPhoneEditor({
 					value={phone}
 					onChange={(e) => setPhone(e.target.value)}
 					placeholder="e.g. 91234567"
-					className="w-full rounded-lg border px-3 py-2 text-sm"
-					style={inputStyle}
+					className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
 				/>
 			</div>
 			<div className="flex gap-2">
@@ -280,37 +235,22 @@ function RecurringPaymentRow({
 			<div className="flex items-center gap-3">
 				{Icon && <Icon aria-hidden="true" />}
 				<div>
-					<p
-						className="text-sm font-medium"
-						style={{ color: "var(--color-wayfare-text)", margin: 0 }}
-					>
+					<p className="m-0 text-sm font-medium text-wayfare-text">
 						{payment.nickname ?? cardLabel(payment.paymentType)}
 					</p>
 					{payment.maskedPan && (
-						<p
-							className="text-xs font-mono"
-							style={{
-								color: "var(--color-wayfare-text-secondary)",
-								margin: 0,
-							}}
-						>
+						<p className="m-0 font-mono text-xs text-wayfare-text-secondary">
 							•••• {payment.maskedPan}
 						</p>
 					)}
-					<div className="flex items-center gap-2 mt-0.5">
+					<div className="mt-0.5 flex items-center gap-2">
 						{payment.primary && (
-							<span
-								className="rounded px-1.5 py-0.5 text-xs font-semibold"
-								style={{
-									background: "var(--color-wayfare-accent-soft)",
-									color: "var(--color-wayfare-primary)",
-								}}
-							>
+							<span className="rounded bg-wayfare-accent-soft px-1.5 py-0.5 text-xs font-semibold text-wayfare-primary">
 								Default
 							</span>
 						)}
 						{payment.recurringStatus === "CREATED" && (
-							<span className="text-xs" style={labelStyle}>
+							<span className="text-xs text-wayfare-text-secondary">
 								Pending activation
 							</span>
 						)}
@@ -436,16 +376,8 @@ function SignedInPaymentMethods({
 	if (authorizingCard) {
 		return (
 			<div className="flex items-center gap-3 py-6">
-				<div
-					className="h-5 w-5 animate-spin rounded-full border-2 border-t-transparent shrink-0"
-					style={{
-						borderColor: "var(--color-wayfare-line)",
-						borderTopColor: "var(--color-wayfare-primary)",
-					}}
-				/>
-				<p className="text-sm" style={labelStyle}>
-					Activating card…
-				</p>
+				<div className="h-5 w-5 animate-spin rounded-full border-2 border-wayfare-line border-t-wayfare-primary shrink-0" />
+				<p className="text-sm text-wayfare-text-secondary">Activating card…</p>
 			</div>
 		);
 	}
@@ -453,35 +385,21 @@ function SignedInPaymentMethods({
 	return (
 		<div className="space-y-4">
 			{authError && (
-				<p
-					className="rounded-xl px-4 py-3 text-sm"
-					style={{
-						background: "rgba(233,0,55,0.08)",
-						color: "var(--color-wayfare-primary)",
-					}}
-				>
+				<p className="rounded-xl bg-wayfare-accent-soft px-4 py-3 text-sm text-wayfare-primary">
 					{authError}
 				</p>
 			)}
 
-			<section className="rounded-xl p-5" style={sectionStyle}>
-				<h2
-					className="mb-1 text-sm font-semibold"
-					style={{ color: "var(--color-wayfare-text)" }}
-				>
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-1 text-sm font-semibold text-wayfare-text">
 					Saved cards
 				</h2>
 
 				{isLoading && (
-					<p className="py-3 text-sm" style={labelStyle}>
-						Loading…
-					</p>
+					<p className="py-3 text-sm text-wayfare-text-secondary">Loading…</p>
 				)}
 				{error && !isLoading && (
-					<p
-						className="py-3 text-sm"
-						style={{ color: "var(--color-wayfare-primary)" }}
-					>
+					<p className="py-3 text-sm text-wayfare-primary">
 						{error instanceof Error
 							? error.message
 							: "Failed to load saved cards"}
@@ -504,18 +422,13 @@ function SignedInPaymentMethods({
 								))}
 							</ul>
 						) : (
-							<p className="py-2 text-sm" style={labelStyle}>
+							<p className="py-2 text-sm text-wayfare-text-secondary">
 								No saved cards yet.
 							</p>
 						)}
 
 						{addError && (
-							<p
-								className="mt-2 text-sm"
-								style={{ color: "var(--color-wayfare-primary)" }}
-							>
-								{addError}
-							</p>
+							<p className="mt-2 text-sm text-wayfare-primary">{addError}</p>
 						)}
 
 						<div className="mt-4">
@@ -528,7 +441,7 @@ function SignedInPaymentMethods({
 								+ Add new card
 							</Button>
 							{!customerNumber && (
-								<p className="mt-1 text-sm" style={labelStyle}>
+								<p className="mt-1 text-sm text-wayfare-text-secondary">
 									Customer number missing — sign out and sign in again to manage
 									saved cards.
 								</p>
@@ -538,13 +451,8 @@ function SignedInPaymentMethods({
 				)}
 			</section>
 
-			<section className="rounded-xl p-5" style={sectionStyle}>
-				<h2
-					className="mb-4 text-sm font-semibold"
-					style={{ color: "var(--color-wayfare-text)" }}
-				>
-					Vipps
-				</h2>
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">Vipps</h2>
 				<VippsPhoneEditor
 					customerId={customerId}
 					currentPhone={phone}

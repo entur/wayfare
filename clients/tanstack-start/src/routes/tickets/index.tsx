@@ -75,35 +75,22 @@ function TicketsPage() {
 		return (
 			<PageShell title="My tickets" subtitle="Your purchased travel tickets">
 				<div className="mt-12 flex flex-col items-center text-center">
-					<div
-						className="mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-						style={{ background: "var(--color-wayfare-accent-soft)" }}
-					>
+					<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-wayfare-accent-soft">
 						<ValidTicketIcon
 							size="32"
 							aria-hidden="true"
-							style={{ color: "var(--color-wayfare-primary)" }}
+							className="text-wayfare-primary"
 						/>
 					</div>
-					<p
-						className="text-sm font-medium"
-						style={{ color: "var(--color-wayfare-text)" }}
-					>
+					<p className="text-sm font-medium text-wayfare-text">
 						No tickets yet
 					</p>
-					<p
-						className="mt-1 text-xs"
-						style={{ color: "var(--color-wayfare-text-secondary)" }}
-					>
+					<p className="mt-1 text-xs text-wayfare-text-secondary">
 						Your purchased tickets will appear here.
 					</p>
 					<Link
 						to="/"
-						className="mt-4 inline-flex items-center rounded-xl px-5 py-2.5 text-sm font-semibold no-underline"
-						style={{
-							background: "var(--color-wayfare-primary)",
-							color: "#fff",
-						}}
+						className="mt-4 inline-flex items-center rounded-xl bg-wayfare-primary px-5 py-2.5 text-sm font-semibold text-white no-underline"
 					>
 						Search for tickets
 					</Link>
@@ -121,10 +108,7 @@ function TicketsPage() {
 				{active.length > 0 && (
 					<section className="flex flex-col gap-3">
 						{past.length > 0 && (
-							<h2
-								className="mb-1 text-xs font-semibold uppercase tracking-widest"
-								style={{ color: "var(--color-wayfare-text-secondary)" }}
-							>
+							<h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-wayfare-text-secondary">
 								Active
 							</h2>
 						)}
@@ -137,10 +121,7 @@ function TicketsPage() {
 				)}
 				{past.length > 0 && (
 					<section className="flex flex-col gap-3">
-						<h2
-							className="mb-1 text-xs font-semibold uppercase tracking-widest"
-							style={{ color: "var(--color-wayfare-text-secondary)" }}
-						>
+						<h2 className="mb-1 text-xs font-semibold uppercase tracking-widest text-wayfare-text-secondary">
 							Past
 						</h2>
 						<div className="grid grid-cols-1 gap-3 md:grid-cols-2">

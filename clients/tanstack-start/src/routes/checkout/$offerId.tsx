@@ -242,7 +242,7 @@ function CheckoutScreen() {
 	if (!hydrated) {
 		return (
 			<PageShell title="Checkout" subtitle="Review your order and pay">
-				<p style={{ color: "var(--color-wayfare-text-secondary)" }}>Loading…</p>
+				<p className="text-wayfare-text-secondary">Loading…</p>
 			</PageShell>
 		);
 	}
@@ -260,17 +260,8 @@ function CheckoutScreen() {
 					</div>
 				)}
 
-				<div
-					className="mb-4 rounded-lg p-4"
-					style={{
-						background: "var(--color-wayfare-surface-strong)",
-						border: "1px solid var(--color-wayfare-line)",
-					}}
-				>
-					<p
-						className="text-xs font-semibold uppercase tracking-wide mb-3"
-						style={{ color: "var(--color-wayfare-text-secondary)" }}
-					>
+				<div className="mb-4 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
+					<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 						{selectedOffers.length === 1
 							? "Your offer"
 							: `Your offers (${selectedOffers.length})`}
@@ -289,35 +280,20 @@ function CheckoutScreen() {
 									className="flex items-center justify-between gap-2"
 								>
 									<div>
-										<p
-											className="text-sm font-medium"
-											style={{ color: "var(--color-wayfare-text)", margin: 0 }}
-										>
+										<p className="m-0 text-sm font-medium text-wayfare-text">
 											{offer.properties?.summary?.name ??
 												product?.productName ??
 												"Travel Offer"}
 										</p>
 										{travellerCount > 0 && (
-											<p
-												className="text-xs"
-												style={{
-													color: "var(--color-wayfare-text-secondary)",
-													margin: 0,
-												}}
-											>
+											<p className="m-0 text-xs text-wayfare-text-secondary">
 												{travellerCount} traveller
 												{travellerCount !== 1 ? "s" : ""}
 											</p>
 										)}
 									</div>
 									{price && (
-										<p
-											className="text-sm font-semibold shrink-0"
-											style={{
-												color: "var(--color-wayfare-primary)",
-												margin: 0,
-											}}
-										>
+										<p className="m-0 shrink-0 text-sm font-semibold text-wayfare-primary">
 											{formatPrice(price.amount, price.currencyCode ?? "NOK")}
 										</p>
 									)}
@@ -326,58 +302,31 @@ function CheckoutScreen() {
 						})}
 					</div>
 					{selectedOffers.length > 1 && (
-						<div
-							className="mt-3 pt-3 flex items-center justify-between"
-							style={{ borderTop: "1px solid var(--color-wayfare-line)" }}
-						>
-							<p
-								className="text-sm font-semibold"
-								style={{ color: "var(--color-wayfare-text)", margin: 0 }}
-							>
+						<div className="mt-3 flex items-center justify-between border-t border-wayfare-line pt-3">
+							<p className="m-0 text-sm font-semibold text-wayfare-text">
 								Total
 							</p>
-							<p
-								className="text-base font-bold"
-								style={{ color: "var(--color-wayfare-primary)", margin: 0 }}
-							>
+							<p className="m-0 text-base font-bold text-wayfare-primary">
 								{formatPrice(previewTotal, currency)}
 							</p>
 						</div>
 					)}
 				</div>
 
-				<div
-					className="mb-4 rounded-lg p-4"
-					style={{
-						background: "var(--color-wayfare-surface-strong)",
-						border: "1px solid var(--color-wayfare-line)",
-					}}
-				>
-					<p
-						className="text-xs font-semibold uppercase tracking-wide mb-3"
-						style={{ color: "var(--color-wayfare-text-secondary)" }}
-					>
+				<div className="mb-4 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
+					<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 						Customer
 					</p>
 					{profileCustomer ? (
 						<div className="flex items-center justify-between gap-2">
 							<div>
-								<p
-									className="text-sm font-medium"
-									style={{ color: "var(--color-wayfare-text)", margin: 0 }}
-								>
+								<p className="m-0 text-sm font-medium text-wayfare-text">
 									{[profileCustomer.firstName, profileCustomer.lastName]
 										.filter(Boolean)
 										.join(" ") || profileCustomer.id}
 								</p>
 								{profileCustomer.email && (
-									<p
-										className="text-xs"
-										style={{
-											color: "var(--color-wayfare-text-secondary)",
-											margin: 0,
-										}}
-									>
+									<p className="m-0 text-xs text-wayfare-text-secondary">
 										{profileCustomer.email}
 									</p>
 								)}
@@ -385,24 +334,19 @@ function CheckoutScreen() {
 							<Link
 								to="/settings"
 								search={{ tab: "profile", pendingCardId: undefined }}
-								className="text-xs no-underline"
-								style={{ color: "var(--color-wayfare-primary)" }}
+								className="text-xs text-wayfare-primary no-underline"
 							>
 								Change
 							</Link>
 						</div>
 					) : (
 						<div className="space-y-3">
-							<p
-								className="text-xs"
-								style={{ color: "var(--color-wayfare-text-secondary)" }}
-							>
+							<p className="text-xs text-wayfare-text-secondary">
 								No profile selected.{" "}
 								<Link
 									to="/settings"
 									search={{ tab: "profile", pendingCardId: undefined }}
-									className="no-underline"
-									style={{ color: "var(--color-wayfare-primary)" }}
+									className="text-wayfare-primary no-underline"
 								>
 									Sign in
 								</Link>{" "}
@@ -412,8 +356,7 @@ function CheckoutScreen() {
 								<div>
 									<label
 										htmlFor="checkout-firstName"
-										className="mb-1 block text-xs font-medium"
-										style={{ color: "var(--color-wayfare-text-secondary)" }}
+										className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 									>
 										First name
 									</label>
@@ -427,20 +370,14 @@ function CheckoutScreen() {
 												firstName: e.target.value,
 											}))
 										}
-										className="w-full rounded-lg border px-3 py-2 text-sm"
-										style={{
-											background: "var(--color-wayfare-surface)",
-											borderColor: "var(--color-wayfare-line)",
-											color: "var(--color-wayfare-text)",
-										}}
+										className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
 										placeholder="First name"
 									/>
 								</div>
 								<div>
 									<label
 										htmlFor="checkout-lastName"
-										className="mb-1 block text-xs font-medium"
-										style={{ color: "var(--color-wayfare-text-secondary)" }}
+										className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 									>
 										Last name
 									</label>
@@ -454,12 +391,7 @@ function CheckoutScreen() {
 												lastName: e.target.value,
 											}))
 										}
-										className="w-full rounded-lg border px-3 py-2 text-sm"
-										style={{
-											background: "var(--color-wayfare-surface)",
-											borderColor: "var(--color-wayfare-line)",
-											color: "var(--color-wayfare-text)",
-										}}
+										className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
 										placeholder="Last name"
 									/>
 								</div>
@@ -467,8 +399,7 @@ function CheckoutScreen() {
 							<div>
 								<label
 									htmlFor="checkout-email"
-									className="mb-1 block text-xs font-medium"
-									style={{ color: "var(--color-wayfare-text-secondary)" }}
+									className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 								>
 									Email
 								</label>
@@ -482,12 +413,7 @@ function CheckoutScreen() {
 											email: e.target.value,
 										}))
 									}
-									className="w-full rounded-lg border px-3 py-2 text-sm"
-									style={{
-										background: "var(--color-wayfare-surface)",
-										borderColor: "var(--color-wayfare-line)",
-										color: "var(--color-wayfare-text)",
-									}}
+									className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
 									placeholder="email@example.com"
 								/>
 							</div>
@@ -495,13 +421,7 @@ function CheckoutScreen() {
 					)}
 				</div>
 
-				<div
-					className="mb-6 rounded-lg p-4"
-					style={{
-						background: "var(--color-wayfare-surface-strong)",
-						border: "1px solid var(--color-wayfare-line)",
-					}}
-				>
+				<div className="mb-6 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
 					<SavedPaymentPicker
 						onSelect={setPaymentMethod}
 						offerId={offerId}
@@ -510,13 +430,7 @@ function CheckoutScreen() {
 				</div>
 
 				{state.error && (
-					<p
-						className="mb-4 rounded-lg px-3 py-2 text-sm"
-						style={{
-							background: "rgba(233,0,55,0.08)",
-							color: "var(--color-wayfare-primary)",
-						}}
-					>
+					<p className="mb-4 rounded-lg bg-wayfare-accent-soft px-3 py-2 text-sm text-wayfare-primary">
 						{state.error}
 					</p>
 				)}
@@ -524,11 +438,7 @@ function CheckoutScreen() {
 				<div className="flex gap-3">
 					<Link
 						to="/offers"
-						className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-5 py-2.5 text-sm font-semibold no-underline transition-colors"
-						style={{
-							borderColor: "var(--color-wayfare-line)",
-							color: "var(--color-wayfare-text)",
-						}}
+						className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-wayfare-line px-5 py-2.5 text-sm font-semibold text-wayfare-text no-underline transition-colors"
 					>
 						<LeftArrowIcon aria-hidden="true" />
 						Back

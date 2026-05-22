@@ -108,15 +108,7 @@ export default function BundleCard({
 
 	return (
 		<label
-			className="block cursor-pointer rounded-xl border p-4 transition-all"
-			style={{
-				borderColor: selected
-					? "var(--color-wayfare-primary)"
-					: "var(--color-wayfare-line)",
-				background: selected
-					? "var(--color-wayfare-accent-soft)"
-					: "var(--color-wayfare-surface-strong)",
-			}}
+			className={`block cursor-pointer rounded-xl border p-4 transition-all ${selected ? "border-wayfare-primary bg-wayfare-accent-soft" : "border-wayfare-line bg-wayfare-surface-strong"}`}
 		>
 			{/* sr-only radio — clicking the label anywhere (except the button) selects it */}
 			<input
@@ -129,18 +121,10 @@ export default function BundleCard({
 			<div className="flex items-start gap-3">
 				{/* Visible radio indicator */}
 				<div
-					className="mt-0.5 h-4 w-4 shrink-0 rounded-full border-2 flex items-center justify-center"
-					style={{
-						borderColor: selected
-							? "var(--color-wayfare-primary)"
-							: "var(--color-wayfare-text-secondary)",
-					}}
+					className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${selected ? "border-wayfare-primary" : "border-wayfare-text-secondary"}`}
 				>
 					{selected && (
-						<div
-							className="h-2 w-2 rounded-full"
-							style={{ background: "var(--color-wayfare-primary)" }}
-						/>
+						<div className="h-2 w-2 rounded-full bg-wayfare-primary" />
 					)}
 				</div>
 
@@ -159,20 +143,14 @@ export default function BundleCard({
 									{typeLabel}
 								</span>
 							) : (
-								<span
-									className="text-sm font-semibold"
-									style={{ color: "var(--color-wayfare-text)" }}
-								>
+								<span className="text-sm font-semibold text-wayfare-text">
 									{bundle.offers[0]?.properties?.summary?.name ??
 										bundle.offers[0]?.properties?.products?.[0]?.productName ??
 										"Travel offer"}
 								</span>
 							)}
 						</div>
-						<span
-							className="shrink-0 text-sm font-bold"
-							style={{ color: "var(--color-wayfare-primary)" }}
-						>
+						<span className="shrink-0 text-sm font-bold text-wayfare-primary">
 							{formatPrice(bundle.totalPrice, bundle.currency)}
 						</span>
 					</div>
@@ -183,12 +161,7 @@ export default function BundleCard({
 							{coveredParties.map((p) => (
 								<span
 									key={p.id}
-									className="inline-flex items-center rounded-full px-2 py-0.5 text-xs"
-									style={{
-										background: "var(--color-wayfare-bg)",
-										color: "var(--color-wayfare-text-secondary)",
-										border: "1px solid var(--color-wayfare-line)",
-									}}
+									className="inline-flex items-center rounded-full border border-wayfare-line bg-wayfare-bg px-2 py-0.5 text-xs text-wayfare-text-secondary"
 								>
 									{partyLabel(p)}
 								</span>
@@ -203,14 +176,7 @@ export default function BundleCard({
 							e.preventDefault();
 							setExpanded((v) => !v);
 						}}
-						className="mt-2 flex items-center gap-1 text-xs"
-						style={{
-							color: "var(--color-wayfare-primary)",
-							background: "none",
-							border: "none",
-							padding: 0,
-							cursor: "pointer",
-						}}
+						className="mt-2 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-xs text-wayfare-primary"
 					>
 						<span>{expanded ? "▾" : "▸"}</span>
 						{offerCount === 1
@@ -220,10 +186,7 @@ export default function BundleCard({
 
 					{/* Individual offer rows */}
 					{expanded && (
-						<div
-							className="mt-3 flex flex-col gap-2.5 pt-3"
-							style={{ borderTop: "1px solid var(--color-wayfare-line)" }}
-						>
+						<div className="mt-3 flex flex-col gap-2.5 border-t border-wayfare-line pt-3">
 							{bundle.offers.map((offer) => {
 								const name =
 									offer.properties?.summary?.name ??
@@ -246,32 +209,17 @@ export default function BundleCard({
 										className="flex items-start justify-between gap-3"
 									>
 										<div className="min-w-0">
-											<p
-												className="text-xs font-medium"
-												style={{
-													color: "var(--color-wayfare-text)",
-													margin: 0,
-												}}
-											>
+											<p className="m-0 text-xs font-medium text-wayfare-text">
 												{name}
 											</p>
 											{travellerText && (
-												<p
-													className="text-xs"
-													style={{
-														color: "var(--color-wayfare-text-secondary)",
-														margin: 0,
-													}}
-												>
+												<p className="m-0 text-xs text-wayfare-text-secondary">
 													{travellerText}
 												</p>
 											)}
 										</div>
 										{price && (
-											<span
-												className="shrink-0 text-xs font-semibold"
-												style={{ color: "var(--color-wayfare-text)" }}
-											>
+											<span className="shrink-0 text-xs font-semibold text-wayfare-text">
 												{formatPrice(price.amount, price.currencyCode ?? "NOK")}
 											</span>
 										)}

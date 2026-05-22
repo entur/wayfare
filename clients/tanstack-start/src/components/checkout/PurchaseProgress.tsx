@@ -38,37 +38,17 @@ export default function PurchaseProgress({ flowState }: PurchaseProgressProps) {
 					<div key={step.state} className="flex items-center gap-1">
 						{i > 0 && (
 							<div
-								className="h-px w-6"
-								style={{
-									background: isDone
-										? "var(--color-wayfare-primary)"
-										: "var(--color-wayfare-line)",
-								}}
+								className={`h-px w-6 ${isDone ? "bg-wayfare-primary" : "bg-wayfare-line"}`}
 							/>
 						)}
 						<div className="flex flex-col items-center gap-1">
 							<div
-								className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
-								style={{
-									background:
-										isDone || isActive
-											? "var(--color-wayfare-primary)"
-											: "var(--color-wayfare-line)",
-									color:
-										isDone || isActive
-											? "#fff"
-											: "var(--color-wayfare-text-secondary)",
-								}}
+								className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${isDone || isActive ? "bg-wayfare-primary text-white" : "bg-wayfare-line text-wayfare-text-secondary"}`}
 							>
 								{isDone ? "✓" : i + 1}
 							</div>
 							<span
-								className="hidden text-xs sm:block"
-								style={{
-									color: isActive
-										? "var(--color-wayfare-primary)"
-										: "var(--color-wayfare-text-secondary)",
-								}}
+								className={`hidden text-xs sm:block ${isActive ? "text-wayfare-primary" : "text-wayfare-text-secondary"}`}
 							>
 								{step.label}
 							</span>

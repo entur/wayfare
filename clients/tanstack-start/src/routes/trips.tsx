@@ -84,8 +84,8 @@ function SummaryChip({
 			<span>{children}</span>
 			<Icon
 				aria-hidden="true"
-				// @ts-expect-error - style prop accepted at runtime
-				style={{ color: "var(--color-wayfare-primary)", flexShrink: 0 }}
+				// @ts-expect-error - className prop accepted at runtime
+				className="shrink-0 text-wayfare-primary"
 			/>
 		</div>
 	);

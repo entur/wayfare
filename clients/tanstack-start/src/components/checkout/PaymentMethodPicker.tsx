@@ -49,10 +49,7 @@ export default function PaymentMethodPicker({
 }: PaymentMethodPickerProps) {
 	return (
 		<div className="flex flex-col gap-3">
-			<p
-				className="text-xs font-semibold uppercase tracking-wide"
-				style={{ color: "var(--color-wayfare-text-secondary)" }}
-			>
+			<p className="text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 				Payment method
 			</p>
 			<div className="flex flex-col gap-2">
@@ -61,15 +58,7 @@ export default function PaymentMethodPicker({
 					return (
 						<label
 							key={method.id}
-							className="flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all"
-							style={{
-								borderColor: isSelected
-									? "var(--color-wayfare-primary)"
-									: "var(--color-wayfare-line)",
-								background: isSelected
-									? "var(--color-wayfare-accent-soft)"
-									: "transparent",
-							}}
+							className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all ${isSelected ? "border-wayfare-primary bg-wayfare-accent-soft" : "border-wayfare-line bg-transparent"}`}
 						>
 							<input
 								type="radio"
@@ -80,35 +69,18 @@ export default function PaymentMethodPicker({
 								className="sr-only"
 							/>
 							<div
-								className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2"
-								style={{
-									borderColor: isSelected
-										? "var(--color-wayfare-primary)"
-										: "var(--color-wayfare-line)",
-								}}
+								className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${isSelected ? "border-wayfare-primary" : "border-wayfare-line"}`}
 							>
 								{isSelected && (
-									<div
-										className="h-2 w-2 rounded-full"
-										style={{ background: "var(--color-wayfare-primary)" }}
-									/>
+									<div className="h-2 w-2 rounded-full bg-wayfare-primary" />
 								)}
 							</div>
 							<method.Icon aria-hidden="true" />
 							<div className="min-w-0">
-								<p
-									className="text-sm font-semibold"
-									style={{ color: "var(--color-wayfare-text)", margin: 0 }}
-								>
+								<p className="m-0 text-sm font-semibold text-wayfare-text">
 									{method.label}
 								</p>
-								<p
-									className="text-xs"
-									style={{
-										color: "var(--color-wayfare-text-secondary)",
-										margin: 0,
-									}}
-								>
+								<p className="m-0 text-xs text-wayfare-text-secondary">
 									{method.description}
 								</p>
 							</div>
