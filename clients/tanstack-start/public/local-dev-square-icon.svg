@@ -1,0 +1,23 @@
+<svg width="221" height="222" viewBox="0 0 221 222" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <clipPath id="ld-outer">
+    <rect width="221" height="221" rx="12"/>
+  </clipPath>
+  <clipPath id="ld-upper">
+    <polygon points="0,0 221,0 0,221"/>
+  </clipPath>
+  <clipPath id="ld-lower">
+    <polygon points="221,0 221,221 0,221"/>
+  </clipPath>
+</defs>
+<g clip-path="url(#ld-outer)">
+  <g clip-path="url(#ld-upper)">
+    <rect width="221" height="221" fill="#B482FB"/>
+    <path d="M104.001 56.128V135.322H143.665V151H86.0454V56.128H104.001Z" fill="#181C56"/>
+  </g>
+  <g clip-path="url(#ld-lower)">
+    <rect width="221" height="221" fill="#5AC39A"/>
+    <path d="M69.9263 151V56.128H103.158C128.886 56.128 155.82 69.126 155.82 103.43C155.82 136.126 129.02 151 103.828 151H69.9263ZM87.4803 71.538V135.456H101.416C122.32 135.456 137.06 124.066 137.06 103.43C137.06 82.794 122.32 71.538 101.818 71.538H87.4803Z" fill="#181C56"/>
+  </g>
+</g>
+</svg>

@@ -39,6 +39,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				rel: "stylesheet",
 				href: appCss,
 			},
+			{
+				rel: "icon",
+				href: "/wayfare-favicon.svg",
+				type: "image/svg+xml",
+			},
 		],
 	}),
 	shellComponent: RootDocument,

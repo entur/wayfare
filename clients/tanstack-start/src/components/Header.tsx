@@ -1,6 +1,7 @@
 import { AdditionalZonesTicketIcon, SearchIcon, UserIcon } from "@entur/icons";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useProfile } from "../context/profile";
+import EnvToggle from "./EnvToggle";
 import ThemeToggle from "./ThemeToggle";
 import WayfareWordmark from "./WayfareWordmark";
 
@@ -97,6 +98,7 @@ export default function Header() {
 						className="mx-1 h-4 w-px self-center bg-wayfare-line"
 						aria-hidden="true"
 					/>
+					<EnvToggle />
 					<ThemeToggle />
 				</div>
 			</nav>
