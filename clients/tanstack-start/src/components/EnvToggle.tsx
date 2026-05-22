@@ -3,7 +3,12 @@ import { useDevConfig } from "../context/dev-config";
 import { envFaviconSrc, envIconSrc, useEnvMode } from "../hooks/use-env-mode";
 import type { OmsaRuntimeMode } from "../server/runtime-config";
 
-const ENV_CYCLE: OmsaRuntimeMode[] = ["dev", "staging", "local", "local-tst"];
+const ENV_CYCLE: OmsaRuntimeMode[] = [
+	"dev",
+	"staging",
+	"local-dev",
+	"local-staging",
+];
 
 export default function EnvToggle() {
 	const { overrides, setOverrides } = useDevConfig();

@@ -1,7 +1,7 @@
 import { UserIcon } from "@entur/icons";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import PaymentMethodsTab from "../components/settings/PaymentMethodsTab";
 import Illustration from "../components/shared/Illustration";
@@ -318,12 +318,60 @@ function AppTab() {
 	);
 }
 
-const ENV_MODE_OPTIONS = [
-	{ value: "dev" as const, label: "dev" },
-	{ value: "staging" as const, label: "staging" },
-	{ value: "local" as const, label: "local" },
-	{ value: "local-tst" as const, label: "local-tst" },
-] as const;
+function EnvModeLabel({ icons, label }: { icons: string[]; label: string }) {
+	return (
+		<span className="flex flex-col items-center justify-center gap-1">
+			<span className="flex items-center gap-0.5">
+				{icons.map((src) => (
+					<img
+						key={src}
+						src={src}
+						alt=""
+						aria-hidden="true"
+						width={14}
+						height={14}
+						className="rounded-[2px]"
+					/>
+				))}
+			</span>
+			{label}
+		</span>
+	);
+}
+
+const ENV_MODE_OPTIONS: readonly {
+	value: OmsaRuntimeMode;
+	label: ReactNode;
+}[] = [
+	{
+		value: "dev",
+		label: <EnvModeLabel icons={["/dev-square-icon.svg"]} label="dev" />,
+	},
+	{
+		value: "staging",
+		label: (
+			<EnvModeLabel icons={["/staging-square-icon.svg"]} label="staging" />
+		),
+	},
+	{
+		value: "local-dev",
+		label: (
+			<EnvModeLabel
+				icons={["/local-square-icon.svg", "/dev-square-icon.svg"]}
+				label="local-dev"
+			/>
+		),
+	},
+	{
+		value: "local-staging",
+		label: (
+			<EnvModeLabel
+				icons={["/local-square-icon.svg", "/staging-square-icon.svg"]}
+				label="local-staging"
+			/>
+		),
+	},
+];
 
 function DeveloperTab() {
 	const { overrides, setOverrides, resetOverrides } = useDevConfig();
@@ -335,7 +383,7 @@ function DeveloperTab() {
 	});
 
 	const [formMode, setFormMode] = useState<OmsaRuntimeMode>(
-		() => (overrides.envMode as OmsaRuntimeMode | undefined) ?? "dev",
+		() => overrides.envMode ?? "dev",
 	);
 	const [formDistributionChannel, setFormDistributionChannel] = useState(
 		() => overrides.distributionChannel ?? "",
@@ -346,6 +394,16 @@ function DeveloperTab() {
 	const [formPos, setFormPos] = useState(() => overrides.pos ?? "");
 	const [saved, setSaved] = useState(false);
 	const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const savedMode =
+		overrides.envMode ??
+		(resolved?.envDefaults.mode as OmsaRuntimeMode | undefined) ??
+		"dev";
+	const hasUnsavedChanges =
+		formMode !== savedMode ||
+		(formDistributionChannel || undefined) !== overrides.distributionChannel ||
+		(formClientName || undefined) !== overrides.clientName ||
+		(formPos || undefined) !== overrides.pos;
 
 	useEffect(() => {
 		return () => {
@@ -380,6 +438,8 @@ function DeveloperTab() {
 		setFormDistributionChannel("");
 		setFormClientName("");
 		setFormPos("");
+		setSaved(false);
+		if (savedTimerRef.current !== null) clearTimeout(savedTimerRef.current);
 	}
 
 	return (
@@ -491,9 +551,14 @@ function DeveloperTab() {
 				<Button variant="secondary" onClick={handleReset}>
 					Reset to .env defaults
 				</Button>
-				<Button variant="primary" onClick={handleSave}>
-					{saved ? "Saved" : "Save"}
-				</Button>
+				<div className="flex items-center gap-3">
+					{hasUnsavedChanges && !saved && (
+						<span className="text-xs text-amber-600">Unsaved changes</span>
+					)}
+					<Button variant="primary" onClick={handleSave}>
+						{saved ? "Saved" : "Save"}
+					</Button>
+				</div>
 			</div>
 		</div>
 	);

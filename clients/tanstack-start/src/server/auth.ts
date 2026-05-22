@@ -1,5 +1,5 @@
 import type { DevConfigOverrides } from "../lib/dev-config-storage";
-import { getRuntimeConfig } from "./runtime-config";
+import { getRuntimeConfig, MODE_ENV_PREFIXES } from "./runtime-config";
 
 interface OAuthToken {
 	accessToken: string;
@@ -34,8 +34,10 @@ export async function getAccessToken(
 	}
 
 	if (!tokenUrl || !clientId || !clientSecret) {
+		const prefix = MODE_ENV_PREFIXES[runtimeConfig.mode];
 		throw new Error(
-			`OAuth credentials not configured for ${runtimeConfig.credentialProfile} profile. Set CLIENT_ID_${runtimeConfig.credentialProfile.toUpperCase()} and CLIENT_SECRET_${runtimeConfig.credentialProfile.toUpperCase()}, or fallback CLIENT_ID/CLIENT_SECRET.`,
+			`OAuth credentials not configured for ${runtimeConfig.mode} mode. ` +
+				`Set ${prefix}_CLIENT_ID and ${prefix}_CLIENT_SECRET, or use CLIENT_ID / CLIENT_SECRET as a fallback.`,
 		);
 	}
 

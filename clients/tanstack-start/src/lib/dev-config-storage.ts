@@ -1,4 +1,4 @@
-export type OmsaRuntimeMode = "dev" | "staging" | "local" | "local-tst";
+export type OmsaRuntimeMode = "dev" | "staging" | "local-dev" | "local-staging";
 
 export interface DevConfigOverrides {
 	envMode?: OmsaRuntimeMode;

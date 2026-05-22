@@ -22,9 +22,9 @@ export function envIconSrc(mode: OmsaRuntimeMode | undefined): string | null {
 			return "/dev-square-icon.svg";
 		case "staging":
 			return "/staging-square-icon.svg";
-		case "local":
+		case "local-dev":
 			return "/local-dev-square-icon.svg";
-		case "local-tst":
+		case "local-staging":
 			return "/local-staging-square-icon.svg";
 		default:
 			return null;
@@ -40,8 +40,8 @@ export function envFaviconSrc(mode: OmsaRuntimeMode | undefined): {
 			return { href: "/wayfare-dev-favicon.png", type: "image/png" };
 		case "staging":
 			return { href: "/wayfare-staging-favicon.svg", type: "image/svg+xml" };
-		case "local":
-		case "local-tst":
+		case "local-dev":
+		case "local-staging":
 			return { href: "/wayfare-local-favicon.png", type: "image/png" };
 		default:
 			return { href: "/wayfare-favicon.svg", type: "image/svg+xml" };

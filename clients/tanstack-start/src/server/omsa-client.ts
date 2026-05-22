@@ -1,7 +1,7 @@
 import { inspect } from "node:util";
 import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { getAccessToken } from "./auth";
-import { getRuntimeConfig } from "./runtime-config";
+import { getRuntimeConfig, type RuntimeConfig } from "./runtime-config";
 
 type RequestLogLevel = "meta" | "headers" | "body";
 
@@ -175,19 +175,23 @@ function logRequestError(
 	);
 }
 
-function enturHeaders(devConfig?: DevConfigOverrides): Record<string, string> {
+function enturHeaders(
+	config: RuntimeConfig,
+	devConfig?: DevConfigOverrides,
+): Record<string, string> {
 	return {
 		"Entur-Distribution-Channel":
 			devConfig?.distributionChannel ??
-			process.env.ENTUR_DISTRIBUTION_CHANNEL ??
+			config.enturDistributionChannel ??
 			"WAY:DistributionChannel:App",
 		"Entur-Client-Name":
-			devConfig?.clientName ?? process.env.ENTUR_CLIENT_NAME ?? "Wayfare-Web",
-		"Entur-POS": devConfig?.pos ?? process.env.ENTUR_POS ?? "Wayfare",
+			devConfig?.clientName ?? config.enturClientName ?? "Wayfare-Web",
+		"Entur-POS": devConfig?.pos ?? config.enturPos ?? "Wayfare",
 	};
 }
 
 async function authorizedHeaders(
+	config: RuntimeConfig,
 	devConfig?: DevConfigOverrides,
 ): Promise<Record<string, string>> {
 	const authorization = await getAccessToken(devConfig);
@@ -195,7 +199,7 @@ async function authorizedHeaders(
 		Authorization: authorization,
 		Accept: "application/json",
 		"Accept-Language": "en-GB",
-		...enturHeaders(devConfig),
+		...enturHeaders(config, devConfig),
 	};
 }
 
@@ -223,7 +227,7 @@ export function createOmsaClient(devConfig?: DevConfigOverrides) {
 			}
 			const requestUrl = url.toString();
 			const startedAt = Date.now();
-			const headers = await authorizedHeaders(devConfig);
+			const headers = await authorizedHeaders(config, devConfig);
 			logRequest("GET", requestUrl, undefined, headers);
 			try {
 				const response = await fetch(requestUrl, { headers });
@@ -239,7 +243,7 @@ export function createOmsaClient(devConfig?: DevConfigOverrides) {
 			const requestUrl = `${config.omsaBaseUrl}${path}`;
 			const startedAt = Date.now();
 			const headers = {
-				...(await authorizedHeaders(devConfig)),
+				...(await authorizedHeaders(config, devConfig)),
 				"Content-Type": "application/json",
 			};
 			logRequest("POST", requestUrl, body, headers);
@@ -261,7 +265,7 @@ export function createOmsaClient(devConfig?: DevConfigOverrides) {
 			const requestUrl = `${config.omsaBaseUrl}${path}`;
 			const startedAt = Date.now();
 			const headers = {
-				...(await authorizedHeaders(devConfig)),
+				...(await authorizedHeaders(config, devConfig)),
 				"Content-Type": "application/json",
 			};
 			logRequest("PUT", requestUrl, body, headers);
@@ -283,7 +287,7 @@ export function createOmsaClient(devConfig?: DevConfigOverrides) {
 			const requestUrl = `${config.omsaBaseUrl}${path}`;
 			const startedAt = Date.now();
 			const headers = {
-				...(await authorizedHeaders(devConfig)),
+				...(await authorizedHeaders(config, devConfig)),
 				"Content-Type": "application/json",
 			};
 			logRequest("PATCH", requestUrl, body, headers);
@@ -316,7 +320,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 				Accept: "application/hal+json",
 				"Accept-Language": "en-GB",
 				"Content-Type": "application/json",
-				...enturHeaders(devConfig),
+				...enturHeaders(config, devConfig),
 			};
 			logRequest("POST", requestUrl, body, headers);
 			try {
@@ -341,7 +345,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 				Authorization: authorization,
 				Accept: "application/hal+json",
 				"Accept-Language": "en-GB",
-				...enturHeaders(devConfig),
+				...enturHeaders(config, devConfig),
 			};
 			logRequest("PUT", requestUrl, undefined, headers);
 			try {
@@ -371,7 +375,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 				Authorization: authorization,
 				Accept: "application/hal+json",
 				"Accept-Language": "en-GB",
-				...enturHeaders(devConfig),
+				...enturHeaders(config, devConfig),
 			};
 			logRequest("GET", requestUrl, undefined, headers);
 			try {
@@ -393,7 +397,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 				Accept: "application/hal+json",
 				"Accept-Language": "en-GB",
 				"Content-Type": "application/json",
-				...enturHeaders(devConfig),
+				...enturHeaders(config, devConfig),
 			};
 			logRequest("PATCH", requestUrl, body, headers);
 			try {
@@ -418,7 +422,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 				Authorization: authorization,
 				Accept: "application/hal+json",
 				"Accept-Language": "en-GB",
-				...enturHeaders(devConfig),
+				...enturHeaders(config, devConfig),
 			};
 			logRequest("DELETE", requestUrl, undefined, headers);
 			try {
@@ -446,7 +450,7 @@ export function createJourneyPlannerClient(devConfig?: DevConfigOverrides) {
 			const startedAt = Date.now();
 			const headers: Record<string, string> = {
 				"Content-Type": "application/json",
-				...enturHeaders(devConfig),
+				...enturHeaders(config, devConfig),
 			};
 			logRequest("POST", requestUrl, body, headers);
 			try {

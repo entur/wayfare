@@ -20,6 +20,7 @@ export const getResolvedDevConfig = createServerFn({ method: "GET" })
 	.middleware([devConfigMiddleware])
 	.handler(async ({ context }): Promise<ResolvedDevConfig> => {
 		const config = getRuntimeConfig(context.devConfig);
+		const envConfig = getRuntimeConfig({ envMode: config.mode });
 		return {
 			effectiveMode: config.mode,
 			effectiveOmsaBaseUrl: config.omsaBaseUrl,
@@ -29,10 +30,9 @@ export const getResolvedDevConfig = createServerFn({ method: "GET" })
 			envDefaults: {
 				mode: process.env.OMSA_ENV_MODE ?? "dev",
 				distributionChannel:
-					process.env.ENTUR_DISTRIBUTION_CHANNEL ??
-					"WAY:DistributionChannel:App",
-				clientName: process.env.ENTUR_CLIENT_NAME ?? "Wayfare-Web",
-				pos: process.env.ENTUR_POS ?? "Wayfare",
+					envConfig.enturDistributionChannel ?? "WAY:DistributionChannel:App",
+				clientName: envConfig.enturClientName ?? "Wayfare-Web",
+				pos: envConfig.enturPos ?? "Wayfare",
 			},
 		};
 	});

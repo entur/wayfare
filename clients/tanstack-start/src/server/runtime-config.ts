@@ -4,7 +4,6 @@ import type {
 } from "../lib/dev-config-storage";
 
 export type { OmsaRuntimeMode };
-type CredentialProfile = "dev" | "staging";
 
 interface ModeDefaults {
 	omsaBaseUrl: string;
@@ -13,12 +12,10 @@ interface ModeDefaults {
 	geocoderUrl: string;
 	oauthTokenUrl: string;
 	auth0Audience: string;
-	credentialProfile: CredentialProfile;
 }
 
 export interface RuntimeConfig {
 	mode: OmsaRuntimeMode;
-	credentialProfile: CredentialProfile;
 	omsaBaseUrl: string;
 	salesBaseUrl: string;
 	journeyPlannerUrl: string;
@@ -27,6 +24,10 @@ export interface RuntimeConfig {
 	auth0Audience: string;
 	clientId: string | undefined;
 	clientSecret: string | undefined;
+	enturDistributionChannel: string | undefined;
+	enturClientName: string | undefined;
+	enturPos: string | undefined;
+	vippsPhoneNumber: string | undefined;
 }
 
 interface EnvironmentDefaults {
@@ -57,23 +58,26 @@ const MODE_DEFAULTS: Record<OmsaRuntimeMode, ModeDefaults> = {
 	dev: {
 		omsaBaseUrl: "https://api.dev.entur.io/omsa/v1",
 		...DEV_ENVIRONMENT_DEFAULTS,
-		credentialProfile: "dev",
 	},
 	staging: {
 		omsaBaseUrl: "https://api.staging.entur.io/omsa/v1",
 		...STAGING_ENVIRONMENT_DEFAULTS,
-		credentialProfile: "staging",
 	},
-	local: {
+	"local-dev": {
 		omsaBaseUrl: "http://localhost:8080/v1",
 		...DEV_ENVIRONMENT_DEFAULTS,
-		credentialProfile: "dev",
 	},
-	"local-tst": {
+	"local-staging": {
 		omsaBaseUrl: "http://localhost:8080/v1",
 		...STAGING_ENVIRONMENT_DEFAULTS,
-		credentialProfile: "staging",
 	},
+};
+
+export const MODE_ENV_PREFIXES: Record<OmsaRuntimeMode, string> = {
+	dev: "DEV",
+	staging: "STAGING",
+	"local-dev": "LOCAL_DEV",
+	"local-staging": "LOCAL_STAGING",
 };
 
 function normalizeUrl(url: string): string {
@@ -89,48 +93,39 @@ function resolveMode(rawMode: string | undefined): OmsaRuntimeMode {
 	switch (normalized) {
 		case "dev":
 		case "staging":
-		case "local":
-		case "local-tst":
+		case "local-dev":
+		case "local-staging":
 			return normalized;
 		default:
 			throw new Error(
-				`Invalid OMSA_ENV_MODE "${rawMode}". Expected one of: dev, staging, local, local-tst.`,
+				`Invalid OMSA_ENV_MODE "${rawMode}". Expected one of: dev, staging, local-dev, local-staging.`,
 			);
 	}
 }
 
-function resolveCredentialProfile(
-	rawProfile: string | undefined,
-	modeDefaultProfile: CredentialProfile,
-): CredentialProfile {
-	const normalized = rawProfile?.trim().toLowerCase();
-	if (!normalized) {
-		return modeDefaultProfile;
-	}
-	if (normalized === "dev" || normalized === "staging") {
-		return normalized;
-	}
-	throw new Error(
-		`Invalid OMSA_CREDENTIAL_PROFILE "${rawProfile}". Expected one of: dev, staging.`,
-	);
-}
+// local-dev inherits from dev, local-staging inherits from staging.
+const MODE_ENV_PARENTS: Partial<Record<OmsaRuntimeMode, OmsaRuntimeMode>> = {
+	"local-dev": "dev",
+	"local-staging": "staging",
+};
 
-function resolveProfileCredentials(profile: CredentialProfile): {
-	clientId: string | undefined;
-	clientSecret: string | undefined;
-} {
-	if (profile === "staging") {
-		return {
-			clientId: process.env.CLIENT_ID_STAGING ?? process.env.CLIENT_ID,
-			clientSecret:
-				process.env.CLIENT_SECRET_STAGING ?? process.env.CLIENT_SECRET,
-		};
+// Resolution order: {MODE_PREFIX}_{field} → {PARENT_PREFIX}_{field} → {field}
+// Example for local-staging: LOCAL_STAGING_CLIENT_ID → STAGING_CLIENT_ID → CLIENT_ID
+function resolveEnvField(
+	fieldName: string,
+	mode: OmsaRuntimeMode,
+): string | undefined {
+	const modeValue = process.env[`${MODE_ENV_PREFIXES[mode]}_${fieldName}`];
+	if (modeValue !== undefined) return modeValue;
+
+	const parent = MODE_ENV_PARENTS[mode];
+	if (parent !== undefined) {
+		const parentValue =
+			process.env[`${MODE_ENV_PREFIXES[parent]}_${fieldName}`];
+		if (parentValue !== undefined) return parentValue;
 	}
 
-	return {
-		clientId: process.env.CLIENT_ID_DEV ?? process.env.CLIENT_ID,
-		clientSecret: process.env.CLIENT_SECRET_DEV ?? process.env.CLIENT_SECRET,
-	};
+	return process.env[fieldName];
 }
 
 export function getRuntimeConfig(
@@ -138,32 +133,36 @@ export function getRuntimeConfig(
 ): RuntimeConfig {
 	const mode = resolveMode(overrides?.envMode ?? process.env.OMSA_ENV_MODE);
 	const defaults = MODE_DEFAULTS[mode];
-	const credentialProfile = resolveCredentialProfile(
-		process.env.OMSA_CREDENTIAL_PROFILE,
-		defaults.credentialProfile,
-	);
-	const credentials = resolveProfileCredentials(credentialProfile);
 
 	return {
 		mode,
-		credentialProfile,
 		omsaBaseUrl: normalizeUrl(
-			process.env.OMSA_BASE_URL ?? defaults.omsaBaseUrl,
+			resolveEnvField("OMSA_BASE_URL", mode) ?? defaults.omsaBaseUrl,
 		),
 		salesBaseUrl: normalizeUrl(
-			process.env.SALES_BASE_URL ?? defaults.salesBaseUrl,
+			resolveEnvField("SALES_BASE_URL", mode) ?? defaults.salesBaseUrl,
 		),
 		journeyPlannerUrl: normalizeUrl(
-			process.env.JOURNEY_PLANNER_URL ?? defaults.journeyPlannerUrl,
+			resolveEnvField("JOURNEY_PLANNER_URL", mode) ??
+				defaults.journeyPlannerUrl,
 		),
-		geocoderUrl: normalizeUrl(process.env.GEOCODER_URL ?? defaults.geocoderUrl),
+		geocoderUrl: normalizeUrl(
+			resolveEnvField("GEOCODER_URL", mode) ?? defaults.geocoderUrl,
+		),
 		oauthTokenUrl: normalizeUrl(
-			process.env.OAUTH_TOKEN_URL ?? defaults.oauthTokenUrl,
+			resolveEnvField("OAUTH_TOKEN_URL", mode) ?? defaults.oauthTokenUrl,
 		),
 		auth0Audience: normalizeUrl(
-			process.env.AUTH0_AUDIENCE ?? defaults.auth0Audience,
+			resolveEnvField("AUTH0_AUDIENCE", mode) ?? defaults.auth0Audience,
 		),
-		clientId: credentials.clientId,
-		clientSecret: credentials.clientSecret,
+		clientId: resolveEnvField("CLIENT_ID", mode),
+		clientSecret: resolveEnvField("CLIENT_SECRET", mode),
+		enturDistributionChannel: resolveEnvField(
+			"ENTUR_DISTRIBUTION_CHANNEL",
+			mode,
+		),
+		enturClientName: resolveEnvField("ENTUR_CLIENT_NAME", mode),
+		enturPos: resolveEnvField("ENTUR_POS", mode),
+		vippsPhoneNumber: resolveEnvField("VIPPS_PHONE_NUMBER", mode),
 	};
 }
