@@ -128,7 +128,7 @@ function StopMarkers({ onSelect }: { onSelect: (stop: MapStopPlace) => void }) {
 							<MarkerLabel position="bottom">{stop.name}</MarkerLabel>
 						</MarkerContent>
 						{hasMultipleModes && (
-							<MarkerPopup closeButton>
+							<MarkerPopup openOnHover>
 								<div className="flex items-center gap-1.5">
 									{stop.transportMode.map((m) => (
 										<TravelTag

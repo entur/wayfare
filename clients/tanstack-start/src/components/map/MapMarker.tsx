@@ -214,12 +214,15 @@ type MarkerPopupProps = {
 	className?: string;
 	/** Show a close button in the popup (default: false) */
 	closeButton?: boolean;
+	/** Open the popup on hover instead of click (default: false) */
+	openOnHover?: boolean;
 } & Omit<PopupOptions, "className" | "closeButton">;
 
 function MarkerPopup({
 	children,
 	className,
 	closeButton = false,
+	openOnHover = false,
 	...popupOptions
 }: MarkerPopupProps) {
 	const { marker, map } = useMarkerContext();
@@ -245,8 +248,22 @@ function MarkerPopup({
 		if (!map) return;
 
 		popup.setDOMContent(container);
-		marker.setPopup(popup);
 
+		if (openOnHover) {
+			const el = marker.getElement();
+			const handleMouseEnter = () =>
+				popup.setLngLat(marker.getLngLat()).addTo(map);
+			const handleMouseLeave = () => popup.remove();
+			el?.addEventListener("mouseenter", handleMouseEnter);
+			el?.addEventListener("mouseleave", handleMouseLeave);
+			return () => {
+				el?.removeEventListener("mouseenter", handleMouseEnter);
+				el?.removeEventListener("mouseleave", handleMouseLeave);
+				popup.remove();
+			};
+		}
+
+		marker.setPopup(popup);
 		return () => {
 			marker.setPopup(null);
 		};
