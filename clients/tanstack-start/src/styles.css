@@ -98,3 +98,35 @@ a:not([class]):hover {
 		transform: translateY(0);
 	}
 }
+
+/* Strip MapLibre's hardcoded white popup wrapper — our React content provides its own styled container */
+.map-tooltip .maplibregl-popup-content,
+.map-popup .maplibregl-popup-content {
+	background: transparent;
+	padding: 0;
+	box-shadow: none;
+	border-radius: 0;
+}
+
+/* Tooltip: no caret (it's a hover label, proximity makes context clear) */
+.map-tooltip .maplibregl-popup-tip {
+	display: none;
+}
+
+/* Popup caret: match the surface background so it looks connected */
+.map-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.map-popup.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.map-popup.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+	border-bottom-color: var(--color-wayfare-surface);
+}
+.map-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.map-popup.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.map-popup.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+	border-top-color: var(--color-wayfare-surface);
+}
+.map-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+	border-right-color: var(--color-wayfare-surface);
+}
+.map-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+	border-left-color: var(--color-wayfare-surface);
+}

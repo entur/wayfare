@@ -12,7 +12,7 @@ function PopupCloseButton({ onClick }: { onClick: () => void }) {
 			type="button"
 			onClick={onClick}
 			aria-label="Close popup"
-			className="focus-visible:ring-ring hover:bg-muted text-foreground absolute top-0.5 right-0.5 z-10 inline-flex size-5 cursor-pointer items-center justify-center rounded-sm transition-colors focus:outline-none focus-visible:ring-2"
+			className="hover:bg-wayfare-line text-wayfare-text absolute top-0.5 right-0.5 z-10 inline-flex size-5 cursor-pointer items-center justify-center rounded-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-wayfare-primary"
 		>
 			<X className="size-3.5" />
 		</button>
@@ -52,6 +52,7 @@ function MapPopup({
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional
 	const popup = useMemo(() => {
 		const popupInstance = new MapLibreGL.Popup({
+			className: "map-popup",
 			offset: 16,
 			...popupOptions,
 			closeButton: false,
@@ -107,7 +108,7 @@ function MapPopup({
 	return createPortal(
 		<div
 			className={cn(
-				"bg-popover text-popover-foreground relative max-w-62 rounded-md border p-3 shadow-md",
+				"bg-wayfare-surface text-wayfare-text relative max-w-62 rounded-md border border-wayfare-line p-3 shadow-md",
 				"animate-in fade-in-0 zoom-in-95 duration-200 ease-out",
 				className,
 			)}
