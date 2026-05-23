@@ -48,6 +48,7 @@ async function fetchPlaceItems(
 						placeId: feature.properties.id,
 						name: feature.properties.label,
 						type: "stop" as const,
+						coordinates: feature.geometry.coordinates as [number, number],
 					},
 					label: feature.properties.label,
 					icon: getStopIcon(feature),

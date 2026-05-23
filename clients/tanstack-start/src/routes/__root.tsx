@@ -10,6 +10,7 @@ import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { DevConfigProvider } from "../context/dev-config";
 import { ProfileProvider } from "../context/profile";
+import { SearchFormProvider } from "../context/search-form";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import TanStackQueryProvider from "../integrations/tanstack-query/root-provider";
 import appCss from "../styles.css?url";
@@ -63,11 +64,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<TanStackQueryProvider queryClient={queryClient}>
 					<DevConfigProvider>
 						<ProfileProvider>
-							<div className="flex min-h-screen flex-col">
-								<Header />
-								<div className="flex-1">{children}</div>
-								<Footer />
-							</div>
+							<SearchFormProvider>
+								<div className="flex min-h-screen flex-col">
+									<Header />
+									<div className="flex-1">{children}</div>
+									<Footer />
+								</div>
+							</SearchFormProvider>
 						</ProfileProvider>
 					</DevConfigProvider>
 					<TanStackDevtools

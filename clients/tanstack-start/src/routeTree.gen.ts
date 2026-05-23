@@ -13,6 +13,7 @@ import { Route as TripsRouteImport } from './routes/trips'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PaymentReturnRouteImport } from './routes/payment-return'
 import { Route as OffersRouteImport } from './routes/offers'
+import { Route as MapRouteImport } from './routes/map'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
 import { Route as TicketsPackageIdRouteImport } from './routes/tickets/$packageId'
@@ -38,6 +39,11 @@ const OffersRoute = OffersRouteImport.update({
   path: '/offers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +67,7 @@ const CheckoutOfferIdRoute = CheckoutOfferIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/map': typeof MapRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
   '/settings': typeof SettingsRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/map': typeof MapRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
   '/settings': typeof SettingsRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/map': typeof MapRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
   '/settings': typeof SettingsRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/map'
     | '/offers'
     | '/payment-return'
     | '/settings'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/map'
     | '/offers'
     | '/payment-return'
     | '/settings'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/map'
     | '/offers'
     | '/payment-return'
     | '/settings'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MapRoute: typeof MapRoute
   OffersRoute: typeof OffersRoute
   PaymentReturnRoute: typeof PaymentReturnRoute
   SettingsRoute: typeof SettingsRoute
@@ -164,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OffersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -197,6 +217,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MapRoute: MapRoute,
   OffersRoute: OffersRoute,
   PaymentReturnRoute: PaymentReturnRoute,
   SettingsRoute: SettingsRoute,

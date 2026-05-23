@@ -2,6 +2,8 @@ export interface PlaceReference {
 	placeId: string;
 	name?: string;
 	type?: "zone" | "stop";
+	/** [longitude, latitude] — populated for stops from geocoder results */
+	coordinates?: [number, number];
 }
 
 export interface AmountOfMoney {

@@ -1,4 +1,9 @@
-import { AdditionalZonesTicketIcon, SearchIcon, UserIcon } from "@entur/icons";
+import {
+	AdditionalZonesTicketIcon,
+	MapIcon,
+	SearchIcon,
+	UserIcon,
+} from "@entur/icons";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useProfile } from "../context/profile";
 import EnvToggle from "./EnvToggle";
@@ -69,6 +74,13 @@ export default function Header() {
 						icon={<SearchIcon size={16} />}
 					>
 						Search
+					</NavItem>
+					<NavItem
+						to="/map"
+						active={pathname === "/map"}
+						icon={<MapIcon size={16} />}
+					>
+						Map
 					</NavItem>
 					<NavItem
 						to="/tickets"

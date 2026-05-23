@@ -16,7 +16,7 @@ import type {
 	TravelerGroup,
 	TravelerIndividual,
 } from "../context/search-form";
-import { SearchFormProvider, useSearchForm } from "../context/search-form";
+import { useSearchForm } from "../context/search-form";
 import { useSearchOffers } from "../hooks/use-search-offers";
 import { buildRequest } from "../lib/build-request";
 import { getFavorites, removeFavorite } from "../lib/favorites-storage";
@@ -79,11 +79,7 @@ function removeCustomerFromTravelers(
 export const Route = createFileRoute("/")({ component: SearchPage });
 
 function SearchPage() {
-	return (
-		<SearchFormProvider>
-			<SearchScreen />
-		</SearchFormProvider>
-	);
+	return <SearchScreen />;
 }
 
 interface SearchParams {
