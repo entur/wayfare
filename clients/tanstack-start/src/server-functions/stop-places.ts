@@ -57,5 +57,5 @@ export const getStopsInBounds = createServerFn({ method: "GET" })
 				maxLon: data.maxLon,
 			},
 		);
-		return result.stopPlacesByBbox;
+		return result.stopPlacesByBbox.slice(0, 500);
 	});

@@ -5,7 +5,15 @@ import {
 	useNavigate,
 } from "@tanstack/react-router";
 import { Layers, MapPin, Navigation, Search } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import type MapLibreGL from "maplibre-gl";
+import {
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import "@entur/travel/dist/styles.css";
 import {
 	MapControls,
@@ -18,6 +26,7 @@ import {
 	MarkerPopup,
 	useMap,
 } from "../components/map";
+import { useResolvedTheme } from "../components/map/theme";
 import PlaceSearch from "../components/search/PlaceSearch";
 import Button from "../components/ui/Button";
 import { useSearchForm } from "../context/search-form";
@@ -40,7 +49,8 @@ type FareZoneProperties = {
 
 const FARE_ZONES_URL = "/fare-zones-geo.json";
 const NORWAY_CENTER: [number, number] = [10.75, 59.9];
-const MIN_ZOOM_FOR_STOPS = 10;
+const MIN_ZOOM_FOR_STOPS = 4;
+const FULL_MARKER_ZOOM = 13;
 
 // Priority order for selecting the "primary" transport mode icon when a stop has several
 const MODE_PRIORITY = ["rail", "metro", "tram", "ferry", "air", "coach", "bus"];
@@ -57,6 +67,7 @@ function useStopsInViewport() {
 	const { map, isLoaded } = useMap();
 	const [stops, setStops] = useState<MapStopPlace[]>([]);
 	const fetchIdRef = useRef(0);
+	const lastBoundsRef = useRef<MapLibreGL.LngLatBounds | null>(null);
 
 	useEffect(() => {
 		if (!map || !isLoaded) return;
@@ -65,9 +76,16 @@ function useStopsInViewport() {
 			if (!map) return;
 			if (map.getZoom() < MIN_ZOOM_FOR_STOPS) {
 				setStops([]);
+				lastBoundsRef.current = null;
 				return;
 			}
 			const bounds = map.getBounds();
+			if (
+				lastBoundsRef.current?.contains(bounds.getNorthEast()) &&
+				lastBoundsRef.current?.contains(bounds.getSouthWest())
+			) {
+				return;
+			}
 			const id = ++fetchIdRef.current;
 			try {
 				const result = await getStopsInBounds({
@@ -78,7 +96,10 @@ function useStopsInViewport() {
 						maxLon: bounds.getEast(),
 					},
 				});
-				if (id === fetchIdRef.current) setStops(result);
+				if (id === fetchIdRef.current) {
+					setStops(result);
+					lastBoundsRef.current = bounds;
+				}
 			} catch {
 				// ignore transient errors
 			}
@@ -103,8 +124,240 @@ function useStopsInViewport() {
 	return stops;
 }
 
+function useZoom() {
+	const { map, isLoaded } = useMap();
+	const [zoom, setZoom] = useState(5);
+
+	useEffect(() => {
+		if (!map || !isLoaded) return;
+		setZoom(map.getZoom());
+		const update = () => setZoom(map.getZoom());
+		map.on("zoom", update);
+		return () => {
+			map.off("zoom", update);
+		};
+	}, [map, isLoaded]);
+
+	return zoom;
+}
+
+const STOP_COLORS = {
+	light: {
+		bus: "#c5044e",
+		metro: "#bf5826",
+		tram: "#78469a",
+		ferry: "#0c6693",
+		rail: "#00367f",
+		air: "#800664",
+		coach: "#c5044e",
+	},
+	dark: {
+		bus: "#ef7398",
+		metro: "#dd973c",
+		tram: "#b898e5",
+		ferry: "#8ccfe2",
+		rail: "#60a2d7",
+		air: "#f2b8e5",
+		coach: "#ef7398",
+	},
+} as const;
+
+const CLUSTER_COLOR = "#6366f1";
+
+function StopCircleLayer({
+	stops,
+	onSelect,
+}: {
+	stops: MapStopPlace[];
+	onSelect: (stop: MapStopPlace) => void;
+}) {
+	const { map, isLoaded } = useMap();
+	const theme = useResolvedTheme();
+	const uid = useId();
+	const sourceId = `stops-src-${uid}`;
+	const clusterLayerId = `stops-clusters-${uid}`;
+	const clusterCountLayerId = `stops-cluster-count-${uid}`;
+	const dotLayerId = `stops-dots-${uid}`;
+
+	const geojson = useMemo(
+		(): GeoJSON.FeatureCollection<GeoJSON.Point> => ({
+			type: "FeatureCollection",
+			features: stops.map((stop) => ({
+				type: "Feature",
+				id: stop.id,
+				geometry: {
+					type: "Point",
+					coordinates: [stop.longitude, stop.latitude],
+				},
+				properties: {
+					id: stop.id,
+					name: stop.name,
+					mode: primaryMode(stop.transportMode),
+				},
+			})),
+		}),
+		[stops],
+	);
+
+	const latestRef = useRef({ stops, onSelect });
+	latestRef.current = { stops, onSelect };
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional
+	useEffect(() => {
+		if (!isLoaded || !map) return;
+
+		const c = STOP_COLORS[theme];
+		const modeColor: MapLibreGL.ExpressionSpecification = [
+			"match",
+			["get", "mode"],
+			"rail",
+			c.rail,
+			"metro",
+			c.metro,
+			"tram",
+			c.tram,
+			"ferry",
+			c.ferry,
+			"air",
+			c.air,
+			"coach",
+			c.coach,
+			c.bus,
+		];
+
+		map.addSource(sourceId, {
+			type: "geojson",
+			data: geojson,
+			cluster: true,
+			clusterMaxZoom: 11,
+			clusterRadius: 40,
+		});
+
+		map.addLayer({
+			id: clusterLayerId,
+			type: "circle",
+			source: sourceId,
+			filter: ["has", "point_count"],
+			paint: {
+				"circle-color": CLUSTER_COLOR,
+				"circle-radius": ["step", ["get", "point_count"], 10, 20, 14, 100, 18],
+				"circle-stroke-width": 2,
+				"circle-stroke-color": "#ffffff",
+				"circle-opacity": 0.85,
+			},
+		});
+
+		map.addLayer({
+			id: clusterCountLayerId,
+			type: "symbol",
+			source: sourceId,
+			filter: ["has", "point_count"],
+			layout: {
+				"text-field": "{point_count_abbreviated}",
+				"text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+				"text-size": 11,
+			},
+			paint: { "text-color": "#ffffff" },
+		});
+
+		map.addLayer({
+			id: dotLayerId,
+			type: "circle",
+			source: sourceId,
+			filter: ["!", ["has", "point_count"]],
+			paint: {
+				"circle-radius": [
+					"interpolate",
+					["linear"],
+					["zoom"],
+					10,
+					2.5,
+					11,
+					3,
+					12,
+					4,
+				],
+				"circle-color": modeColor,
+				"circle-stroke-width": 1,
+				"circle-stroke-color": "#ffffff",
+				"circle-opacity": 0.9,
+			} as MapLibreGL.CircleLayerSpecification["paint"],
+		});
+
+		return () => {
+			try {
+				if (map.getLayer(clusterCountLayerId))
+					map.removeLayer(clusterCountLayerId);
+				if (map.getLayer(dotLayerId)) map.removeLayer(dotLayerId);
+				if (map.getLayer(clusterLayerId)) map.removeLayer(clusterLayerId);
+				if (map.getSource(sourceId)) map.removeSource(sourceId);
+			} catch {
+				// ignore
+			}
+		};
+	}, [isLoaded, map]);
+
+	useEffect(() => {
+		if (!isLoaded || !map) return;
+		const source = map.getSource(sourceId) as
+			| MapLibreGL.GeoJSONSource
+			| undefined;
+		source?.setData(geojson);
+	}, [isLoaded, map, geojson, sourceId]);
+
+	useEffect(() => {
+		if (!isLoaded || !map) return;
+
+		const handleDotClick = (e: MapLibreGL.MapLayerMouseEvent) => {
+			const feature = e.features?.[0];
+			if (!feature) return;
+			const stopId = feature.properties?.id as string | undefined;
+			if (!stopId) return;
+			const stop = latestRef.current.stops.find((s) => s.id === stopId);
+			if (stop) latestRef.current.onSelect(stop);
+		};
+
+		const handleClusterClick = async (e: MapLibreGL.MapLayerMouseEvent) => {
+			const features = map.queryRenderedFeatures(e.point, {
+				layers: [clusterLayerId],
+			});
+			if (!features.length) return;
+			const clusterId = features[0].properties?.cluster_id as number;
+			const coordinates = (features[0].geometry as GeoJSON.Point)
+				.coordinates as [number, number];
+			const source = map.getSource(sourceId) as MapLibreGL.GeoJSONSource;
+			const zoom = await source.getClusterExpansionZoom(clusterId);
+			map.easeTo({ center: coordinates, zoom });
+		};
+
+		const setCursor = (c: string) => () => {
+			map.getCanvas().style.cursor = c;
+		};
+
+		map.on("click", dotLayerId, handleDotClick);
+		map.on("click", clusterLayerId, handleClusterClick);
+		map.on("mouseenter", dotLayerId, setCursor("pointer"));
+		map.on("mouseleave", dotLayerId, setCursor(""));
+		map.on("mouseenter", clusterLayerId, setCursor("pointer"));
+		map.on("mouseleave", clusterLayerId, setCursor(""));
+
+		return () => {
+			map.off("click", dotLayerId, handleDotClick);
+			map.off("click", clusterLayerId, handleClusterClick);
+			map.getCanvas().style.cursor = "";
+		};
+	}, [isLoaded, map, dotLayerId, clusterLayerId, sourceId]);
+
+	return null;
+}
+
 function StopMarkers({ onSelect }: { onSelect: (stop: MapStopPlace) => void }) {
 	const stops = useStopsInViewport();
+	const zoom = useZoom();
+
+	if (zoom < FULL_MARKER_ZOOM) {
+		return <StopCircleLayer stops={stops} onSelect={onSelect} />;
+	}
 
 	return (
 		<>
