@@ -9,8 +9,8 @@ const defaultStyles = {
 
 function getDocumentTheme(): Theme | null {
 	if (typeof document === "undefined") return null;
-	if (document.documentElement.classList.contains("dark")) return "dark";
-	if (document.documentElement.classList.contains("light")) return "light";
+	const mode = document.documentElement.getAttribute("data-color-mode");
+	if (mode === "dark" || mode === "light") return mode;
 	return null;
 }
 
@@ -37,7 +37,7 @@ function useResolvedTheme(themeProp?: "light" | "dark"): Theme {
 		});
 		observer.observe(document.documentElement, {
 			attributes: true,
-			attributeFilter: ["class"],
+			attributeFilter: ["data-color-mode"],
 		});
 
 		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
