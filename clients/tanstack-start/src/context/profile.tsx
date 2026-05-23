@@ -6,13 +6,13 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { useDevConfig } from "./dev-config";
 import {
 	clearStoredCustomer,
 	getStoredCustomer,
 	storeCustomer,
 } from "../lib/profile-storage";
 import type { OmsaCustomer } from "../types/customer";
+import { useDevConfig } from "./dev-config";
 
 interface ProfileContextValue {
 	customer: OmsaCustomer | null;
