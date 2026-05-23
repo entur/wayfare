@@ -14,7 +14,8 @@ import {
 	type MapRef,
 	MapView,
 	MarkerContent,
-	MarkerTooltip,
+	MarkerLabel,
+	MarkerPopup,
 	useMap,
 } from "../components/map";
 import PlaceSearch from "../components/search/PlaceSearch";
@@ -109,6 +110,7 @@ function StopMarkers({ onSelect }: { onSelect: (stop: MapStopPlace) => void }) {
 		<>
 			{stops.map((stop) => {
 				const mode = primaryMode(stop.transportMode);
+				const hasMultipleModes = stop.transportMode.length > 1;
 				return (
 					<MapMarker
 						key={stop.id}
@@ -123,8 +125,21 @@ function StopMarkers({ onSelect }: { onSelect: (stop: MapStopPlace) => void }) {
 								className="cursor-pointer shadow-md transition-transform hover:scale-110"
 								style={{ fontSize: "0.65rem", padding: "2px 4px" }}
 							/>
+							<MarkerLabel position="bottom">{stop.name}</MarkerLabel>
 						</MarkerContent>
-						<MarkerTooltip>{stop.name}</MarkerTooltip>
+						{hasMultipleModes && (
+							<MarkerPopup closeButton>
+								<div className="flex items-center gap-1.5">
+									{stop.transportMode.map((m) => (
+										<TravelTag
+											key={m}
+											transport={m as never}
+											style={{ fontSize: "0.65rem", padding: "2px 4px" }}
+										/>
+									))}
+								</div>
+							</MarkerPopup>
+						)}
 					</MapMarker>
 				);
 			})}
@@ -266,9 +281,9 @@ function MapSearchOverlay({
 
 			{/* Hovered zone tooltip */}
 			{hoveredZone && (
-				<div className="pointer-events-none absolute bottom-14 left-1/2 -translate-x-1/2 rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background shadow-md">
+				<div className="pointer-events-none absolute bottom-14 left-1/2 -translate-x-1/2 rounded-md bg-wayfare-text px-3 py-1.5 text-sm font-medium text-wayfare-bg shadow-md">
 					{hoveredZone.name}
-					<span className="text-background/60 ml-1.5 text-xs font-normal">
+					<span className="text-wayfare-bg/60 ml-1.5 text-xs font-normal">
 						{hoveredZone.operator}
 					</span>
 				</div>
@@ -294,7 +309,7 @@ function ZoomHint() {
 	if (zoom === null || zoom >= MIN_ZOOM_FOR_STOPS) return null;
 
 	return (
-		<div className="pointer-events-none absolute bottom-14 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground/80 px-3 py-1.5 text-xs text-background shadow-md">
+		<div className="pointer-events-none absolute bottom-14 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-wayfare-text/80 px-3 py-1.5 text-xs text-wayfare-bg shadow-md">
 			Zoom in to see stop places
 		</div>
 	);
