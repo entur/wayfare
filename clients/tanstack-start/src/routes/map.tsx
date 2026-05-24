@@ -3,7 +3,7 @@ import {
 	createFileRoute,
 	useNavigate,
 } from "@tanstack/react-router";
-import { Layers, MapPin, Navigation, Search } from "lucide-react";
+import { ChevronDown, Layers, MapPin, Navigation, Search } from "lucide-react";
 import type MapLibreGL from "maplibre-gl";
 import {
 	useCallback,
@@ -685,6 +685,44 @@ function ZoomHint() {
 	);
 }
 
+const OPERATOR_FILL_COLORS: Record<string, string> = {
+	RUT: "#ef4444",
+	ATB: "#f97316",
+	SKY: "#eab308",
+	BRA: "#22c55e",
+	INN: "#14b8a6",
+	KOL: "#3b82f6",
+	MOR: "#8b5cf6",
+	AKT: "#ec4899",
+	NOR: "#06b6d4",
+	OST: "#84cc16",
+	FIN: "#f59e0b",
+	TEL: "#10b981",
+	TRO: "#6366f1",
+	VKT: "#d946ef",
+};
+
+const OPERATOR_NAMES: Record<string, string> = {
+	AKT: "Agder",
+	ATB: "AtB (Trondheim)",
+	BRA: "Brakar",
+	FIN: "Finnmark",
+	INN: "Innlandstrafikk",
+	KOL: "Kolumbus",
+	MOR: "More og Romsdal",
+	NOR: "Nordland",
+	OST: "Ostfold",
+	RUT: "Ruter",
+	SKY: "Skyss",
+	TEL: "Telemark",
+	TRO: "Troms",
+	VKT: "Vestfold Telemark",
+};
+
+const ALL_OPERATORS = Object.keys(OPERATOR_NAMES).sort((a, b) =>
+	OPERATOR_NAMES[a].localeCompare(OPERATOR_NAMES[b]),
+);
+
 const ZONE_COLOR_MATCH: MapLibreGL.ExpressionSpecification = [
 	"match",
 	["get", "operator"],
@@ -719,12 +757,78 @@ const ZONE_COLOR_MATCH: MapLibreGL.ExpressionSpecification = [
 	"#1a56db",
 ];
 
+function ZoneLegend({
+	hiddenOperators,
+	onToggle,
+	onToggleAll,
+}: {
+	hiddenOperators: Set<string>;
+	onToggle: (op: string) => void;
+	onToggleAll: () => void;
+}) {
+	const [collapsed, setCollapsed] = useState(false);
+	const allHidden = hiddenOperators.size === ALL_OPERATORS.length;
+
+	return (
+		<div className="pointer-events-auto w-44 rounded-xl border border-wayfare-line bg-wayfare-surface/95 shadow-lg backdrop-blur-sm">
+			<button
+				type="button"
+				onClick={() => setCollapsed((v) => !v)}
+				className="flex w-full items-center justify-between px-3 py-2"
+			>
+				<span className="text-xs font-semibold text-wayfare-text">
+					Operators
+				</span>
+				<ChevronDown
+					className={`size-3.5 text-wayfare-text-secondary transition-transform ${collapsed ? "" : "rotate-180"}`}
+				/>
+			</button>
+
+			{!collapsed && (
+				<div className="border-t border-wayfare-line px-2 pb-2 pt-1">
+					<button
+						type="button"
+						onClick={onToggleAll}
+						className="mb-1 w-full rounded px-1.5 py-0.5 text-left text-xs text-wayfare-text-secondary hover:bg-wayfare-bg"
+					>
+						{allHidden ? "Show all" : "Hide all"}
+					</button>
+					<div className="max-h-64 space-y-0.5 overflow-y-auto">
+						{ALL_OPERATORS.map((op) => {
+							const visible = !hiddenOperators.has(op);
+							return (
+								<button
+									key={op}
+									type="button"
+									onClick={() => onToggle(op)}
+									className={`flex w-full items-center gap-2 rounded px-1.5 py-1 text-left transition-opacity hover:bg-wayfare-bg ${visible ? "" : "opacity-40"}`}
+								>
+									<span
+										className="size-2.5 shrink-0 rounded-sm"
+										style={{ backgroundColor: OPERATOR_FILL_COLORS[op] }}
+									/>
+									<span className="truncate text-xs text-wayfare-text">
+										{OPERATOR_NAMES[op]}
+									</span>
+								</button>
+							);
+						})}
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
 function MapContent() {
 	const { state, dispatch } = useSearchForm();
 	const theme = useResolvedTheme();
 	const mapRef = useRef<MapRef | null>(null);
 	const [pickTarget, setPickTarget] = useState<PickTarget>("from");
 	const [showZones, setShowZones] = useState(false);
+	const [hiddenOperators, setHiddenOperators] = useState<Set<string>>(
+		new Set(),
+	);
 	const [userPosition, setUserPosition] = useState<{
 		longitude: number;
 		latitude: number;
@@ -736,6 +840,28 @@ function MapContent() {
 		},
 		[],
 	);
+
+	const toggleOperator = useCallback((op: string) => {
+		setHiddenOperators((prev) => {
+			const next = new Set(prev);
+			if (next.has(op)) next.delete(op);
+			else next.add(op);
+			return next;
+		});
+	}, []);
+
+	const toggleAllOperators = useCallback(() => {
+		setHiddenOperators((prev) =>
+			prev.size === ALL_OPERATORS.length ? new Set() : new Set(ALL_OPERATORS),
+		);
+	}, []);
+
+	const visibleFilter = useMemo((): MapLibreGL.FilterSpecification | null => {
+		if (hiddenOperators.size === 0) return null;
+		const visible = ALL_OPERATORS.filter((op) => !hiddenOperators.has(op));
+		if (visible.length === 0) return ["==", ["literal", false], true];
+		return ["match", ["get", "operator"], visible, true, false];
+	}, [hiddenOperators]);
 
 	const zoneLabelPaint = useMemo<MapLibreGL.SymbolLayerSpecification["paint"]>(
 		() =>
@@ -870,6 +996,7 @@ function MapContent() {
 						labelPaint={zoneLabelPaint}
 						labelBackground
 						labelMinzoom={4}
+						filter={visibleFilter}
 						onClick={handleZoneClick}
 					/>
 				)}
@@ -913,6 +1040,18 @@ function MapContent() {
 				onZoneToggle={() => setShowZones((v) => !v)}
 				mapRef={mapRef}
 			/>
+
+			{showZones && (
+				<div className="pointer-events-none absolute inset-0 z-10">
+					<div className="absolute top-3 right-3">
+						<ZoneLegend
+							hiddenOperators={hiddenOperators}
+							onToggle={toggleOperator}
+							onToggleAll={toggleAllOperators}
+						/>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

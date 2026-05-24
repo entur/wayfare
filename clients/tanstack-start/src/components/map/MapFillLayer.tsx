@@ -45,6 +45,8 @@ type MapFillLayerProps<
 	labelMinzoom?: number;
 	/** When true, adds a programmatic SDF rounded-rectangle behind each label. Color it via icon-color in labelPaint. */
 	labelBackground?: boolean;
+	/** Filter expression applied to all sublayers. Updated reactively. */
+	filter?: MapLibreGL.FilterSpecification | null;
 	/** Callback when a feature is clicked. */
 	onClick?: (
 		feature: GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, P>,
@@ -103,6 +105,7 @@ function MapFillLayer<
 	labelPaint,
 	labelMinzoom,
 	labelBackground = false,
+	filter,
 	onClick,
 	onHover,
 	interactive = true,
@@ -122,8 +125,22 @@ function MapFillLayer<
 		[paint, hoverPaint],
 	);
 
-	const latestRef = useRef({ data, onClick, onHover, labelLayout, labelPaint });
-	latestRef.current = { data, onClick, onHover, labelLayout, labelPaint };
+	const latestRef = useRef({
+		data,
+		onClick,
+		onHover,
+		labelLayout,
+		labelPaint,
+		filter,
+	});
+	latestRef.current = {
+		data,
+		onClick,
+		onHover,
+		labelLayout,
+		labelPaint,
+		filter,
+	};
 	// labelLayout/labelPaint are read via latestRef at layer-creation time (setup effect)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional
@@ -136,8 +153,16 @@ function MapFillLayer<
 			promoteId: "id",
 		});
 
+		const initialFilter = latestRef.current.filter ?? undefined;
+
 		map.addLayer(
-			{ id: fillLayerId, type: "fill", source: sourceId, paint: mergedPaint },
+			{
+				id: fillLayerId,
+				type: "fill",
+				source: sourceId,
+				paint: mergedPaint,
+				...(initialFilter && { filter: initialFilter }),
+			},
 			beforeId,
 		);
 
@@ -148,6 +173,7 @@ function MapFillLayer<
 					type: "line",
 					source: sourceId,
 					paint: outlinePaint,
+					...(initialFilter && { filter: initialFilter }),
 				},
 				beforeId,
 			);
@@ -182,6 +208,7 @@ function MapFillLayer<
 					minzoom: labelMinzoom,
 					layout,
 					paint: latestRef.current.labelPaint,
+					...(initialFilter && { filter: initialFilter }),
 				},
 				beforeId,
 			);
@@ -226,6 +253,14 @@ function MapFillLayer<
 			map.setPaintProperty(labelLayerId, key as never, value as never);
 		}
 	}, [isLoaded, map, labelLayerId, labelPaint]);
+
+	useEffect(() => {
+		if (!isLoaded || !map) return;
+		const f = filter ?? null;
+		if (map.getLayer(fillLayerId)) map.setFilter(fillLayerId, f);
+		if (map.getLayer(outlineLayerId)) map.setFilter(outlineLayerId, f);
+		if (map.getLayer(labelLayerId)) map.setFilter(labelLayerId, f);
+	}, [isLoaded, map, fillLayerId, outlineLayerId, labelLayerId, filter]);
 
 	useEffect(() => {
 		if (!isLoaded || !map || !interactive) return;
