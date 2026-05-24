@@ -1,4 +1,3 @@
-import { TravelTag } from "@entur/travel";
 import {
 	ClientOnly,
 	createFileRoute,
@@ -14,7 +13,6 @@ import {
 	useRef,
 	useState,
 } from "react";
-import "@entur/travel/dist/styles.css";
 import {
 	MapControls,
 	MapFillLayer,
@@ -22,11 +20,10 @@ import {
 	type MapRef,
 	MapView,
 	MarkerContent,
-	MarkerLabel,
-	MarkerPopup,
 	useMap,
 } from "../components/map";
 import { useResolvedTheme } from "../components/map/theme";
+import { useStopIcons } from "../components/map/useStopIcons";
 import PlaceSearch from "../components/search/PlaceSearch";
 import Button from "../components/ui/Button";
 import { useSearchForm } from "../context/search-form";
@@ -55,7 +52,6 @@ type FareZoneProperties = {
 const FARE_ZONES_URL = "/fare-zones-geo.json";
 const NORWAY_CENTER: [number, number] = [10.75, 59.9];
 const MIN_ZOOM_FOR_STOPS = 4;
-const FULL_MARKER_ZOOM = 13;
 
 // Priority order for selecting the "primary" transport mode icon when a stop has several
 const MODE_PRIORITY = ["rail", "metro", "tram", "ferry", "air", "coach", "bus"];
@@ -92,40 +88,6 @@ function useAllStops(): MapStopPlace[] {
 	return stops;
 }
 
-function useBounds(): MapLibreGL.LngLatBounds | null {
-	const { map, isLoaded } = useMap();
-	const [bounds, setBounds] = useState<MapLibreGL.LngLatBounds | null>(null);
-
-	useEffect(() => {
-		if (!map || !isLoaded) return;
-		setBounds(map.getBounds());
-		const update = () => setBounds(map.getBounds());
-		map.on("moveend", update);
-		return () => {
-			map.off("moveend", update);
-		};
-	}, [map, isLoaded]);
-
-	return bounds;
-}
-
-function useZoom() {
-	const { map, isLoaded } = useMap();
-	const [zoom, setZoom] = useState(5);
-
-	useEffect(() => {
-		if (!map || !isLoaded) return;
-		setZoom(map.getZoom());
-		const update = () => setZoom(map.getZoom());
-		map.on("zoom", update);
-		return () => {
-			map.off("zoom", update);
-		};
-	}, [map, isLoaded]);
-
-	return zoom;
-}
-
 const STOP_COLORS = {
 	light: {
 		bus: "#c5044e",
@@ -149,7 +111,7 @@ const STOP_COLORS = {
 
 const CLUSTER_COLOR = "#6366f1";
 
-function StopCircleLayer({
+function StopNativeLayer({
 	stops,
 	onSelect,
 }: {
@@ -158,11 +120,13 @@ function StopCircleLayer({
 }) {
 	const { map, isLoaded } = useMap();
 	const theme = useResolvedTheme();
+	const iconsReady = useStopIcons(map, isLoaded, theme);
 	const uid = useId();
 	const sourceId = `stops-src-${uid}`;
 	const clusterLayerId = `stops-clusters-${uid}`;
 	const clusterCountLayerId = `stops-cluster-count-${uid}`;
 	const dotLayerId = `stops-dots-${uid}`;
+	const symbolLayerId = `stops-symbols-${uid}`;
 
 	const geojson = useMemo(
 		(): GeoJSON.FeatureCollection<GeoJSON.Point> => ({
@@ -214,7 +178,7 @@ function StopCircleLayer({
 			type: "geojson",
 			data: geojson,
 			cluster: true,
-			clusterMaxZoom: 11,
+			clusterMaxZoom: 12,
 			clusterRadius: 40,
 		});
 
@@ -249,6 +213,7 @@ function StopCircleLayer({
 			id: dotLayerId,
 			type: "circle",
 			source: sourceId,
+			maxzoom: 13,
 			filter: ["!", ["has", "point_count"]],
 			paint: {
 				"circle-radius": [
@@ -282,6 +247,69 @@ function StopCircleLayer({
 		};
 	}, [isLoaded, map]);
 
+	// Symbol layer added once icons are ready; removed on cleanup or icon reload
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional
+	useEffect(() => {
+		if (!isLoaded || !map || !iconsReady) return;
+
+		const textColor = theme === "dark" ? "#e5e7eb" : "#1f2937";
+		const haloColor = theme === "dark" ? "#111827" : "#ffffff";
+
+		map.addLayer({
+			id: symbolLayerId,
+			type: "symbol",
+			source: sourceId,
+			minzoom: 13,
+			filter: ["!", ["has", "point_count"]],
+			layout: {
+				"icon-image": ["concat", "stop-icon-", ["get", "mode"]],
+				"icon-size": 1,
+				"icon-anchor": "bottom",
+				"icon-allow-overlap": false,
+				"icon-ignore-placement": false,
+				// Labels fade in at zoom 14+ so they don't clutter at zoom 13
+				"text-field": ["step", ["zoom"], "", 14, ["get", "name"]],
+				"text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+				"text-size": ["interpolate", ["linear"], ["zoom"], 14, 10, 16, 12],
+				"text-anchor": "top",
+				"text-offset": [0, 0.2],
+				"text-max-width": 8,
+				"text-optional": true,
+				"text-allow-overlap": false,
+				"symbol-sort-key": [
+					"match",
+					["get", "mode"],
+					"rail",
+					1,
+					"metro",
+					2,
+					"tram",
+					3,
+					"ferry",
+					4,
+					"air",
+					5,
+					"coach",
+					6,
+					7,
+				],
+			},
+			paint: {
+				"text-color": textColor,
+				"text-halo-color": haloColor,
+				"text-halo-width": 1.5,
+			},
+		});
+
+		return () => {
+			try {
+				if (map.getLayer(symbolLayerId)) map.removeLayer(symbolLayerId);
+			} catch {
+				// ignore
+			}
+		};
+	}, [isLoaded, map, iconsReady]);
+
 	useEffect(() => {
 		if (!isLoaded || !map) return;
 		const source = map.getSource(sourceId) as
@@ -293,7 +321,7 @@ function StopCircleLayer({
 	useEffect(() => {
 		if (!isLoaded || !map) return;
 
-		const handleDotClick = (e: MapLibreGL.MapLayerMouseEvent) => {
+		const handleStopClick = (e: MapLibreGL.MapLayerMouseEvent) => {
 			const feature = e.features?.[0];
 			if (!feature) return;
 			const stopId = feature.properties?.id as string | undefined;
@@ -319,85 +347,30 @@ function StopCircleLayer({
 			map.getCanvas().style.cursor = c;
 		};
 
-		map.on("click", dotLayerId, handleDotClick);
+		map.on("click", dotLayerId, handleStopClick);
+		map.on("click", symbolLayerId, handleStopClick);
 		map.on("click", clusterLayerId, handleClusterClick);
 		map.on("mouseenter", dotLayerId, setCursor("pointer"));
 		map.on("mouseleave", dotLayerId, setCursor(""));
+		map.on("mouseenter", symbolLayerId, setCursor("pointer"));
+		map.on("mouseleave", symbolLayerId, setCursor(""));
 		map.on("mouseenter", clusterLayerId, setCursor("pointer"));
 		map.on("mouseleave", clusterLayerId, setCursor(""));
 
 		return () => {
-			map.off("click", dotLayerId, handleDotClick);
+			map.off("click", dotLayerId, handleStopClick);
+			map.off("click", symbolLayerId, handleStopClick);
 			map.off("click", clusterLayerId, handleClusterClick);
 			map.getCanvas().style.cursor = "";
 		};
-	}, [isLoaded, map, dotLayerId, clusterLayerId, sourceId]);
+	}, [isLoaded, map, dotLayerId, symbolLayerId, clusterLayerId, sourceId]);
 
 	return null;
 }
 
 function StopMarkers({ onSelect }: { onSelect: (stop: MapStopPlace) => void }) {
 	const stops = useAllStops();
-	const zoom = useZoom();
-	const bounds = useBounds();
-
-	const visibleStops = useMemo(
-		() =>
-			bounds
-				? stops.filter(
-						(s) =>
-							s.longitude >= bounds.getWest() &&
-							s.longitude <= bounds.getEast() &&
-							s.latitude >= bounds.getSouth() &&
-							s.latitude <= bounds.getNorth(),
-					)
-				: [],
-		[stops, bounds],
-	);
-
-	if (zoom < FULL_MARKER_ZOOM) {
-		return <StopCircleLayer stops={stops} onSelect={onSelect} />;
-	}
-
-	return (
-		<>
-			{visibleStops.map((stop) => {
-				const mode = primaryMode(stop.transportMode);
-				const hasMultipleModes = stop.transportMode.length > 1;
-				return (
-					<MapMarker
-						key={stop.id}
-						longitude={stop.longitude}
-						latitude={stop.latitude}
-						anchor="bottom"
-						onClick={() => onSelect(stop)}
-					>
-						<MarkerContent>
-							<TravelTag
-								transport={mode as never}
-								className="cursor-pointer shadow-md transition-transform hover:scale-110"
-								style={{ fontSize: "0.65rem", padding: "2px 4px" }}
-							/>
-							<MarkerLabel position="bottom">{stop.name}</MarkerLabel>
-						</MarkerContent>
-						{hasMultipleModes && (
-							<MarkerPopup openOnHover>
-								<div className="flex items-center gap-1.5">
-									{stop.transportMode.map((m) => (
-										<TravelTag
-											key={m}
-											transport={m as never}
-											style={{ fontSize: "0.65rem", padding: "2px 4px" }}
-										/>
-									))}
-								</div>
-							</MarkerPopup>
-						)}
-					</MapMarker>
-				);
-			})}
-		</>
-	);
+	return <StopNativeLayer stops={stops} onSelect={onSelect} />;
 }
 
 function ZoneToggleButton({
