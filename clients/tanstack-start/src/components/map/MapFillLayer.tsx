@@ -3,6 +3,25 @@ import { useEffect, useId, useMemo, useRef } from "react";
 
 import { useMap } from "./context";
 
+function createRoundedRectSDF(w: number, h: number, r: number) {
+	const data = new Uint8ClampedArray(w * h * 4);
+	for (let y = 0; y < h; y++) {
+		for (let x = 0; x < w; x++) {
+			const cx = Math.max(r, Math.min(w - r, x));
+			const cy = Math.max(r, Math.min(h - r, y));
+			const dx = x - cx;
+			const dy = y - cy;
+			const v = dx * dx + dy * dy <= r * r ? 255 : 0;
+			const i = (y * w + x) * 4;
+			data[i] = v;
+			data[i + 1] = v;
+			data[i + 2] = v;
+			data[i + 3] = v;
+		}
+	}
+	return { width: w, height: h, data };
+}
+
 type MapFillLayerProps<
 	P extends GeoJSON.GeoJsonProperties = GeoJSON.GeoJsonProperties,
 > = {
@@ -18,6 +37,14 @@ type MapFillLayerProps<
 	hoverPaint?: MapLibreGL.FillLayerSpecification["paint"];
 	/** Paint for an optional outline layer rendered on top of the fill. */
 	outlinePaint?: MapLibreGL.LineLayerSpecification["paint"];
+	/** Layout for an optional symbol layer rendering labels at polygon centroids. */
+	labelLayout?: MapLibreGL.SymbolLayerSpecification["layout"];
+	/** Paint for the symbol label layer. Updated reactively (e.g. on theme change). */
+	labelPaint?: MapLibreGL.SymbolLayerSpecification["paint"];
+	/** Min zoom at which the label layer becomes visible. */
+	labelMinzoom?: number;
+	/** When true, adds a programmatic SDF rounded-rectangle behind each label. Color it via icon-color in labelPaint. */
+	labelBackground?: boolean;
 	/** Callback when a feature is clicked. */
 	onClick?: (
 		feature: GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, P>,
@@ -72,6 +99,10 @@ function MapFillLayer<
 	paint,
 	hoverPaint = DEFAULT_HOVER_FILL_PAINT,
 	outlinePaint,
+	labelLayout,
+	labelPaint,
+	labelMinzoom,
+	labelBackground = false,
 	onClick,
 	onHover,
 	interactive = true,
@@ -83,14 +114,17 @@ function MapFillLayer<
 	const sourceId = `fill-source-${id}`;
 	const fillLayerId = `fill-layer-${id}`;
 	const outlineLayerId = `fill-outline-layer-${id}`;
+	const labelLayerId = `fill-label-layer-${id}`;
+	const labelImageName = `fill-label-bg-${id}`;
 
 	const mergedPaint = useMemo(
 		() => mergeFillPaint({ ...DEFAULT_FILL_PAINT, ...paint }, hoverPaint),
 		[paint, hoverPaint],
 	);
 
-	const latestRef = useRef({ data, onClick, onHover });
-	latestRef.current = { data, onClick, onHover };
+	const latestRef = useRef({ data, onClick, onHover, labelLayout, labelPaint });
+	latestRef.current = { data, onClick, onHover, labelLayout, labelPaint };
+	// labelLayout/labelPaint are read via latestRef at layer-creation time (setup effect)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional
 	useEffect(() => {
@@ -119,8 +153,45 @@ function MapFillLayer<
 			);
 		}
 
+		if (latestRef.current.labelLayout) {
+			if (labelBackground) {
+				// 64×40 physical pixels at pixelRatio 2 → 32×20 logical px, 8px logical radius
+				map.addImage(labelImageName, createRoundedRectSDF(64, 40, 16), {
+					sdf: true,
+					stretchX: [[18, 46]],
+					stretchY: [[16, 24]],
+					content: [18, 16, 46, 24],
+					pixelRatio: 2,
+				});
+			}
+
+			const layout: MapLibreGL.SymbolLayerSpecification["layout"] = {
+				...latestRef.current.labelLayout,
+				...(labelBackground && {
+					"icon-image": labelImageName,
+					"icon-text-fit": "both",
+					"icon-text-fit-padding": [0, 2, 0, 2],
+				}),
+			};
+
+			map.addLayer(
+				{
+					id: labelLayerId,
+					type: "symbol",
+					source: sourceId,
+					minzoom: labelMinzoom,
+					layout,
+					paint: latestRef.current.labelPaint,
+				},
+				beforeId,
+			);
+		}
+
 		return () => {
 			try {
+				if (map.getLayer(labelLayerId)) map.removeLayer(labelLayerId);
+				if (labelBackground && map.hasImage(labelImageName))
+					map.removeImage(labelImageName);
 				if (map.getLayer(outlineLayerId)) map.removeLayer(outlineLayerId);
 				if (map.getLayer(fillLayerId)) map.removeLayer(fillLayerId);
 				if (map.getSource(sourceId)) map.removeSource(sourceId);
@@ -148,6 +219,13 @@ function MapFillLayer<
 			);
 		}
 	}, [isLoaded, map, fillLayerId, mergedPaint]);
+
+	useEffect(() => {
+		if (!isLoaded || !map?.getLayer(labelLayerId) || !labelPaint) return;
+		for (const [key, value] of Object.entries(labelPaint)) {
+			map.setPaintProperty(labelLayerId, key as never, value as never);
+		}
+	}, [isLoaded, map, labelLayerId, labelPaint]);
 
 	useEffect(() => {
 		if (!isLoaded || !map || !interactive) return;

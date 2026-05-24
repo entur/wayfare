@@ -556,14 +556,12 @@ function ZoneToggleButton({
 function MapSearchOverlay({
 	pickTarget,
 	onPickTargetChange,
-	hoveredZone,
 	showZones,
 	onZoneToggle,
 	mapRef,
 }: {
 	pickTarget: PickTarget;
 	onPickTargetChange: (t: PickTarget) => void;
-	hoveredZone: FareZoneProperties | null;
 	showZones: boolean;
 	onZoneToggle: () => void;
 	mapRef: React.RefObject<MapRef | null>;
@@ -660,16 +658,6 @@ function MapSearchOverlay({
 					Search tickets
 				</Button>
 			</div>
-
-			{/* Hovered zone tooltip */}
-			{hoveredZone && (
-				<div className="pointer-events-none absolute bottom-14 left-1/2 -translate-x-1/2 rounded-md bg-wayfare-text px-3 py-1.5 text-sm font-medium text-wayfare-bg shadow-md">
-					{hoveredZone.name}
-					<span className="text-wayfare-bg/60 ml-1.5 text-xs font-normal">
-						{hoveredZone.operator}
-					</span>
-				</div>
-			)}
 		</div>
 	);
 }
@@ -697,14 +685,46 @@ function ZoomHint() {
 	);
 }
 
+const ZONE_COLOR_MATCH: MapLibreGL.ExpressionSpecification = [
+	"match",
+	["get", "operator"],
+	"RUT",
+	"#b91c1c",
+	"ATB",
+	"#c2410c",
+	"SKY",
+	"#a16207",
+	"BRA",
+	"#15803d",
+	"INN",
+	"#0f766e",
+	"KOL",
+	"#1d4ed8",
+	"MOR",
+	"#6d28d9",
+	"AKT",
+	"#be185d",
+	"NOR",
+	"#0e7490",
+	"OST",
+	"#4d7c0f",
+	"FIN",
+	"#b45309",
+	"TEL",
+	"#047857",
+	"TRO",
+	"#4338ca",
+	"VKT",
+	"#a21caf",
+	"#1a56db",
+];
+
 function MapContent() {
 	const { state, dispatch } = useSearchForm();
+	const theme = useResolvedTheme();
 	const mapRef = useRef<MapRef | null>(null);
 	const [pickTarget, setPickTarget] = useState<PickTarget>("from");
 	const [showZones, setShowZones] = useState(false);
-	const [hoveredZone, setHoveredZone] = useState<FareZoneProperties | null>(
-		null,
-	);
 	const [userPosition, setUserPosition] = useState<{
 		longitude: number;
 		latitude: number;
@@ -715,6 +735,22 @@ function MapContent() {
 			setUserPosition(coords);
 		},
 		[],
+	);
+
+	const zoneLabelPaint = useMemo<MapLibreGL.SymbolLayerSpecification["paint"]>(
+		() =>
+			theme === "dark"
+				? {
+						"icon-color": "rgba(255,255,255,0.82)",
+						"icon-opacity": 0.72,
+						"text-color": ZONE_COLOR_MATCH,
+					}
+				: {
+						"icon-color": ZONE_COLOR_MATCH,
+						"icon-opacity": 0.72,
+						"text-color": "#ffffff",
+					},
+		[theme],
 	);
 
 	const handleZoneClick = useCallback(
@@ -738,18 +774,6 @@ function MapContent() {
 			}
 		},
 		[pickTarget, dispatch],
-	);
-
-	const handleZoneHover = useCallback(
-		(
-			feature: GeoJSON.Feature<
-				GeoJSON.Polygon | GeoJSON.MultiPolygon,
-				FareZoneProperties
-			> | null,
-		) => {
-			setHoveredZone(feature ? feature.properties : null);
-		},
-		[],
 	);
 
 	const handleStopSelect = useCallback(
@@ -828,16 +852,35 @@ function MapContent() {
 							"line-width": 0.5,
 							"line-opacity": 0.4,
 						}}
+						labelLayout={{
+							"text-field": [
+								"format",
+								["get", "name"],
+								{},
+								"\n",
+								{},
+								["get", "id"],
+								{ "font-scale": 0.75 },
+							],
+							"text-size": 11,
+							"text-font": ["Montserrat Bold", "Open Sans Regular"],
+							"text-anchor": "center",
+							"text-max-width": 10,
+						}}
+						labelPaint={zoneLabelPaint}
+						labelBackground
+						labelMinzoom={4}
 						onClick={handleZoneClick}
-						onHover={handleZoneHover}
 					/>
 				)}
 
-				<StopMarkers
-					onSelect={handleStopSelect}
-					fromStopId={fromStopId}
-					toStopId={toStopId}
-				/>
+				{!showZones && (
+					<StopMarkers
+						onSelect={handleStopSelect}
+						fromStopId={fromStopId}
+						toStopId={toStopId}
+					/>
+				)}
 
 				{userPosition && (
 					<MapMarker
@@ -866,7 +909,6 @@ function MapContent() {
 			<MapSearchOverlay
 				pickTarget={pickTarget}
 				onPickTargetChange={setPickTarget}
-				hoveredZone={hoveredZone}
 				showZones={showZones}
 				onZoneToggle={() => setShowZones((v) => !v)}
 				mapRef={mapRef}
