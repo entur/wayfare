@@ -111,12 +111,19 @@ const STOP_COLORS = {
 
 const CLUSTER_COLOR = "#6366f1";
 
+const FROM_COLOR = "#e90037";
+const TO_COLOR = "#10b981";
+
 function StopNativeLayer({
 	stops,
 	onSelect,
+	fromStopId,
+	toStopId,
 }: {
 	stops: MapStopPlace[];
 	onSelect: (stop: MapStopPlace) => void;
+	fromStopId?: string | null;
+	toStopId?: string | null;
 }) {
 	const { map, isLoaded } = useMap();
 	const theme = useResolvedTheme();
@@ -127,6 +134,10 @@ function StopNativeLayer({
 	const clusterCountLayerId = `stops-cluster-count-${uid}`;
 	const dotLayerId = `stops-dots-${uid}`;
 	const symbolLayerId = `stops-symbols-${uid}`;
+	const fromDotHighlightId = `stops-from-dot-${uid}`;
+	const toDotHighlightId = `stops-to-dot-${uid}`;
+	const fromSymbolHighlightId = `stops-from-symbol-${uid}`;
+	const toSymbolHighlightId = `stops-to-symbol-${uid}`;
 
 	const geojson = useMemo(
 		(): GeoJSON.FeatureCollection<GeoJSON.Point> => ({
@@ -301,14 +312,144 @@ function StopNativeLayer({
 			},
 		});
 
+		const noFeature: MapLibreGL.FilterSpecification = ["==", ["get", "id"], ""];
+
+		// Dot-zoom highlights (maxzoom 13) — added after symbol layer so they render on top in canvas order
+		map.addLayer({
+			id: fromDotHighlightId,
+			type: "circle",
+			source: sourceId,
+			maxzoom: 13,
+			filter: noFeature,
+			paint: {
+				"circle-radius": [
+					"interpolate",
+					["linear"],
+					["zoom"],
+					10,
+					7,
+					11,
+					9,
+					12,
+					12,
+				],
+				"circle-color": FROM_COLOR,
+				"circle-stroke-width": 2.5,
+				"circle-stroke-color": "#ffffff",
+				"circle-stroke-opacity": 1,
+				"circle-opacity": 1,
+			} as MapLibreGL.CircleLayerSpecification["paint"],
+		});
+
+		map.addLayer({
+			id: toDotHighlightId,
+			type: "circle",
+			source: sourceId,
+			maxzoom: 13,
+			filter: noFeature,
+			paint: {
+				"circle-radius": [
+					"interpolate",
+					["linear"],
+					["zoom"],
+					10,
+					7,
+					11,
+					9,
+					12,
+					12,
+				],
+				"circle-color": TO_COLOR,
+				"circle-stroke-width": 2.5,
+				"circle-stroke-color": "#ffffff",
+				"circle-stroke-opacity": 1,
+				"circle-opacity": 1,
+			} as MapLibreGL.CircleLayerSpecification["paint"],
+		});
+
+		// Symbol-zoom highlights (minzoom 13) — circle centered on the icon via translate
+		// The stop icon is 28px with anchor "bottom", so center is 14px above the feature coords
+		map.addLayer({
+			id: fromSymbolHighlightId,
+			type: "circle",
+			source: sourceId,
+			minzoom: 13,
+			filter: noFeature,
+			paint: {
+				"circle-radius": 18,
+				"circle-color": FROM_COLOR,
+				"circle-opacity": 0.18,
+				"circle-stroke-width": 3,
+				"circle-stroke-color": FROM_COLOR,
+				"circle-stroke-opacity": 1,
+				"circle-translate": [0, -14],
+			} as MapLibreGL.CircleLayerSpecification["paint"],
+		});
+
+		map.addLayer({
+			id: toSymbolHighlightId,
+			type: "circle",
+			source: sourceId,
+			minzoom: 13,
+			filter: noFeature,
+			paint: {
+				"circle-radius": 18,
+				"circle-color": TO_COLOR,
+				"circle-opacity": 0.18,
+				"circle-stroke-width": 3,
+				"circle-stroke-color": TO_COLOR,
+				"circle-stroke-opacity": 1,
+				"circle-translate": [0, -14],
+			} as MapLibreGL.CircleLayerSpecification["paint"],
+		});
+
 		return () => {
 			try {
 				if (map.getLayer(symbolLayerId)) map.removeLayer(symbolLayerId);
+				if (map.getLayer(fromDotHighlightId))
+					map.removeLayer(fromDotHighlightId);
+				if (map.getLayer(toDotHighlightId)) map.removeLayer(toDotHighlightId);
+				if (map.getLayer(fromSymbolHighlightId))
+					map.removeLayer(fromSymbolHighlightId);
+				if (map.getLayer(toSymbolHighlightId))
+					map.removeLayer(toSymbolHighlightId);
 			} catch {
 				// ignore
 			}
 		};
 	}, [isLoaded, map, iconsReady]);
+
+	useEffect(() => {
+		if (!isLoaded || !map) return;
+		const noFeature: MapLibreGL.FilterSpecification = ["==", ["get", "id"], ""];
+		const fromFilter: MapLibreGL.FilterSpecification = fromStopId
+			? [
+					"all",
+					["!", ["has", "point_count"]],
+					["==", ["get", "id"], fromStopId],
+				]
+			: noFeature;
+		const toFilter: MapLibreGL.FilterSpecification = toStopId
+			? ["all", ["!", ["has", "point_count"]], ["==", ["get", "id"], toStopId]]
+			: noFeature;
+		if (map.getLayer(fromDotHighlightId))
+			map.setFilter(fromDotHighlightId, fromFilter);
+		if (map.getLayer(toDotHighlightId))
+			map.setFilter(toDotHighlightId, toFilter);
+		if (map.getLayer(fromSymbolHighlightId))
+			map.setFilter(fromSymbolHighlightId, fromFilter);
+		if (map.getLayer(toSymbolHighlightId))
+			map.setFilter(toSymbolHighlightId, toFilter);
+	}, [
+		isLoaded,
+		map,
+		fromStopId,
+		toStopId,
+		fromDotHighlightId,
+		toDotHighlightId,
+		fromSymbolHighlightId,
+		toSymbolHighlightId,
+	]);
 
 	useEffect(() => {
 		if (!isLoaded || !map) return;
@@ -368,9 +509,24 @@ function StopNativeLayer({
 	return null;
 }
 
-function StopMarkers({ onSelect }: { onSelect: (stop: MapStopPlace) => void }) {
+function StopMarkers({
+	onSelect,
+	fromStopId,
+	toStopId,
+}: {
+	onSelect: (stop: MapStopPlace) => void;
+	fromStopId?: string | null;
+	toStopId?: string | null;
+}) {
 	const stops = useAllStops();
-	return <StopNativeLayer stops={stops} onSelect={onSelect} />;
+	return (
+		<StopNativeLayer
+			stops={stops}
+			onSelect={onSelect}
+			fromStopId={fromStopId}
+			toStopId={toStopId}
+		/>
+	);
 }
 
 function ZoneToggleButton({
@@ -549,6 +705,17 @@ function MapContent() {
 	const [hoveredZone, setHoveredZone] = useState<FareZoneProperties | null>(
 		null,
 	);
+	const [userPosition, setUserPosition] = useState<{
+		longitude: number;
+		latitude: number;
+	} | null>(null);
+
+	const handleLocate = useCallback(
+		(coords: { longitude: number; latitude: number }) => {
+			setUserPosition(coords);
+		},
+		[],
+	);
 
 	const handleZoneClick = useCallback(
 		(
@@ -604,9 +771,8 @@ function MapContent() {
 		[pickTarget, dispatch],
 	);
 
-	const fromCoords =
-		state.from?.type === "stop" ? state.from.coordinates : null;
-	const toCoords = state.to?.type === "stop" ? state.to.coordinates : null;
+	const fromStopId = state.from?.type === "stop" ? state.from.placeId : null;
+	const toStopId = state.to?.type === "stop" ? state.to.placeId : null;
 
 	return (
 		<div className="relative h-full w-full">
@@ -667,29 +833,34 @@ function MapContent() {
 					/>
 				)}
 
-				<StopMarkers onSelect={handleStopSelect} />
+				<StopMarkers
+					onSelect={handleStopSelect}
+					fromStopId={fromStopId}
+					toStopId={toStopId}
+				/>
 
-				{fromCoords && (
-					<MapMarker longitude={fromCoords[0]} latitude={fromCoords[1]}>
+				{userPosition && (
+					<MapMarker
+						longitude={userPosition.longitude}
+						latitude={userPosition.latitude}
+					>
 						<MarkerContent>
-							<div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-wayfare-primary shadow-md">
-								<Navigation className="size-3 text-white" />
-							</div>
-						</MarkerContent>
-					</MapMarker>
-				)}
-				{toCoords && (
-					<MapMarker longitude={toCoords[0]} latitude={toCoords[1]}>
-						<MarkerContent>
-							<div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-emerald-500 shadow-md">
-								<MapPin className="size-3 text-white" />
+							<div className="relative flex h-5 w-5 items-center justify-center">
+								<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-50" />
+								<span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-blue-500 shadow-lg" />
 							</div>
 						</MarkerContent>
 					</MapMarker>
 				)}
 
 				<ZoomHint />
-				<MapControls position="bottom-right" showZoom showCompass showLocate />
+				<MapControls
+					position="bottom-right"
+					showZoom
+					showCompass
+					showLocate
+					onLocate={handleLocate}
+				/>
 			</MapView>
 
 			<MapSearchOverlay
