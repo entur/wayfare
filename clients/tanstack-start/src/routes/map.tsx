@@ -30,10 +30,15 @@ import { useResolvedTheme } from "../components/map/theme";
 import PlaceSearch from "../components/search/PlaceSearch";
 import Button from "../components/ui/Button";
 import { useSearchForm } from "../context/search-form";
-import {
-	getStopsInBounds,
-	type MapStopPlace,
-} from "../server-functions/stop-places";
+
+interface MapStopPlace {
+	id: string;
+	name: string;
+	latitude: number;
+	longitude: number;
+	transportMode: string[];
+}
+
 import type { PlaceReference } from "../types/common";
 
 export const Route = createFileRoute("/map")({ component: MapPage });
@@ -62,66 +67,46 @@ function primaryMode(modes: string[]): string {
 	return modes[0] ?? "bus";
 }
 
-// Fetch stop places in the current map viewport and update on move
-function useStopsInViewport() {
-	const { map, isLoaded } = useMap();
+const STOPS_URL = "/stops-geo.json";
+
+function useAllStops(): MapStopPlace[] {
 	const [stops, setStops] = useState<MapStopPlace[]>([]);
-	const fetchIdRef = useRef(0);
-	const lastBoundsRef = useRef<MapLibreGL.LngLatBounds | null>(null);
+
+	useEffect(() => {
+		fetch(STOPS_URL)
+			.then((r) => r.json())
+			.then((geojson: GeoJSON.FeatureCollection<GeoJSON.Point>) => {
+				setStops(
+					geojson.features.map((f) => ({
+						id: f.properties?.id as string,
+						name: f.properties?.name as string,
+						latitude: f.geometry.coordinates[1],
+						longitude: f.geometry.coordinates[0],
+						transportMode: f.properties?.transportModes as string[],
+					})),
+				);
+			})
+			.catch(() => {});
+	}, []);
+
+	return stops;
+}
+
+function useBounds(): MapLibreGL.LngLatBounds | null {
+	const { map, isLoaded } = useMap();
+	const [bounds, setBounds] = useState<MapLibreGL.LngLatBounds | null>(null);
 
 	useEffect(() => {
 		if (!map || !isLoaded) return;
-
-		async function fetchStops() {
-			if (!map) return;
-			if (map.getZoom() < MIN_ZOOM_FOR_STOPS) {
-				setStops([]);
-				lastBoundsRef.current = null;
-				return;
-			}
-			const bounds = map.getBounds();
-			if (
-				lastBoundsRef.current?.contains(bounds.getNorthEast()) &&
-				lastBoundsRef.current?.contains(bounds.getSouthWest())
-			) {
-				return;
-			}
-			const id = ++fetchIdRef.current;
-			try {
-				const result = await getStopsInBounds({
-					data: {
-						minLat: bounds.getSouth(),
-						maxLat: bounds.getNorth(),
-						minLon: bounds.getWest(),
-						maxLon: bounds.getEast(),
-					},
-				});
-				if (id === fetchIdRef.current) {
-					setStops(result);
-					lastBoundsRef.current = bounds;
-				}
-			} catch {
-				// ignore transient errors
-			}
-		}
-
-		let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-		const handleMoveEnd = () => {
-			if (debounceTimer) clearTimeout(debounceTimer);
-			debounceTimer = setTimeout(fetchStops, 300);
-		};
-
-		map.on("moveend", handleMoveEnd);
-		fetchStops();
-
+		setBounds(map.getBounds());
+		const update = () => setBounds(map.getBounds());
+		map.on("moveend", update);
 		return () => {
-			map.off("moveend", handleMoveEnd);
-			if (debounceTimer) clearTimeout(debounceTimer);
-			fetchIdRef.current++;
+			map.off("moveend", update);
 		};
 	}, [map, isLoaded]);
 
-	return stops;
+	return bounds;
 }
 
 function useZoom() {
@@ -352,8 +337,23 @@ function StopCircleLayer({
 }
 
 function StopMarkers({ onSelect }: { onSelect: (stop: MapStopPlace) => void }) {
-	const stops = useStopsInViewport();
+	const stops = useAllStops();
 	const zoom = useZoom();
+	const bounds = useBounds();
+
+	const visibleStops = useMemo(
+		() =>
+			bounds
+				? stops.filter(
+						(s) =>
+							s.longitude >= bounds.getWest() &&
+							s.longitude <= bounds.getEast() &&
+							s.latitude >= bounds.getSouth() &&
+							s.latitude <= bounds.getNorth(),
+					)
+				: [],
+		[stops, bounds],
+	);
 
 	if (zoom < FULL_MARKER_ZOOM) {
 		return <StopCircleLayer stops={stops} onSelect={onSelect} />;
@@ -361,7 +361,7 @@ function StopMarkers({ onSelect }: { onSelect: (stop: MapStopPlace) => void }) {
 
 	return (
 		<>
-			{stops.map((stop) => {
+			{visibleStops.map((stop) => {
 				const mode = primaryMode(stop.transportMode);
 				const hasMultipleModes = stop.transportMode.length > 1;
 				return (
