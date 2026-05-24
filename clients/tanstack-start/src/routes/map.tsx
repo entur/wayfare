@@ -706,7 +706,7 @@ function MapContent() {
 
 function MapPage() {
 	return (
-		<div className="h-[calc(100vh-var(--header-height,57px)-var(--footer-height,57px))] min-h-96">
+		<div className="flex-1 min-h-96">
 			<ClientOnly fallback={<MapLoadingPlaceholder />}>
 				<MapContent />
 			</ClientOnly>

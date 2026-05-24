@@ -65,9 +65,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					<DevConfigProvider>
 						<ProfileProvider>
 							<SearchFormProvider>
-								<div className="flex min-h-screen flex-col">
+								<div className="flex h-screen flex-col overflow-hidden">
 									<Header />
-									<div className="flex-1">{children}</div>
+									<div className="flex flex-1 flex-col overflow-y-auto">
+										{children}
+									</div>
 									<Footer />
 								</div>
 							</SearchFormProvider>

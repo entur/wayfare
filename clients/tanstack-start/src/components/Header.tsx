@@ -4,7 +4,7 @@ import {
 	SearchIcon,
 	UserIcon,
 } from "@entur/icons";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { ClientOnly, Link, useRouterState } from "@tanstack/react-router";
 import { useProfile } from "../context/profile";
 import EnvToggle from "./EnvToggle";
 import ThemeToggle from "./ThemeToggle";
@@ -110,7 +110,9 @@ export default function Header() {
 						className="mx-1 h-4 w-px self-center bg-wayfare-line"
 						aria-hidden="true"
 					/>
-					<EnvToggle />
+					<ClientOnly>
+						<EnvToggle />
+					</ClientOnly>
 					<ThemeToggle />
 				</div>
 			</nav>
