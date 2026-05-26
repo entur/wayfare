@@ -1,4 +1,19 @@
+import {
+	AtBIcon,
+	BrakarIcon,
+	FlybussenIcon,
+	KolumbusIcon,
+	LogoPositiveIcon,
+	ReisNordlandIcon,
+	RuterIcon,
+	SJIcon,
+	SkyssIcon,
+	SvipperIcon,
+	ValidTicketIcon,
+	VyIcon,
+} from "@entur/icons";
 import { Link } from "@tanstack/react-router";
+import type { FC, SVGProps } from "react";
 import { usePackageItem, useTravelDocuments } from "../../hooks/use-documents";
 import type {
 	StoredPackage,
@@ -7,6 +22,41 @@ import type {
 
 interface TicketCardProps {
 	pkg: StoredPackage;
+}
+
+type IconComponent = FC<
+	{ size?: string; className?: string } & SVGProps<SVGElement>
+>;
+
+interface OperatorConfig {
+	icon: IconComponent;
+	color: string;
+	darkIcon?: boolean;
+}
+
+const OPERATORS: Record<string, OperatorConfig> = {
+	RUT: { icon: RuterIcon, color: "#e60000" }, // Ruter red
+	ATB: { icon: AtBIcon, color: "#3d474f" }, // AtB dark grey
+	SKY: { icon: SkyssIcon, color: "#E34C2A" }, // Skyss orange-red
+	VYG: { icon: VyIcon, color: "#1B4332" }, // Vy dark green
+	SJT: { icon: SJIcon, color: "#2e3649" }, // SJ dark navy
+	BRA: { icon: BrakarIcon, color: "#fbde3c", darkIcon: true }, // Brakar yellow
+	KOL: { icon: KolumbusIcon, color: "#5BAD00" }, // Kolumbus green
+	NOR: { icon: ReisNordlandIcon, color: "#0083a5" }, // Reis Nordland teal
+	TFK: { icon: SvipperIcon, color: "#e95e1b" }, // Svipper/Troms orange
+	FLY: { icon: FlybussenIcon, color: "#fd2e5e" }, // Flybussen pink-red
+	ENT: { icon: LogoPositiveIcon, color: "#181C56" }, // Entur navy
+};
+
+function getOperatorConfig(productId?: string): OperatorConfig | null {
+	if (!productId) return null;
+	const code = productId.split(":")[0].toUpperCase();
+	return OPERATORS[code] ?? null;
+}
+
+function formatFareZone(zone: string): string {
+	const suffix = zone.split(":").at(-1);
+	return suffix ? `Zone ${suffix}` : zone;
 }
 
 function formatJourneyTime(start: Date, end: Date | null): string {
@@ -70,22 +120,48 @@ export default function TicketCard({ pkg }: TicketCardProps) {
 	if (isLoading) {
 		return (
 			<div className="animate-pulse rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4">
-				<div className="flex items-start justify-between gap-4">
+				<div className="flex items-center gap-3">
+					<div className="h-10 w-10 shrink-0 rounded-lg bg-wayfare-line" />
 					<div className="flex-1 space-y-2">
-						<div className="h-4 w-36 rounded bg-wayfare-line" />
+						<div className="flex items-center justify-between gap-2">
+							<div className="h-4 w-36 rounded bg-wayfare-line" />
+							<div className="h-5 w-20 rounded-full bg-wayfare-line" />
+						</div>
 						<div className="h-3 w-28 rounded bg-wayfare-line" />
-					</div>
-					<div className="flex flex-col items-end gap-2">
-						<div className="h-4 w-16 rounded bg-wayfare-line" />
-						<div className="h-5 w-20 rounded-full bg-wayfare-line" />
+						<div className="flex items-center justify-between gap-2">
+							<div className="h-3 w-32 rounded bg-wayfare-line" />
+							<div className="h-3 w-16 rounded bg-wayfare-line" />
+						</div>
 					</div>
 				</div>
 			</div>
 		);
 	}
 
+	const firstOffer = item?.offers?.[0]?.properties;
+	const firstProduct = firstOffer?.products?.[0];
+	const productName = firstProduct?.productName;
+	const productId = firstProduct?.productId?.productId;
+
+	const operator = getOperatorConfig(productId);
+	const OperatorIcon = operator?.icon ?? ValidTicketIcon;
+	const iconBg = operator?.color ?? undefined;
+
+	const fareZones =
+		firstOffer?.summary?.geographicalValidity?.zonalValidity?.fareZones ?? [];
+	const fallbackZones =
+		firstOffer?.summary?.geographicalValidity?.zonalValidity?.zones ?? [];
+	const activeZones = fareZones.length > 0 ? fareZones : fallbackZones;
+
 	const from = props?.from?.name;
 	const to = props?.to?.name;
+
+	const validityLine =
+		activeZones.length > 0
+			? activeZones.map(formatFareZone).join(", ")
+			: from && to
+				? `${from} → ${to}`
+				: null;
 
 	const firstDoc = docs?.travelDocuments?.[0]?.properties;
 	const startTime = props?.startTime
@@ -117,36 +193,61 @@ export default function TicketCard({ pkg }: TicketCardProps) {
 				year: "numeric",
 			})}`;
 
+	const title = productName ?? (from && to ? `${from} → ${to}` : pkg.packageId);
+	const isFallbackId = !productName && !from && !to;
+
 	return (
 		<Link
 			to="/tickets/$packageId"
 			params={{ packageId: pkg.packageId }}
 			className="block rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 no-underline transition-opacity hover:opacity-80"
 		>
-			<div className="flex items-start justify-between gap-4">
+			<div className="flex items-center gap-3">
+				<div
+					className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+					style={{ background: iconBg ?? "var(--color-wayfare-bg)" }}
+				>
+					<OperatorIcon
+						size="22"
+						aria-hidden="true"
+						className={
+							operator
+								? operator.darkIcon
+									? "text-wayfare-text"
+									: "text-white"
+								: "text-wayfare-text"
+						}
+					/>
+				</div>
+
 				<div className="min-w-0 flex-1">
-					{from && to ? (
-						<p className="m-0 truncate text-sm font-semibold text-wayfare-text">
-							{from} → {to}
+					<div className="flex items-center justify-between gap-2">
+						<p
+							className={`m-0 truncate text-sm font-semibold text-wayfare-text ${isFallbackId ? "font-mono" : ""}`}
+						>
+							{title}
 						</p>
-					) : (
-						<p className="m-0 font-mono text-sm font-semibold text-wayfare-text">
-							{pkg.packageId}
+						<span
+							className={`shrink-0 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${badgeClass(displayStatus)}`}
+						>
+							{displayStatus}
+						</span>
+					</div>
+
+					{validityLine && (
+						<p className="m-0 mt-0.5 truncate text-xs text-wayfare-text-secondary">
+							{validityLine}
 						</p>
 					)}
-					<p className="m-0 mt-1 text-xs text-wayfare-text-secondary">
-						{dateLabel}
-					</p>
-				</div>
-				<div className="shrink-0 text-right">
-					<p className="m-0 text-sm font-bold text-wayfare-primary">
-						{pkg.price.currencyCode ?? "NOK"} {pkg.price.amount.toFixed(2)}
-					</p>
-					<span
-						className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${badgeClass(displayStatus)}`}
-					>
-						{displayStatus}
-					</span>
+
+					<div className="mt-0.5 flex items-center justify-between gap-2">
+						<p className="m-0 truncate text-xs text-wayfare-text-secondary">
+							{dateLabel}
+						</p>
+						<p className="m-0 shrink-0 text-sm font-bold text-wayfare-primary">
+							{pkg.price.currencyCode ?? "NOK"} {pkg.price.amount.toFixed(2)}
+						</p>
+					</div>
 				</div>
 			</div>
 		</Link>

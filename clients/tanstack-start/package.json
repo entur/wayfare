@@ -19,7 +19,7 @@
   "dependencies": {
     "@entur/button": "4.0.5",
     "@entur/form": "9.3.2",
-    "@entur/icons": "8.4.5",
+    "@entur/icons": "8.4.6",
     "@entur/layout": "3.6.1",
     "@entur/loader": "0.6.6",
     "@entur/tokens": "3.22.4",

@@ -18,8 +18,8 @@ importers:
         specifier: 9.3.2
         version: 9.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@entur/icons':
-        specifier: 8.4.5
-        version: 8.4.5(react@19.2.4)
+        specifier: 8.4.6
+        version: 8.4.6(react@19.2.4)
       '@entur/layout':
         specifier: 3.6.1
         version: 3.6.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -359,8 +359,8 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
 
-  '@entur/icons@8.4.5':
-    resolution: {integrity: sha512-utlO6ATNAwKGQ8B1WVzLFpJGnqrCKPZ793jL/jkdCvfjhGfF7UiHiUj/0fldGlCFXQcR+5TTCy7e79oESRfNCg==}
+  '@entur/icons@8.4.6':
+    resolution: {integrity: sha512-UfhokRfjXG/JOwJPp9ievBBaH2gExO4kAWeUTmvkhB7E+mNXpbdu3SUXwJQqBonOoOdTvk/1U/7zUcn/7YRoWQ==}
     peerDependencies:
       react: '>=16.8.0'
 
@@ -378,6 +378,9 @@ packages:
 
   '@entur/tokens@3.22.4':
     resolution: {integrity: sha512-4rLEPFYk04nxhi3Mmx6hKVgcNjZlgOQPltPKukP6Jyo7Mg1OF8GQebwQSv8Bskd6ADCQ9wP/PD5X0iBST4sysw==}
+
+  '@entur/tokens@3.22.5':
+    resolution: {integrity: sha512-xoNOsMnhGoDr7PVNAuRMhrKdb/aUlk1r2okK2zwB0wEduzL26hKMMgd8qfo6hdAyxrR0NvsHlM1Vi2T3wLGZMA==}
 
   '@entur/tooltip@5.3.10':
     resolution: {integrity: sha512-ObQYVnz9LSOyxd53rJCNGy9vcd5uUuOXzKB7xKuFj2G33KsDnt2dsFhfDaiQPpgWKjODTn/2A9XF/SNfZg2n7A==}
@@ -2700,7 +2703,7 @@ snapshots:
   '@entur/form@9.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@entur/button': 4.0.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@entur/icons': 8.4.5(react@19.2.4)
+      '@entur/icons': 8.4.6(react@19.2.4)
       '@entur/tokens': 3.22.4
       '@entur/tooltip': 5.3.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@entur/typography': 2.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -2709,14 +2712,14 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  '@entur/icons@8.4.5(react@19.2.4)':
+  '@entur/icons@8.4.6(react@19.2.4)':
     dependencies:
-      '@entur/tokens': 3.22.4
+      '@entur/tokens': 3.22.5
       react: 19.2.4
 
   '@entur/layout@3.6.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@entur/icons': 8.4.5(react@19.2.4)
+      '@entur/icons': 8.4.6(react@19.2.4)
       '@entur/tokens': 3.22.4
       '@entur/typography': 2.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@entur/utils': 0.13.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -2738,10 +2741,15 @@ snapshots:
       flat: 5.0.2
       hex-rgb: 4.3.0
 
+  '@entur/tokens@3.22.5':
+    dependencies:
+      flat: 5.0.2
+      hex-rgb: 4.3.0
+
   '@entur/tooltip@5.3.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@entur/button': 4.0.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@entur/icons': 8.4.5(react@19.2.4)
+      '@entur/icons': 8.4.6(react@19.2.4)
       '@entur/layout': 3.6.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@entur/tokens': 3.22.4
       '@entur/utils': 0.13.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -2754,7 +2762,7 @@ snapshots:
   '@entur/travel@6.5.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@entur/form': 9.3.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@entur/icons': 8.4.5(react@19.2.4)
+      '@entur/icons': 8.4.6(react@19.2.4)
       '@entur/layout': 3.6.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@entur/tokens': 3.22.4
       '@entur/utils': 0.13.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -2764,7 +2772,7 @@ snapshots:
 
   '@entur/typography@2.1.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@entur/icons': 8.4.5(react@19.2.4)
+      '@entur/icons': 8.4.6(react@19.2.4)
       '@entur/tokens': 3.22.4
       '@entur/utils': 0.13.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       classnames: 2.5.1
