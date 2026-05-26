@@ -251,7 +251,6 @@ function StopNativeLayer({
 					map.removeLayer(clusterCountLayerId);
 				if (map.getLayer(dotLayerId)) map.removeLayer(dotLayerId);
 				if (map.getLayer(clusterLayerId)) map.removeLayer(clusterLayerId);
-				if (map.getSource(sourceId)) map.removeSource(sourceId);
 			} catch {
 				// ignore
 			}
@@ -418,6 +417,20 @@ function StopNativeLayer({
 			}
 		};
 	}, [isLoaded, map, iconsReady]);
+
+	// Source cleanup runs last (after both layer-cleanup effects above) so the
+	// source is never removed while layers still reference it.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional
+	useEffect(() => {
+		if (!isLoaded || !map) return;
+		return () => {
+			try {
+				if (map.getSource(sourceId)) map.removeSource(sourceId);
+			} catch {
+				// ignore
+			}
+		};
+	}, [isLoaded, map]);
 
 	useEffect(() => {
 		if (!isLoaded || !map) return;
