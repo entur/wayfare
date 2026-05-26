@@ -27,6 +27,8 @@ import { useStopIcons } from "../components/map/useStopIcons";
 import PlaceSearch from "../components/search/PlaceSearch";
 import Button from "../components/ui/Button";
 import { useSearchForm } from "../context/search-form";
+import { formatZoneName, OPERATOR_NAMES } from "../lib/zone-utils";
+import type { PlaceReference } from "../types/common";
 
 interface MapStopPlace {
 	id: string;
@@ -35,8 +37,6 @@ interface MapStopPlace {
 	longitude: number;
 	transportMode: string[];
 }
-
-import type { PlaceReference } from "../types/common";
 
 export const Route = createFileRoute("/map")({ component: MapPage });
 
@@ -715,23 +715,6 @@ const OPERATOR_FILL_COLORS: Record<string, string> = {
 	VKT: "#d946ef",
 };
 
-const OPERATOR_NAMES: Record<string, string> = {
-	AKT: "Agder",
-	ATB: "AtB (Trondheim)",
-	BRA: "Brakar",
-	FIN: "Finnmark",
-	INN: "Innlandstrafikk",
-	KOL: "Kolumbus",
-	MOR: "More og Romsdal",
-	NOR: "Nordland",
-	OST: "Ostfold",
-	RUT: "Ruter",
-	SKY: "Skyss",
-	TEL: "Telemark",
-	TRO: "Troms",
-	VKT: "Vestfold Telemark",
-};
-
 const ALL_OPERATORS = Object.keys(OPERATOR_NAMES).sort((a, b) =>
 	OPERATOR_NAMES[a].localeCompare(OPERATOR_NAMES[b]),
 );
@@ -899,9 +882,12 @@ function MapContent() {
 				FareZoneProperties
 			>,
 		) => {
+			const operatorName =
+				OPERATOR_NAMES[feature.properties.operator] ??
+				feature.properties.operator;
 			const place: PlaceReference = {
 				placeId: feature.properties.id,
-				name: feature.properties.name,
+				name: formatZoneName(feature.properties.name, operatorName),
 				type: "zone",
 			};
 			if (pickTarget === "from") {

@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { formatZoneName, OPERATOR_NAMES } from "../lib/zone-utils";
 import type { PlaceReference } from "../types/common";
 
 interface FareZone {
@@ -15,23 +16,6 @@ type RawZone = {
 	keyList?: {
 		keyValue?: { key: string; value: string }[];
 	};
-};
-
-const OPERATOR_NAMES: Record<string, string> = {
-	AKT: "Agder",
-	ATB: "AtB (Trondheim)",
-	BRA: "Brakar",
-	FIN: "Finnmark",
-	INN: "Innlandstrafikk",
-	KOL: "Kolumbus",
-	MOR: "More og Romsdal",
-	NOR: "Nordland",
-	OST: "Ostfold",
-	RUT: "Ruter",
-	SKY: "Skyss",
-	TEL: "Telemark",
-	TRO: "Troms",
-	VKT: "Vestfold Telemark",
 };
 
 let cachedFareZones: FareZone[] | null = null;
@@ -67,12 +51,13 @@ function searchFareZones(fareZones: FareZone[], query: string): FareZone[] {
 	}
 
 	return fareZones
-		.filter(
-			(zone) =>
-				zone.name.toLowerCase().includes(normalizedQuery) ||
-				zone.operatorName.toLowerCase().includes(normalizedQuery) ||
-				zone.id.toLowerCase().includes(normalizedQuery),
-		)
+		.filter((zone) => {
+			const displayName = formatZoneName(zone.name, zone.operatorName);
+			return (
+				displayName.toLowerCase().includes(normalizedQuery) ||
+				zone.id.toLowerCase().includes(normalizedQuery)
+			);
+		})
 		.slice(0, 12);
 }
 
@@ -84,7 +69,7 @@ export const getFareZoneSuggestions = createServerFn({ method: "GET" })
 		return matches.map(
 			(zone): PlaceReference => ({
 				placeId: zone.id,
-				name: `${zone.name} (${zone.operatorName})`,
+				name: formatZoneName(zone.name, zone.operatorName),
 			}),
 		);
 	});
