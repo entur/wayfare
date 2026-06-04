@@ -73,6 +73,7 @@ export function buildOfferQuery(
 	pattern: TripPattern,
 	travelers: TravelerGroup[],
 	recommendationControl?: RecommendationControlOverride,
+	prefetch = false,
 ) {
 	const { profiles, travellers } = buildRequest(travelers);
 	const omsaLegs = buildOmsaLegs(pattern);
@@ -87,7 +88,7 @@ export function buildOfferQuery(
 		queryFn: (): Promise<OfferCollection> =>
 			searchOffers({
 				data: {
-					_prefetch: true,
+					...(prefetch ? { _prefetch: true } : {}),
 					inputs: {
 						type: "search_offer",
 						...(profiles.length > 0 ? { profiles } : {}),

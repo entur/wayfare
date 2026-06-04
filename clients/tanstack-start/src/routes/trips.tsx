@@ -132,6 +132,7 @@ function TripsPage() {
 				pattern,
 				params.travelers,
 				overrides.recommendationControl,
+				true,
 			);
 			const key = query.queryKey.join("|");
 
@@ -170,12 +171,13 @@ function TripsPage() {
 			pattern,
 			params.travelers,
 			overrides.recommendationControl,
+			false,
 		);
 		const key = query.queryKey.join("|");
 		setSelectingPatternKey(key);
 
 		try {
-			const result = await queryClient.fetchQuery(query);
+			const result = await queryClient.fetchQuery({ ...query, staleTime: 0 });
 			const { profiles, travellers } = buildRequest(params.travelers);
 			const legs = pattern.legs
 				.filter((l) => l.serviceJourney != null)
@@ -198,13 +200,21 @@ function TripsPage() {
 		pattern: TripPattern,
 	): OfferPreview | "loading" | "empty" | "error" | undefined {
 		if (!params) return undefined;
-		const key = offerQueryKey(pattern, params.travelers).join("|");
+		const key = offerQueryKey(
+			pattern,
+			params.travelers,
+			overrides.recommendationControl,
+		).join("|");
 		return offerPreviews.get(key);
 	}
 
 	function isPatternSelecting(pattern: TripPattern): boolean {
 		if (!params) return false;
-		const key = offerQueryKey(pattern, params.travelers).join("|");
+		const key = offerQueryKey(
+			pattern,
+			params.travelers,
+			overrides.recommendationControl,
+		).join("|");
 		return selectingPatternKey === key;
 	}
 
