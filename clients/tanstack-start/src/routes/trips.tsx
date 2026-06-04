@@ -167,12 +167,16 @@ function TripsPage() {
 		try {
 			const result = await queryClient.fetchQuery(query);
 			const { profiles, travellers } = buildRequest(params.travelers);
+			const legs = pattern.legs
+				.filter((l) => l.serviceJourney != null)
+				.map((l) => ({ from: l.fromPlace.name, to: l.toPlace.name }));
 			writeSearchSession(result as OfferCollection, {
 				from: params.from,
 				to: params.to,
 				travelDate: params.dateTime,
 				profiles,
 				travellers,
+				legs,
 			});
 			navigate({ to: "/offers" });
 		} finally {

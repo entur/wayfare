@@ -10,7 +10,11 @@ import FavoriteToggle from "../components/search/FavoriteToggle";
 import Illustration from "../components/shared/Illustration";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
-import { readSearchSession, type SearchContext } from "../lib/search-session";
+import {
+	type LegInfo,
+	readSearchSession,
+	type SearchContext,
+} from "../lib/search-session";
 import { partyLabel, type TravelParty } from "../lib/travel-party";
 import type { OfferCollection } from "../types/search";
 
@@ -31,6 +35,22 @@ function SectionLabel({ children }: { children: ReactNode }) {
 		<p className="m-0 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 			{children}
 		</p>
+	);
+}
+
+function LegLabel({ leg, seq }: { leg?: LegInfo; seq: number }) {
+	if (!leg) {
+		return <SectionLabel>Leg {seq}</SectionLabel>;
+	}
+	return (
+		<div className="flex items-center gap-1.5 text-xs">
+			<span className="font-semibold text-wayfare-text">{leg.from}</span>
+			<RightArrowIcon
+				aria-hidden="true"
+				className="shrink-0 text-wayfare-text-secondary"
+			/>
+			<span className="font-semibold text-wayfare-text">{leg.to}</span>
+		</div>
 	);
 }
 
@@ -262,7 +282,7 @@ function OffersScreen() {
 								if (!legBundles?.length) return null;
 								return (
 									<div key={seq} className="flex flex-col gap-3">
-										<SectionLabel>Leg {seq}</SectionLabel>
+										<LegLabel seq={seq} leg={context?.legs?.[seq - 1]} />
 										{legBundles.map((bundle) => (
 											<BundleCard
 												key={String(bundle.groupKey)}

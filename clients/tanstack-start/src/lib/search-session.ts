@@ -8,12 +8,18 @@ import type {
 const OFFER_COLLECTION_KEY = "offerCollection";
 const SEARCH_CONTEXT_KEY = "searchContext";
 
+export interface LegInfo {
+	from: string;
+	to: string;
+}
+
 export interface SearchContext {
 	from: PlaceReference;
 	to: PlaceReference;
 	travelDate: string;
 	profiles?: UserProfile[];
 	travellers?: IndividualTraveller[];
+	legs?: LegInfo[];
 }
 
 interface SearchSession {
