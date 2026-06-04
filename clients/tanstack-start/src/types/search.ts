@@ -61,6 +61,7 @@ export interface SearchOfferInputs {
 
 export interface SearchOfferRequest {
 	inputs: SearchOfferInputs;
+	_prefetch?: boolean;
 }
 
 export interface OfferProductId {

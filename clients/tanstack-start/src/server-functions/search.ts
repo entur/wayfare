@@ -7,6 +7,10 @@ export const searchOffers = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.inputValidator((data: SearchOfferRequest) => data)
 	.handler(async ({ data, context }) => {
-		const omsa = createOmsaClient(context.devConfig);
-		return omsa.post<OfferCollection>("/processes/search-offers/execute", data);
+		const { _prefetch, ...omsaRequest } = data;
+		const omsa = createOmsaClient(context.devConfig, { quiet: !!_prefetch });
+		return omsa.post<OfferCollection>(
+			"/processes/search-offers/execute",
+			omsaRequest,
+		);
 	});

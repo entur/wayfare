@@ -87,6 +87,7 @@ export function buildOfferQuery(
 		queryFn: (): Promise<OfferCollection> =>
 			searchOffers({
 				data: {
+					_prefetch: true,
 					inputs: {
 						type: "search_offer",
 						...(profiles.length > 0 ? { profiles } : {}),

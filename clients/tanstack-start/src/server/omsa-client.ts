@@ -114,8 +114,12 @@ function logRequest(
 	url: string,
 	body?: unknown,
 	headers?: Record<string, string>,
+	quiet = false,
 ) {
 	if (!shouldEnableRequestLogging()) {
+		return;
+	}
+	if (quiet) {
 		return;
 	}
 
@@ -134,12 +138,26 @@ function logRequest(
 	}
 }
 
-async function logResponse(response: Response, startedAt: number) {
+async function logResponse(
+	method: string,
+	url: string,
+	response: Response,
+	startedAt: number,
+	quiet = false,
+) {
 	if (!shouldEnableRequestLogging()) {
 		return;
 	}
 
 	const durationMs = Date.now() - startedAt;
+
+	if (quiet) {
+		console.log(
+			`[http][prefetch] ${method.toUpperCase()} ${url} ${response.status} (${durationMs}ms)`,
+		);
+		return;
+	}
+
 	console.log(
 		`[http][incoming] ${response.status} ${response.statusText} (${durationMs}ms)`,
 	);
@@ -214,8 +232,12 @@ async function handleResponse<T>(
 	return response.json() as Promise<T>;
 }
 
-export function createOmsaClient(devConfig?: DevConfigOverrides) {
+export function createOmsaClient(
+	devConfig?: DevConfigOverrides,
+	options?: { quiet?: boolean },
+) {
 	const config = getRuntimeConfig(devConfig);
+	const quiet = options?.quiet ?? false;
 
 	return {
 		async get<T>(path: string, params?: Record<string, string>): Promise<T> {
@@ -228,10 +250,10 @@ export function createOmsaClient(devConfig?: DevConfigOverrides) {
 			const requestUrl = url.toString();
 			const startedAt = Date.now();
 			const headers = await authorizedHeaders(config, devConfig);
-			logRequest("GET", requestUrl, undefined, headers);
+			logRequest("GET", requestUrl, undefined, headers, quiet);
 			try {
 				const response = await fetch(requestUrl, { headers });
-				await logResponse(response, startedAt);
+				await logResponse("GET", requestUrl, response, startedAt, quiet);
 				return handleResponse<T>(response, `GET ${path}`);
 			} catch (error) {
 				logRequestError("GET", requestUrl, startedAt, error);
@@ -246,14 +268,14 @@ export function createOmsaClient(devConfig?: DevConfigOverrides) {
 				...(await authorizedHeaders(config, devConfig)),
 				"Content-Type": "application/json",
 			};
-			logRequest("POST", requestUrl, body, headers);
+			logRequest("POST", requestUrl, body, headers, quiet);
 			try {
 				const response = await fetch(requestUrl, {
 					method: "POST",
 					headers,
 					body: JSON.stringify(body),
 				});
-				await logResponse(response, startedAt);
+				await logResponse("POST", requestUrl, response, startedAt, quiet);
 				return handleResponse<T>(response, `POST ${path}`);
 			} catch (error) {
 				logRequestError("POST", requestUrl, startedAt, error);
@@ -268,14 +290,14 @@ export function createOmsaClient(devConfig?: DevConfigOverrides) {
 				...(await authorizedHeaders(config, devConfig)),
 				"Content-Type": "application/json",
 			};
-			logRequest("PUT", requestUrl, body, headers);
+			logRequest("PUT", requestUrl, body, headers, quiet);
 			try {
 				const response = await fetch(requestUrl, {
 					method: "PUT",
 					headers,
 					body: JSON.stringify(body),
 				});
-				await logResponse(response, startedAt);
+				await logResponse("PUT", requestUrl, response, startedAt, quiet);
 				return handleResponse<T>(response, `PUT ${path}`);
 			} catch (error) {
 				logRequestError("PUT", requestUrl, startedAt, error);
@@ -290,14 +312,14 @@ export function createOmsaClient(devConfig?: DevConfigOverrides) {
 				...(await authorizedHeaders(config, devConfig)),
 				"Content-Type": "application/json",
 			};
-			logRequest("PATCH", requestUrl, body, headers);
+			logRequest("PATCH", requestUrl, body, headers, quiet);
 			try {
 				const response = await fetch(requestUrl, {
 					method: "PATCH",
 					headers,
 					body: JSON.stringify(body),
 				});
-				await logResponse(response, startedAt);
+				await logResponse("PATCH", requestUrl, response, startedAt, quiet);
 				return handleResponse<T>(response, `PATCH ${path}`);
 			} catch (error) {
 				logRequestError("PATCH", requestUrl, startedAt, error);
@@ -329,7 +351,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 					headers,
 					body: JSON.stringify(body),
 				});
-				await logResponse(response, startedAt);
+				await logResponse("POST", requestUrl, response, startedAt);
 				return handleResponse<T>(response, `POST ${path}`);
 			} catch (error) {
 				logRequestError("POST", requestUrl, startedAt, error);
@@ -353,7 +375,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 					method: "PUT",
 					headers,
 				});
-				await logResponse(response, startedAt);
+				await logResponse("PUT", requestUrl, response, startedAt);
 				return handleResponse<T>(response, `PUT ${path}`);
 			} catch (error) {
 				logRequestError("PUT", requestUrl, startedAt, error);
@@ -380,7 +402,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 			logRequest("GET", requestUrl, undefined, headers);
 			try {
 				const response = await fetch(requestUrl, { headers });
-				await logResponse(response, startedAt);
+				await logResponse("GET", requestUrl, response, startedAt);
 				return handleResponse<T>(response, `GET ${path}`);
 			} catch (error) {
 				logRequestError("GET", requestUrl, startedAt, error);
@@ -406,7 +428,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 					headers,
 					body: JSON.stringify(body),
 				});
-				await logResponse(response, startedAt);
+				await logResponse("PATCH", requestUrl, response, startedAt);
 				return handleResponse<T>(response, `PATCH ${path}`);
 			} catch (error) {
 				logRequestError("PATCH", requestUrl, startedAt, error);
@@ -430,7 +452,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 					method: "DELETE",
 					headers,
 				});
-				await logResponse(response, startedAt);
+				await logResponse("DELETE", requestUrl, response, startedAt);
 				return handleResponse<T>(response, `DELETE ${path}`);
 			} catch (error) {
 				logRequestError("DELETE", requestUrl, startedAt, error);
@@ -459,7 +481,7 @@ export function createJourneyPlannerClient(devConfig?: DevConfigOverrides) {
 					headers,
 					body: JSON.stringify(body),
 				});
-				await logResponse(response, startedAt);
+				await logResponse("POST", requestUrl, response, startedAt);
 				const json = (await response.json()) as {
 					data?: T;
 					errors?: { message: string }[];
