@@ -24,15 +24,23 @@ export function buildRequest(travelers: TravelerGroup[]): {
 					},
 				}
 			: {};
-		// STUDENT and MILITARY don't map to a UserProfile ageGroup
+		// STUDENT goes as individual_traveller (age required); MILITARY is an adult with entitlement
 		const profileAgeGroup =
-			t.ageGroup !== "STUDENT" && t.ageGroup !== "MILITARY"
-				? t.ageGroup
-				: undefined;
+			t.ageGroup === "STUDENT"
+				? undefined
+				: t.ageGroup === "MILITARY"
+					? "ADULT"
+					: t.ageGroup;
 
+		// For entitlement groups (STUDENT, MILITARY) age verifies eligibility so it
+		// warrants an individual_traveller. For plain age groups (ADULT, SENIOR, …)
+		// ageGroup on user_profile is sufficient — don't downgrade to individual_traveller
+		// just because the user happened to specify an age.
+		const ageCountsAsNamed = entitlementType != null;
 		const named =
-			t.individuals?.filter((i) => i.name || i.age != null || i.customerId) ??
-			[];
+			t.individuals?.filter(
+				(i) => i.name || i.customerId || (ageCountsAsNamed && i.age != null),
+			) ?? [];
 
 		if (named.length > 0) {
 			named.forEach((person, j) => {
