@@ -10,6 +10,7 @@ import QuickRouteSection, {
 import RecentPurchasesSection from "../components/search/RecentPurchasesSection";
 import TravelerPicker from "../components/search/TravelerPicker";
 import Button from "../components/ui/Button";
+import { useDevConfig } from "../context/dev-config";
 import { useProfile } from "../context/profile";
 import type {
 	TimeMode,
@@ -95,6 +96,7 @@ function SearchScreen() {
 	const navigate = useNavigate();
 	const { mutateAsync, isPending, error } = useSearchOffers();
 	const { customer } = useProfile();
+	const { overrides } = useDevConfig();
 
 	const [favorites, setFavorites] = useState(() => getFavorites());
 	const [recentSearches, setRecentSearches] = useState(() =>
@@ -151,12 +153,26 @@ function SearchScreen() {
 				? { endTime: travelDateTime }
 				: { startTime: travelDateTime };
 
+		const recControl = overrides.recommendationControl;
 		const result = await mutateAsync({
 			inputs: {
 				type: "search_offer",
 				...(profiles.length > 0 ? { profiles } : {}),
 				...(travellers.length > 0 ? { travellers } : {}),
 				specification: { from, to, ...timeField },
+				...(recControl !== undefined
+					? {
+							enturRecommendationControl: {
+								enabled: recControl.enabled,
+								...(recControl.types && recControl.types.length > 0
+									? { enturRecommendationType: recControl.types }
+									: {}),
+								...(recControl.stripDuplicates !== undefined
+									? { stripDuplicates: recControl.stripDuplicates }
+									: {}),
+							},
+						}
+					: {}),
 			},
 		});
 

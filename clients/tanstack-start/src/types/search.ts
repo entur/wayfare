@@ -37,6 +37,18 @@ export interface SearchSpecification {
 	endTime?: string;
 }
 
+export type EnturRecommendationType =
+	| "FLEXIBLE"
+	| "SEMI_FLEXIBLE"
+	| "NON_FLEXIBLE"
+	| "CHEAPEST";
+
+export interface EnturRecommendationControl {
+	enabled: boolean;
+	enturRecommendationType?: EnturRecommendationType[];
+	stripDuplicates?: boolean;
+}
+
 export interface SearchOfferInputs {
 	type: "search_offer";
 	travellers?: IndividualTraveller[];
@@ -44,6 +56,7 @@ export interface SearchOfferInputs {
 	specification?: SearchSpecification;
 	pattern?: TripPatternLeg[];
 	timestamp?: string;
+	enturRecommendationControl?: EnturRecommendationControl;
 }
 
 export interface SearchOfferRequest {

@@ -7,6 +7,7 @@ import FavoriteToggle from "../components/search/FavoriteToggle";
 import TripResults from "../components/search/TripResults";
 import Button from "../components/ui/Button";
 import Spinner from "../components/ui/Spinner";
+import { useDevConfig } from "../context/dev-config";
 import type { TimeMode, TravelerGroup } from "../context/search-form";
 import { useTripPlanner } from "../hooks/use-trip-planner";
 import { buildRequest } from "../lib/build-request";
@@ -96,6 +97,7 @@ function TripsPage() {
 	const queryClient = useQueryClient();
 	const params = readTripSearchParams();
 	const planTrip = useTripPlanner();
+	const { overrides } = useDevConfig();
 
 	const [selectingPatternKey, setSelectingPatternKey] = useState<string | null>(
 		null,
@@ -126,7 +128,11 @@ function TripsPage() {
 		);
 
 		for (const pattern of transitPatterns) {
-			const query = buildOfferQuery(pattern, params.travelers);
+			const query = buildOfferQuery(
+				pattern,
+				params.travelers,
+				overrides.recommendationControl,
+			);
 			const key = query.queryKey.join("|");
 
 			setOfferPreviews((prev) => {
@@ -160,7 +166,11 @@ function TripsPage() {
 
 	async function handleSelectTrip(pattern: TripPattern) {
 		if (!params) return;
-		const query = buildOfferQuery(pattern, params.travelers);
+		const query = buildOfferQuery(
+			pattern,
+			params.travelers,
+			overrides.recommendationControl,
+		);
 		const key = query.queryKey.join("|");
 		setSelectingPatternKey(key);
 

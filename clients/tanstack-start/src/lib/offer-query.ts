@@ -1,9 +1,14 @@
 import { buildBundles } from "../components/checkout/BundleCard";
 import type { TravelerGroup } from "../context/search-form";
 import { searchOffers } from "../server-functions/search";
-import type { OfferCollection, TripPatternLeg } from "../types/search";
+import type {
+	EnturRecommendationControl,
+	OfferCollection,
+	TripPatternLeg,
+} from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
 import { buildRequest } from "./build-request";
+import type { RecommendationControlOverride } from "./dev-config-storage";
 
 export interface OfferPreview {
 	minPrice: number;
@@ -29,8 +34,23 @@ function travelerKey(travelers: TravelerGroup[]): string {
 export function offerQueryKey(
 	pattern: TripPattern,
 	travelers: TravelerGroup[],
+	recommendationControl?: RecommendationControlOverride,
 ): string[] {
-	return ["offers", patternKey(pattern), travelerKey(travelers)];
+	const recKey = recommendationControl?.enabled
+		? `rec:${(recommendationControl.types ?? []).sort().join(",")}:dedup=${recommendationControl.stripDuplicates ?? false}`
+		: "rec:off";
+	return ["offers", patternKey(pattern), travelerKey(travelers), recKey];
+}
+
+function toRecommendationControlInput(
+	override: RecommendationControlOverride,
+): EnturRecommendationControl {
+	const control: EnturRecommendationControl = { enabled: override.enabled };
+	if (override.types && override.types.length > 0)
+		control.enturRecommendationType = override.types;
+	if (override.stripDuplicates !== undefined)
+		control.stripDuplicates = override.stripDuplicates;
+	return control;
 }
 
 function buildOmsaLegs(pattern: TripPattern): TripPatternLeg[] {
@@ -52,13 +72,18 @@ function buildOmsaLegs(pattern: TripPattern): TripPatternLeg[] {
 export function buildOfferQuery(
 	pattern: TripPattern,
 	travelers: TravelerGroup[],
+	recommendationControl?: RecommendationControlOverride,
 ) {
 	const { profiles, travellers } = buildRequest(travelers);
 	const omsaLegs = buildOmsaLegs(pattern);
 	const legCount = omsaLegs.length;
+	const recControl =
+		recommendationControl !== undefined
+			? toRecommendationControlInput(recommendationControl)
+			: undefined;
 
 	return {
-		queryKey: offerQueryKey(pattern, travelers),
+		queryKey: offerQueryKey(pattern, travelers, recommendationControl),
 		queryFn: (): Promise<OfferCollection> =>
 			searchOffers({
 				data: {
@@ -67,6 +92,9 @@ export function buildOfferQuery(
 						...(profiles.length > 0 ? { profiles } : {}),
 						...(travellers.length > 0 ? { travellers } : {}),
 						pattern: omsaLegs,
+						...(recControl !== undefined
+							? { enturRecommendationControl: recControl }
+							: {}),
 					},
 				},
 			}) as Promise<OfferCollection>,

@@ -10,7 +10,10 @@ import SegmentedControl from "../components/ui/SegmentedControl";
 import { useDevConfig } from "../context/dev-config";
 import { useProfile } from "../context/profile";
 import { useCustomerSearch } from "../hooks/use-customers";
-import type { DevConfigOverrides } from "../lib/dev-config-storage";
+import type {
+	DevConfigOverrides,
+	RecommendationControlOverride,
+} from "../lib/dev-config-storage";
 import {
 	type FavoriteRoute,
 	getFavorites,
@@ -392,6 +395,15 @@ function DeveloperTab() {
 		() => overrides.clientName ?? "",
 	);
 	const [formPos, setFormPos] = useState(() => overrides.pos ?? "");
+	const [formRecEnabled, setFormRecEnabled] = useState(
+		() => overrides.recommendationControl?.enabled ?? false,
+	);
+	const [formRecTypes, setFormRecTypes] = useState<
+		RecommendationControlOverride["types"]
+	>(() => overrides.recommendationControl?.types ?? []);
+	const [formRecStripDuplicates, setFormRecStripDuplicates] = useState(
+		() => overrides.recommendationControl?.stripDuplicates ?? false,
+	);
 	const [saved, setSaved] = useState(false);
 	const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -399,11 +411,16 @@ function DeveloperTab() {
 		overrides.envMode ??
 		(resolved?.envDefaults.mode as OmsaRuntimeMode | undefined) ??
 		"dev";
+	const savedRec = overrides.recommendationControl;
 	const hasUnsavedChanges =
 		formMode !== savedMode ||
 		(formDistributionChannel || undefined) !== overrides.distributionChannel ||
 		(formClientName || undefined) !== overrides.clientName ||
-		(formPos || undefined) !== overrides.pos;
+		(formPos || undefined) !== overrides.pos ||
+		formRecEnabled !== (savedRec?.enabled ?? false) ||
+		JSON.stringify(formRecTypes ?? []) !==
+			JSON.stringify(savedRec?.types ?? []) ||
+		formRecStripDuplicates !== (savedRec?.stripDuplicates ?? false);
 
 	useEffect(() => {
 		return () => {
@@ -423,6 +440,12 @@ function DeveloperTab() {
 			distributionChannel: formDistributionChannel || undefined,
 			clientName: formClientName || undefined,
 			pos: formPos || undefined,
+			recommendationControl: {
+				enabled: formRecEnabled,
+				types:
+					formRecTypes && formRecTypes.length > 0 ? formRecTypes : undefined,
+				stripDuplicates: formRecStripDuplicates || undefined,
+			},
 		};
 		setOverrides(next);
 		setSaved(true);
@@ -438,6 +461,9 @@ function DeveloperTab() {
 		setFormDistributionChannel("");
 		setFormClientName("");
 		setFormPos("");
+		setFormRecEnabled(false);
+		setFormRecTypes([]);
+		setFormRecStripDuplicates(false);
 		setSaved(false);
 		if (savedTimerRef.current !== null) clearTimeout(savedTimerRef.current);
 	}
@@ -544,6 +570,77 @@ function DeveloperTab() {
 							className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm font-mono text-wayfare-text"
 						/>
 					</div>
+				</div>
+			</section>
+
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">
+					Offer recommendations
+				</h2>
+				<div className="space-y-4">
+					<label className="flex cursor-pointer items-center justify-between gap-3">
+						<span className="text-sm text-wayfare-text">
+							Enable recommendation-driven bundling
+						</span>
+						<input
+							type="checkbox"
+							checked={formRecEnabled}
+							onChange={(e) => setFormRecEnabled(e.target.checked)}
+							className="h-4 w-4 rounded accent-wayfare-primary"
+						/>
+					</label>
+					{formRecEnabled && (
+						<>
+							<div>
+								<p className="mb-2 text-xs font-medium text-wayfare-text-secondary">
+									Recommendation types (default: all)
+								</p>
+								<div className="grid grid-cols-2 gap-2">
+									{(
+										[
+											"CHEAPEST",
+											"NON_FLEXIBLE",
+											"SEMI_FLEXIBLE",
+											"FLEXIBLE",
+										] as const
+									).map((type) => (
+										<label
+											key={type}
+											className="flex cursor-pointer items-center gap-2"
+										>
+											<input
+												type="checkbox"
+												checked={formRecTypes?.includes(type) ?? false}
+												onChange={(e) => {
+													setFormRecTypes((prev) => {
+														const current = prev ?? [];
+														return e.target.checked
+															? [...current, type]
+															: current.filter((t) => t !== type);
+													});
+												}}
+												className="h-4 w-4 rounded accent-wayfare-primary"
+											/>
+											<span className="font-mono text-xs text-wayfare-text">
+												{type}
+											</span>
+										</label>
+									))}
+								</div>
+							</div>
+							<label className="flex cursor-pointer items-center justify-between gap-3">
+								<span className="text-sm text-wayfare-text">
+									Strip duplicates
+								</span>
+								<input
+									type="checkbox"
+									checked={formRecStripDuplicates}
+									onChange={(e) => setFormRecStripDuplicates(e.target.checked)}
+									className="h-4 w-4 rounded accent-wayfare-primary"
+								/>
+							</label>
+						</>
+					)}
 				</div>
 			</section>
 

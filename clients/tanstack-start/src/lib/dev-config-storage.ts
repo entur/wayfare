@@ -1,10 +1,17 @@
 export type OmsaRuntimeMode = "dev" | "staging" | "local-dev" | "local-staging";
 
+export interface RecommendationControlOverride {
+	enabled: boolean;
+	types?: ("FLEXIBLE" | "SEMI_FLEXIBLE" | "NON_FLEXIBLE" | "CHEAPEST")[];
+	stripDuplicates?: boolean;
+}
+
 export interface DevConfigOverrides {
 	envMode?: OmsaRuntimeMode;
 	distributionChannel?: string;
 	clientName?: string;
 	pos?: string;
+	recommendationControl?: RecommendationControlOverride;
 }
 
 const STORAGE_KEY = "wayfare_dev_config";
@@ -35,6 +42,8 @@ export function setDevConfigOverrides(
 	if (overrides.clientName?.trim())
 		cleaned.clientName = overrides.clientName.trim();
 	if (overrides.pos?.trim()) cleaned.pos = overrides.pos.trim();
+	if (overrides.recommendationControl !== undefined)
+		cleaned.recommendationControl = overrides.recommendationControl;
 
 	if (isBrowser()) {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
