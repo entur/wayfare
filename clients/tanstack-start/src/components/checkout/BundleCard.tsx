@@ -35,15 +35,59 @@ function getOfferTravellerIds(offer: Offer): string[] {
 	];
 }
 
-export function buildBundles(offers: Offer[]): OfferBundle[] {
-	const grouped = new Map<number | string, Offer[]>();
+function getOfferSequenceKey(offer: Offer): string {
+	const seqs = [
+		...new Set(
+			(offer.properties?.legs ?? [])
+				.map((l) => l.sequenceNumber)
+				.filter((s): s is number => s != null),
+		),
+	].sort((a, b) => a - b);
+	return seqs.join(",");
+}
 
-	for (const [idx, offer] of offers.entries()) {
-		const group =
-			offer.properties?.summary?.recommendationGroup ?? `ungrouped-${idx}`;
-		if (!grouped.has(group)) grouped.set(group, []);
-		const groupOffers = grouped.get(group);
-		if (groupOffers) groupOffers.push(offer);
+export function buildBundles(offers: Offer[]): OfferBundle[] {
+	// Named groups (recommendationGroup present) are kept as-is.
+	// Ungrouped offers are grouped by sequence set, then merged when their
+	// traveller sets are disjoint (complementary offers, not alternatives).
+	const namedGroups = new Map<number | string, Offer[]>();
+	const ungroupedBySeq = new Map<string, Offer[][]>();
+
+	for (const offer of offers) {
+		const recommendationGroup = offer.properties?.summary?.recommendationGroup;
+
+		if (recommendationGroup != null) {
+			if (!namedGroups.has(recommendationGroup))
+				namedGroups.set(recommendationGroup, []);
+			namedGroups.get(recommendationGroup)?.push(offer);
+		} else {
+			const seqKey = getOfferSequenceKey(offer);
+			if (!ungroupedBySeq.has(seqKey)) ungroupedBySeq.set(seqKey, []);
+			const subGroups = ungroupedBySeq.get(seqKey) ?? [];
+			const offerTravellers = new Set(getOfferTravellerIds(offer));
+
+			// Merge into an existing sub-group only if there is no traveller overlap
+			// (overlapping = same traveller priced differently = true alternatives)
+			const target = subGroups.find((g) => {
+				const existing = new Set(g.flatMap(getOfferTravellerIds));
+				return [...offerTravellers].every((t) => !existing.has(t));
+			});
+
+			if (target) {
+				target.push(offer);
+			} else {
+				subGroups.push([offer]);
+			}
+		}
+	}
+
+	// Flatten into a single keyed map
+	const grouped = new Map<number | string, Offer[]>(namedGroups);
+	let syntheticIdx = 0;
+	for (const [seqKey, subGroups] of ungroupedBySeq) {
+		for (const subGroup of subGroups) {
+			grouped.set(`seqs:${seqKey}-${syntheticIdx++}`, subGroup);
+		}
 	}
 
 	const bundles: OfferBundle[] = [];
