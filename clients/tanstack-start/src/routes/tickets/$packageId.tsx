@@ -1,6 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PageShell from "../../components/layout/PageShell";
+import {
+	JourneyLegLabels,
+	JourneyStopMarkers,
+	MapView,
+	SelectedJourneyLayer,
+} from "../../components/map";
 import Illustration from "../../components/shared/Illustration";
 import DocumentViewer from "../../components/tickets/DocumentViewer";
 import Button from "../../components/ui/Button";
@@ -299,6 +305,21 @@ function TicketDetailPage() {
 					)}
 				</div>
 			</div>
+
+			{pkg.pattern && (
+				<div className="mt-6">
+					<h2 className="mb-3 text-sm font-semibold text-wayfare-text">
+						Your journey
+					</h2>
+					<div className="h-96 overflow-hidden rounded-xl border border-wayfare-line">
+						<MapView>
+							<SelectedJourneyLayer pattern={pkg.pattern} fitPadding={64} />
+							<JourneyLegLabels pattern={pkg.pattern} />
+							<JourneyStopMarkers pattern={pkg.pattern} />
+						</MapView>
+					</div>
+				</div>
+			)}
 		</PageShell>
 	);
 }

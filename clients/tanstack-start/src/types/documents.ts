@@ -1,4 +1,5 @@
 import type { Link } from "./common";
+import type { TripPattern } from "./trip-planner";
 
 export interface BinaryTicketDocument {
 	type: "binary_ticket";
@@ -105,6 +106,7 @@ export interface StoredPackage {
 		from: { placeId: string; name?: string };
 		to: { placeId: string; name?: string };
 	};
+	pattern?: TripPattern;
 }
 
 export interface PackageItemProperties {

@@ -85,6 +85,7 @@ function PaymentReturnPage() {
 								},
 							}
 						: {}),
+					...(searchContext?.pattern ? { pattern: searchContext.pattern } : {}),
 				});
 				navigate({
 					to: "/tickets/$packageId",

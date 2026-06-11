@@ -19,11 +19,18 @@ const TRIP_QUERY = `
           mode
           expectedStartTime
           expectedEndTime
+          realtime
+          pointsOnLink {
+            points
+            length
+          }
           fromPlace {
             name
             quay {
               id
               stopPlace { id }
+              latitude
+              longitude
             }
           }
           toPlace {
@@ -31,10 +38,12 @@ const TRIP_QUERY = `
             quay {
               id
               stopPlace { id }
+              latitude
+              longitude
             }
           }
           serviceJourney { id }
-          line { publicCode name }
+          line { publicCode name transportMode }
           authority { name }
         }
       }

@@ -13,5 +13,8 @@ export {
 } from "./MapMarker";
 export { MapPopup } from "./MapPopup";
 export { MapRoute } from "./MapRoute";
+export { JourneyLegLabels } from "./JourneyLegLabels";
+export { JourneyStopMarkers } from "./JourneyStopMarkers";
+export { SelectedJourneyLayer } from "./SelectedJourneyLayer";
 export type { MapRef, MapViewport } from "./MapView";
 export { MapView } from "./MapView";

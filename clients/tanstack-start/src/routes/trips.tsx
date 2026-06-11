@@ -189,6 +189,7 @@ function TripsPage() {
 				profiles,
 				travellers,
 				legs,
+				pattern,
 			});
 			navigate({ to: "/offers" });
 		} finally {

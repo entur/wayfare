@@ -18,6 +18,8 @@ export interface TripPlace {
 		stopPlace?: {
 			id: string;
 		} | null;
+		latitude?: number | null;
+		longitude?: number | null;
 	} | null;
 }
 
@@ -25,10 +27,19 @@ export interface TripLeg {
 	mode: OtpTransportMode;
 	expectedStartTime: string;
 	expectedEndTime: string;
+	realtime?: boolean | null;
+	pointsOnLink?: {
+		points: string;
+		length: number;
+	} | null;
 	fromPlace: TripPlace;
 	toPlace: TripPlace;
 	serviceJourney?: { id: string } | null;
-	line?: { publicCode?: string | null; name?: string | null } | null;
+	line?: {
+		publicCode?: string | null;
+		name?: string | null;
+		transportMode?: OtpTransportMode | null;
+	} | null;
 	authority?: { name: string } | null;
 }
 

@@ -4,6 +4,7 @@ import type {
 	OfferCollection,
 	UserProfile,
 } from "../types/search";
+import type { TripPattern } from "../types/trip-planner";
 
 const OFFER_COLLECTION_KEY = "offerCollection";
 const SEARCH_CONTEXT_KEY = "searchContext";
@@ -20,6 +21,7 @@ export interface SearchContext {
 	profiles?: UserProfile[];
 	travellers?: IndividualTraveller[];
 	legs?: LegInfo[];
+	pattern?: TripPattern;
 }
 
 interface SearchSession {
