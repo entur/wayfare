@@ -35,58 +35,18 @@ function getOfferTravellerIds(offer: Offer): string[] {
 	];
 }
 
-function getOfferSequenceKey(offer: Offer): string {
-	const seqs = [
-		...new Set(
-			(offer.properties?.legs ?? [])
-				.map((l) => l.sequenceNumber)
-				.filter((s): s is number => s != null),
-		),
-	].sort((a, b) => a - b);
-	return seqs.join(",");
-}
-
 export function buildBundles(offers: Offer[]): OfferBundle[] {
-	// Named groups (recommendationGroup present) are kept as-is.
-	// Ungrouped offers are grouped by sequence set, then merged when their
-	// traveller sets are disjoint (complementary offers, not alternatives).
-	const namedGroups = new Map<number | string, Offer[]>();
-	const ungroupedBySeq = new Map<string, Offer[][]>();
+	const grouped = new Map<number | string, Offer[]>();
+	let syntheticIdx = 0;
 
 	for (const offer of offers) {
 		const recommendationGroup = offer.properties?.summary?.recommendationGroup;
-
 		if (recommendationGroup != null) {
-			if (!namedGroups.has(recommendationGroup))
-				namedGroups.set(recommendationGroup, []);
-			namedGroups.get(recommendationGroup)?.push(offer);
+			if (!grouped.has(recommendationGroup))
+				grouped.set(recommendationGroup, []);
+			grouped.get(recommendationGroup)?.push(offer);
 		} else {
-			const seqKey = getOfferSequenceKey(offer);
-			if (!ungroupedBySeq.has(seqKey)) ungroupedBySeq.set(seqKey, []);
-			const subGroups = ungroupedBySeq.get(seqKey) ?? [];
-			const offerTravellers = new Set(getOfferTravellerIds(offer));
-
-			// Merge into an existing sub-group only if there is no traveller overlap
-			// (overlapping = same traveller priced differently = true alternatives)
-			const target = subGroups.find((g) => {
-				const existing = new Set(g.flatMap(getOfferTravellerIds));
-				return [...offerTravellers].every((t) => !existing.has(t));
-			});
-
-			if (target) {
-				target.push(offer);
-			} else {
-				subGroups.push([offer]);
-			}
-		}
-	}
-
-	// Flatten into a single keyed map
-	const grouped = new Map<number | string, Offer[]>(namedGroups);
-	let syntheticIdx = 0;
-	for (const [seqKey, subGroups] of ungroupedBySeq) {
-		for (const subGroup of subGroups) {
-			grouped.set(`seqs:${seqKey}-${syntheticIdx++}`, subGroup);
+			grouped.set(offer.id ?? `synthetic:${syntheticIdx++}`, [offer]);
 		}
 	}
 
@@ -154,26 +114,33 @@ export default function BundleCard({
 		<label
 			className={`block cursor-pointer rounded-xl border p-4 transition-all ${selected ? "border-wayfare-primary bg-wayfare-accent-soft" : "border-wayfare-line bg-wayfare-surface-strong"}`}
 		>
-			{/* sr-only radio — clicking the label anywhere (except the button) selects it */}
 			<input
-				type="radio"
-				name="bundle-selection"
+				type="checkbox"
 				checked={selected}
 				onChange={() => onSelect?.()}
 				className="sr-only"
 			/>
 			<div className="flex items-start gap-3">
-				{/* Visible radio indicator */}
 				<div
-					className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${selected ? "border-wayfare-primary" : "border-wayfare-text-secondary"}`}
+					className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${selected ? "border-wayfare-primary bg-wayfare-primary" : "border-wayfare-text-secondary"}`}
 				>
 					{selected && (
-						<div className="h-2 w-2 rounded-full bg-wayfare-primary" />
+						<svg
+							viewBox="0 0 10 8"
+							className="h-2.5 w-2.5"
+							fill="none"
+							stroke="white"
+							strokeWidth="1.5"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							aria-hidden="true"
+						>
+							<path d="M1 4l3 3 5-6" />
+						</svg>
 					)}
 				</div>
 
 				<div className="min-w-0 flex-1">
-					{/* Header: type badge + total price */}
 					<div className="flex items-center justify-between gap-3">
 						<div className="flex items-center gap-2">
 							{typeLabel ? (
@@ -199,7 +166,6 @@ export default function BundleCard({
 						</span>
 					</div>
 
-					{/* Traveller pills — only those covered by this bundle */}
 					{coveredParties.length > 0 && (
 						<div className="mt-2 flex flex-wrap gap-1.5">
 							{coveredParties.map((p) => (
@@ -213,64 +179,69 @@ export default function BundleCard({
 						</div>
 					)}
 
-					{/* Expand/collapse toggle — clicking this must NOT propagate to the label */}
-					<button
-						type="button"
-						onClick={(e) => {
-							e.preventDefault();
-							setExpanded((v) => !v);
-						}}
-						className="mt-2 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-xs text-wayfare-primary"
-					>
-						<span>{expanded ? "▾" : "▸"}</span>
-						{offerCount === 1
-							? "1 included offer"
-							: `${offerCount} included offers`}
-					</button>
+					{offerCount > 1 && (
+						<>
+							<button
+								type="button"
+								onClick={(e) => {
+									e.preventDefault();
+									setExpanded((v) => !v);
+								}}
+								className="mt-2 flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-xs text-wayfare-primary"
+							>
+								<span>{expanded ? "▾" : "▸"}</span>
+								{`${offerCount} included offers`}
+							</button>
 
-					{/* Individual offer rows */}
-					{expanded && (
-						<div className="mt-3 flex flex-col gap-2.5 border-t border-wayfare-line pt-3">
-							{bundle.offers.map((offer) => {
-								const name =
-									offer.properties?.summary?.name ??
-									offer.properties?.products?.[0]?.productName ??
-									"Travel offer";
-								const price = offer.properties?.price;
-								const ids = getOfferTravellerIds(offer);
-								const offerParties = parties.filter((p) => ids.includes(p.id));
+							{expanded && (
+								<div className="mt-3 flex flex-col gap-2.5 border-t border-wayfare-line pt-3">
+									{bundle.offers.map((offer) => {
+										const name =
+											offer.properties?.summary?.name ??
+											offer.properties?.products?.[0]?.productName ??
+											"Travel offer";
+										const price = offer.properties?.price;
+										const ids = getOfferTravellerIds(offer);
+										const offerParties = parties.filter((p) =>
+											ids.includes(p.id),
+										);
 
-								const travellerText =
-									offerParties.length > 0
-										? offerParties.map(partyLabel).join(", ")
-										: ids.length > 0
-											? `${ids.length} traveller${ids.length !== 1 ? "s" : ""}`
-											: null;
+										const travellerText =
+											offerParties.length > 0
+												? offerParties.map(partyLabel).join(", ")
+												: ids.length > 0
+													? `${ids.length} traveller${ids.length !== 1 ? "s" : ""}`
+													: null;
 
-								return (
-									<div
-										key={offer.id}
-										className="flex items-start justify-between gap-3"
-									>
-										<div className="min-w-0">
-											<p className="m-0 text-xs font-medium text-wayfare-text">
-												{name}
-											</p>
-											{travellerText && (
-												<p className="m-0 text-xs text-wayfare-text-secondary">
-													{travellerText}
-												</p>
-											)}
-										</div>
-										{price && (
-											<span className="shrink-0 text-xs font-semibold text-wayfare-text">
-												{formatPrice(price.amount, price.currencyCode ?? "NOK")}
-											</span>
-										)}
-									</div>
-								);
-							})}
-						</div>
+										return (
+											<div
+												key={offer.id}
+												className="flex items-start justify-between gap-3"
+											>
+												<div className="min-w-0">
+													<p className="m-0 text-xs font-medium text-wayfare-text">
+														{name}
+													</p>
+													{travellerText && (
+														<p className="m-0 text-xs text-wayfare-text-secondary">
+															{travellerText}
+														</p>
+													)}
+												</div>
+												{price && (
+													<span className="shrink-0 text-xs font-semibold text-wayfare-text">
+														{formatPrice(
+															price.amount,
+															price.currencyCode ?? "NOK",
+														)}
+													</span>
+												)}
+											</div>
+										);
+									})}
+								</div>
+							)}
+						</>
 					)}
 				</div>
 			</div>

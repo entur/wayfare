@@ -66,14 +66,61 @@ function Divider({ label }: { label: string }) {
 	);
 }
 
+// Returns the groupKeys of currently-selected bundles that overlap on any
+// (traveller, sequenceNumber) pair with the given bundle.
+function getConflictingKeys(
+	bundle: OfferBundle,
+	keys: Set<string | number>,
+	allBundles: OfferBundle[],
+): (string | number)[] {
+	const pairs = new Set<string>();
+	for (const offer of bundle.offers) {
+		for (const leg of offer.properties?.legs ?? []) {
+			if (leg.traveller && leg.sequenceNumber != null) {
+				pairs.add(`${leg.traveller}:${leg.sequenceNumber}`);
+			}
+		}
+	}
+	return allBundles
+		.filter((b) => keys.has(b.groupKey) && b.groupKey !== bundle.groupKey)
+		.filter((b) =>
+			b.offers.some((o) =>
+				(o.properties?.legs ?? []).some(
+					(l) =>
+						l.traveller &&
+						l.sequenceNumber != null &&
+						pairs.has(`${l.traveller}:${l.sequenceNumber}`),
+				),
+			),
+		)
+		.map((b) => b.groupKey);
+}
+
+// Returns a map of travellerId → set of sequenceNumbers covered by selected bundles.
+function computeCoverage(
+	keys: Set<string | number>,
+	allBundles: OfferBundle[],
+): Map<string, Set<number>> {
+	const coverage = new Map<string, Set<number>>();
+	for (const bundle of allBundles) {
+		if (!keys.has(bundle.groupKey)) continue;
+		for (const offer of bundle.offers) {
+			for (const leg of offer.properties?.legs ?? []) {
+				if (!leg.traveller || leg.sequenceNumber == null) continue;
+				if (!coverage.has(leg.traveller))
+					coverage.set(leg.traveller, new Set());
+				coverage.get(leg.traveller)?.add(leg.sequenceNumber);
+			}
+		}
+	}
+	return coverage;
+}
+
 function OffersScreen() {
 	const navigate = useNavigate();
-	const [selectedFullKey, setSelectedFullKey] = useState<
-		string | number | null
-	>(null);
-	const [selectedLegKeys, setSelectedLegKeys] = useState<
-		Partial<Record<number, string | number>>
-	>({});
+	const [selectedKeys, setSelectedKeys] = useState<Set<string | number>>(
+		new Set(),
+	);
 	const [hydrated, setHydrated] = useState(false);
 	const [collection, setCollection] = useState<OfferCollection | null>(null);
 	const [context, setContext] = useState<SearchContext | null>(null);
@@ -91,7 +138,6 @@ function OffersScreen() {
 	];
 	const bundles: OfferBundle[] = buildBundles(collection?.offers ?? []);
 
-	// Detect multi-leg journeys and split bundles into tiers
 	const allSequences = [...new Set(bundles.flatMap((b) => b.sequences))].sort(
 		(a, b) => a - b,
 	);
@@ -110,14 +156,61 @@ function OffersScreen() {
 		}
 	}
 
-	// Mix-and-match is only possible when every sequence has its own partial bundles
-	const canMixAndMatch =
-		isMultiLeg && allSequences.every((s) => perSeqMap.has(s));
 	const showSections = isMultiLeg && perSeqMap.size > 0;
 
-	const allLegsSelected =
-		canMixAndMatch && allSequences.every((s) => selectedLegKeys[s] != null);
-	const canContinue = selectedFullKey !== null || allLegsSelected;
+	// Traveller IDs derived from the offer collection — ground truth for coverage checks.
+	const allTravellerIds = [
+		...new Set(
+			(collection?.offers ?? []).flatMap(
+				(o) =>
+					(o.properties?.legs ?? [])
+						.map((l) => l.traveller)
+						.filter(Boolean) as string[],
+			),
+		),
+	];
+
+	const coverage = computeCoverage(selectedKeys, bundles);
+	const canContinue =
+		allTravellerIds.length > 0 &&
+		allTravellerIds.every((t) =>
+			allSequences.every((s) => coverage.get(t)?.has(s)),
+		);
+
+	// Parties that still lack full coverage across all sequences.
+	const uncoveredParties = allParties.filter((p) => {
+		const partySeqs = coverage.get(p.id);
+		return allSequences.some((s) => !partySeqs?.has(s));
+	});
+
+	function handleToggle(bundle: OfferBundle) {
+		setSelectedKeys((prev) => {
+			const next = new Set(prev);
+			if (next.has(bundle.groupKey)) {
+				next.delete(bundle.groupKey);
+			} else {
+				for (const key of getConflictingKeys(bundle, prev, bundles)) {
+					next.delete(key);
+				}
+				next.add(bundle.groupKey);
+			}
+			return next;
+		});
+	}
+
+	function handleContinue() {
+		const offerIds = bundles
+			.filter((b) => selectedKeys.has(b.groupKey))
+			.flatMap((b) =>
+				b.offers.map((o) => o.id).filter((id): id is string => Boolean(id)),
+			);
+		if (offerIds.length === 0) return;
+		navigate({
+			to: "/checkout/$offerId",
+			params: { offerId: offerIds.join(",") },
+			search: { pendingCardId: undefined },
+		});
+	}
 
 	const formattedDate = context?.travelDate
 		? new Date(context.travelDate).toLocaleString("no-NO", {
@@ -128,43 +221,6 @@ function OffersScreen() {
 				minute: "2-digit",
 			})
 		: null;
-
-	function handleSelectFull(key: string | number) {
-		setSelectedFullKey(key);
-		setSelectedLegKeys({});
-	}
-
-	function handleSelectLeg(seq: number, key: string | number) {
-		setSelectedFullKey(null);
-		setSelectedLegKeys((prev) => ({ ...prev, [seq]: key }));
-	}
-
-	function handleContinue() {
-		const extractIds = (bundle: OfferBundle): string[] =>
-			bundle.offers.map((o) => o.id).filter((id): id is string => Boolean(id));
-
-		let offerIds: string[] = [];
-		if (selectedFullKey !== null) {
-			const bundle = fullBundles.find((b) => b.groupKey === selectedFullKey);
-			offerIds = bundle ? extractIds(bundle) : [];
-		} else {
-			for (const seq of allSequences) {
-				const key = selectedLegKeys[seq];
-				if (key != null) {
-					const bundle = (perSeqMap.get(seq) ?? []).find(
-						(b) => b.groupKey === key,
-					);
-					if (bundle) offerIds.push(...extractIds(bundle));
-				}
-			}
-		}
-		if (offerIds.length === 0) return;
-		navigate({
-			to: "/checkout/$offerId",
-			params: { offerId: offerIds.join(",") },
-			search: { pendingCardId: undefined },
-		});
-	}
 
 	if (!hydrated) {
 		return (
@@ -257,7 +313,6 @@ function OffersScreen() {
 				)}
 
 				<div className="flex flex-col gap-3">
-					{/* Full journey section — labelled only when there are also per-leg sections */}
 					{showSections && fullBundles.length > 0 && (
 						<SectionLabel>Full journey</SectionLabel>
 					)}
@@ -266,17 +321,14 @@ function OffersScreen() {
 							key={String(bundle.groupKey)}
 							bundle={bundle}
 							parties={allParties}
-							selected={selectedFullKey === bundle.groupKey}
-							onSelect={() => handleSelectFull(bundle.groupKey)}
+							selected={selectedKeys.has(bundle.groupKey)}
+							onSelect={() => handleToggle(bundle)}
 						/>
 					))}
 
-					{/* Per-leg sections — shown when some bundles don't cover all sequences */}
 					{showSections && (
 						<>
-							<Divider
-								label={canMixAndMatch ? "or choose by leg" : "partial journey"}
-							/>
+							<Divider label="or choose by leg" />
 							{allSequences.map((seq) => {
 								const legBundles = perSeqMap.get(seq);
 								if (!legBundles?.length) return null;
@@ -288,16 +340,8 @@ function OffersScreen() {
 												key={String(bundle.groupKey)}
 												bundle={bundle}
 												parties={allParties}
-												selected={
-													canMixAndMatch
-														? selectedLegKeys[seq] === bundle.groupKey
-														: selectedFullKey === bundle.groupKey
-												}
-												onSelect={
-													canMixAndMatch
-														? () => handleSelectLeg(seq, bundle.groupKey)
-														: () => handleSelectFull(bundle.groupKey)
-												}
+												selected={selectedKeys.has(bundle.groupKey)}
+												onSelect={() => handleToggle(bundle)}
 											/>
 										))}
 									</div>
@@ -307,23 +351,32 @@ function OffersScreen() {
 					)}
 				</div>
 
-				<div className="mt-6 flex gap-3">
-					<Link
-						to="/"
-						className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-wayfare-line px-5 py-2.5 text-sm font-semibold text-wayfare-text no-underline transition-colors"
-					>
-						<LeftArrowIcon aria-hidden="true" />
-						Back
-					</Link>
-					<Button
-						variant="primary"
-						className="flex-1"
-						disabled={!canContinue}
-						onClick={handleContinue}
-					>
-						Continue to checkout
-						<RightArrowIcon aria-hidden="true" />
-					</Button>
+				<div className="mt-6 flex flex-col gap-2">
+					{selectedKeys.size > 0 &&
+						!canContinue &&
+						uncoveredParties.length > 0 && (
+							<p className="text-center text-xs text-wayfare-text-secondary">
+								Still needed: {uncoveredParties.map(partyLabel).join(", ")}
+							</p>
+						)}
+					<div className="flex gap-3">
+						<Link
+							to="/"
+							className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-wayfare-line px-5 py-2.5 text-sm font-semibold text-wayfare-text no-underline transition-colors"
+						>
+							<LeftArrowIcon aria-hidden="true" />
+							Back
+						</Link>
+						<Button
+							variant="primary"
+							className="flex-1"
+							disabled={!canContinue}
+							onClick={handleContinue}
+						>
+							Continue to checkout
+							<RightArrowIcon aria-hidden="true" />
+						</Button>
+					</div>
 				</div>
 			</div>
 		</PageShell>
