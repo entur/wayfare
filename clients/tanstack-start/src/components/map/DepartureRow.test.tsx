@@ -58,4 +58,19 @@ describe("DepartureRow", () => {
 			"cancelled",
 		);
 	});
+
+	it("colours the expected-time text by delay status", () => {
+		render(
+			<DepartureRow
+				call={call({
+					aimedDepartureTime: "2026-06-16T10:05:00Z",
+					expectedDepartureTime: "2026-06-16T10:20:00Z",
+				})}
+				now={NOW}
+			/>,
+		);
+		const times = screen.getAllByText(/^\d?\d:\d\d(\s?[AP]M)?$/);
+		const expectedTime = times.find((el) => el.className.includes("text-sm"));
+		expect(expectedTime?.className).toMatch(/text-red-600/);
+	});
 });

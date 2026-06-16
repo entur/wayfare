@@ -1,6 +1,9 @@
 import { delayMinutes, formatRelativeMinutes } from "../../lib/departure-time";
 import type { EstimatedCall } from "../../types/departures";
-import DepartureStatusDot from "./DepartureStatusDot";
+import DepartureStatusDot, {
+	resolveStatus,
+	type Status,
+} from "./DepartureStatusDot";
 
 interface Props {
 	call: EstimatedCall;
@@ -17,9 +20,20 @@ function normaliseColour(raw?: string | null): string | undefined {
 	return raw.startsWith("#") ? raw : `#${raw}`;
 }
 
+const STATUS_TEXT_CLASS: Record<Status, string> = {
+	scheduled: "text-wayfare-text",
+	"on-time": "text-wayfare-text",
+	"delayed-low": "text-yellow-600 dark:text-yellow-400",
+	"delayed-mid": "text-orange-600 dark:text-orange-400",
+	"delayed-high": "text-red-600 dark:text-red-400",
+	cancelled: "text-red-600 dark:text-red-400",
+};
+
 export default function DepartureRow({ call, now }: Props) {
 	const line = call.serviceJourney?.line;
 	const delay = delayMinutes(call);
+	const status = resolveStatus(delay, call.cancellation, call.realtime);
+	const timeColour = STATUS_TEXT_CLASS[status];
 	const isDelayed = delay !== 0;
 	const destination = call.destinationDisplay?.frontText ?? "";
 	const bullet = line?.publicCode ?? "•";
@@ -42,7 +56,7 @@ export default function DepartureRow({ call, now }: Props) {
 				{destination}
 			</span>
 			<div className="flex flex-col items-end leading-tight">
-				<span className="font-mono text-sm tabular-nums text-wayfare-text">
+				<span className={`font-mono text-sm tabular-nums ${timeColour}`}>
 					{formatClock(call.expectedDepartureTime)}
 				</span>
 				{isDelayed && !call.cancellation && (

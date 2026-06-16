@@ -4,7 +4,7 @@ interface Props {
 	realtime: boolean;
 }
 
-type Status =
+export type Status =
 	| "scheduled"
 	| "on-time"
 	| "delayed-low"
@@ -12,7 +12,7 @@ type Status =
 	| "delayed-high"
 	| "cancelled";
 
-function resolveStatus(
+export function resolveStatus(
 	delayMinutes: number,
 	cancelled: boolean,
 	realtime: boolean,
