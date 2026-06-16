@@ -77,7 +77,15 @@ function removeCustomerFromTravelers(
 	});
 }
 
-export const Route = createFileRoute("/")({ component: SearchPage });
+type IndexSearch = { focus?: "from" | "to" };
+
+export const Route = createFileRoute("/")({
+	component: SearchPage,
+	validateSearch: (search: Record<string, unknown>): IndexSearch => {
+		const raw = search.focus;
+		return raw === "from" || raw === "to" ? { focus: raw } : {};
+	},
+});
 
 function SearchPage() {
 	return <SearchScreen />;
@@ -97,6 +105,7 @@ function SearchScreen() {
 	const { mutateAsync, isPending, error } = useSearchOffers();
 	const { customer } = useProfile();
 	const { overrides } = useDevConfig();
+	const { focus } = Route.useSearch();
 
 	const [favorites, setFavorites] = useState(() => getFavorites());
 	const [recentSearches, setRecentSearches] = useState(() =>
@@ -269,6 +278,7 @@ function SearchScreen() {
 								value={state.from}
 								placeholder="Departure"
 								onChange={(p) => dispatch({ type: "SET_FROM", payload: p })}
+								autoFocus={focus === "from"}
 							/>
 
 							{/* Swap button — desktop only. Grid items-end handles vertical alignment. */}
@@ -309,6 +319,7 @@ function SearchScreen() {
 								value={state.to}
 								placeholder="Destination"
 								onChange={(p) => dispatch({ type: "SET_TO", payload: p })}
+								autoFocus={focus === "to"}
 							/>
 
 							<div className="lg:col-span-1">
