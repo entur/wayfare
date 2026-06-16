@@ -79,12 +79,9 @@ export default function DepartureBoard({ calls }: Props) {
 		return (
 			<section key={key}>
 				{label && (
-					<div className="mb-1 flex items-center justify-between px-1">
+					<div className="mb-1 px-1">
 						<span className="text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 							{label}
-						</span>
-						<span className="text-[10px] text-wayfare-text-secondary">
-							{groupCalls.length} departures
 						</span>
 					</div>
 				)}
