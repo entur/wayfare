@@ -1,14 +1,12 @@
 // @vitest-environment jsdom
-import {
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-	within,
-} from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { EstimatedCall } from "../../types/departures";
 import DepartureBoard from "./DepartureBoard";
+
+afterEach(() => {
+	cleanup();
+});
 
 function call(overrides: Partial<EstimatedCall> = {}): EstimatedCall {
 	return {
@@ -26,24 +24,20 @@ function call(overrides: Partial<EstimatedCall> = {}): EstimatedCall {
 }
 
 describe("DepartureBoard", () => {
-	afterEach(() => {
-		cleanup();
-	});
-
-	it("renders a quay header per group", () => {
+	it("renders a quay header per group when publicCodes differ", () => {
 		const calls = [
-			call({ quay: { id: "Q1", publicCode: "1" } }),
-			call({ quay: { id: "Q2", publicCode: "2" } }),
+			call({ quay: { id: "Q1", publicCode: "1", name: null } }),
+			call({ quay: { id: "Q2", publicCode: "2", name: null } }),
 		];
 		render(<DepartureBoard calls={calls} />);
 		expect(screen.getByText("Platform 1")).toBeTruthy();
 		expect(screen.getByText("Platform 2")).toBeTruthy();
 	});
 
-	it("caps each quay at 5 rows by default", () => {
+	it("caps the flat list at 5 rows by default", () => {
 		const calls = Array.from({ length: 8 }, (_, i) =>
 			call({
-				quay: { id: "Q1", publicCode: "1" },
+				quay: { id: "Q1", publicCode: "1", name: null },
 				destinationDisplay: { frontText: `Dest ${i}` },
 				expectedDepartureTime: `2026-06-16T10:0${i}:00Z`,
 				aimedDepartureTime: `2026-06-16T10:0${i}:00Z`,
@@ -54,10 +48,10 @@ describe("DepartureBoard", () => {
 		expect(screen.getByRole("button", { name: /show 3 more/i })).toBeTruthy();
 	});
 
-	it("expands a quay group when 'Show more' is clicked", () => {
+	it("expands when 'Show more' is clicked", () => {
 		const calls = Array.from({ length: 8 }, (_, i) =>
 			call({
-				quay: { id: "Q1", publicCode: "1" },
+				quay: { id: "Q1", publicCode: "1", name: null },
 				destinationDisplay: { frontText: `Dest ${i}` },
 				expectedDepartureTime: `2026-06-16T10:0${i}:00Z`,
 				aimedDepartureTime: `2026-06-16T10:0${i}:00Z`,
@@ -73,9 +67,69 @@ describe("DepartureBoard", () => {
 		expect(screen.getByText(/no upcoming departures/i)).toBeTruthy();
 	});
 
-	it("labels group as 'Other' when publicCode is missing", () => {
-		const calls = [call({ quay: { id: "Q1", publicCode: null } })];
-		const { container } = render(<DepartureBoard calls={calls} />);
-		expect(within(container).getByText("Other")).toBeTruthy();
+	it("shows no platform header for a single quay", () => {
+		const calls = [
+			call({
+				quay: { id: "Q1", publicCode: "1", name: "Spor 1" },
+			}),
+			call({
+				quay: { id: "Q1", publicCode: "1", name: "Spor 1" },
+				destinationDisplay: { frontText: "Other" },
+			}),
+		];
+		render(<DepartureBoard calls={calls} />);
+		expect(screen.queryByText("Platform 1")).toBeNull();
+		expect(screen.queryByText("Spor 1")).toBeNull();
+	});
+
+	it("flattens when all quays share the same label", () => {
+		const calls = [
+			call({
+				quay: { id: "Q1", publicCode: null, name: "Jevnaker stasjon" },
+				destinationDisplay: { frontText: "A" },
+			}),
+			call({
+				quay: { id: "Q2", publicCode: null, name: "Jevnaker stasjon" },
+				destinationDisplay: { frontText: "B" },
+			}),
+		];
+		render(<DepartureBoard calls={calls} />);
+		expect(screen.queryByText("Jevnaker stasjon")).toBeNull();
+		expect(screen.queryByText("Other")).toBeNull();
+		expect(screen.getAllByRole("listitem")).toHaveLength(2);
+	});
+
+	it("flattens when every quay has no label at all", () => {
+		const calls = [
+			call({ quay: { id: "Q1", publicCode: null, name: null } }),
+			call({ quay: { id: "Q2", publicCode: null, name: null } }),
+		];
+		render(<DepartureBoard calls={calls} />);
+		expect(screen.queryByText("Other")).toBeNull();
+		expect(screen.getAllByRole("listitem")).toHaveLength(2);
+	});
+
+	it("uses the quay name as header when publicCode is missing but names differ", () => {
+		const calls = [
+			call({
+				quay: { id: "Q1", publicCode: null, name: "Mot sentrum" },
+			}),
+			call({
+				quay: { id: "Q2", publicCode: null, name: "Mot Oslo" },
+			}),
+		];
+		render(<DepartureBoard calls={calls} />);
+		expect(screen.getByText("Mot sentrum")).toBeTruthy();
+		expect(screen.getByText("Mot Oslo")).toBeTruthy();
+	});
+
+	it("falls back to 'Other' for label-less quays only when other groups have labels", () => {
+		const calls = [
+			call({ quay: { id: "Q1", publicCode: "1", name: null } }),
+			call({ quay: { id: "Q2", publicCode: null, name: null } }),
+		];
+		render(<DepartureBoard calls={calls} />);
+		expect(screen.getByText("Platform 1")).toBeTruthy();
+		expect(screen.getByText("Other")).toBeTruthy();
 	});
 });
