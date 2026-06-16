@@ -24,7 +24,7 @@ function call(overrides: Partial<EstimatedCall> = {}): EstimatedCall {
 }
 
 describe("DepartureBoard", () => {
-	it("renders a quay header per group when publicCodes differ", () => {
+	it("renders Platform N when publicCode is set and differs across quays", () => {
 		const calls = [
 			call({ quay: { id: "Q1", publicCode: "1", name: null } }),
 			call({ quay: { id: "Q2", publicCode: "2", name: null } }),
@@ -69,9 +69,7 @@ describe("DepartureBoard", () => {
 
 	it("shows no platform header for a single quay", () => {
 		const calls = [
-			call({
-				quay: { id: "Q1", publicCode: "1", name: "Spor 1" },
-			}),
+			call({ quay: { id: "Q1", publicCode: "1", name: "Spor 1" } }),
 			call({
 				quay: { id: "Q1", publicCode: "1", name: "Spor 1" },
 				destinationDisplay: { frontText: "Other" },
@@ -82,51 +80,103 @@ describe("DepartureBoard", () => {
 		expect(screen.queryByText("Spor 1")).toBeNull();
 	});
 
-	it("flattens when all quays share the same label", () => {
+	it("uses the quay name when names are non-empty AND distinct", () => {
 		const calls = [
-			call({
-				quay: { id: "Q1", publicCode: null, name: "Jevnaker stasjon" },
-				destinationDisplay: { frontText: "A" },
-			}),
-			call({
-				quay: { id: "Q2", publicCode: null, name: "Jevnaker stasjon" },
-				destinationDisplay: { frontText: "B" },
-			}),
-		];
-		render(<DepartureBoard calls={calls} />);
-		expect(screen.queryByText("Jevnaker stasjon")).toBeNull();
-		expect(screen.queryByText("Other")).toBeNull();
-		expect(screen.getAllByRole("listitem")).toHaveLength(2);
-	});
-
-	it("flattens when every quay has no label at all", () => {
-		const calls = [
-			call({ quay: { id: "Q1", publicCode: null, name: null } }),
-			call({ quay: { id: "Q2", publicCode: null, name: null } }),
-		];
-		render(<DepartureBoard calls={calls} />);
-		expect(screen.queryByText("Other")).toBeNull();
-		expect(screen.getAllByRole("listitem")).toHaveLength(2);
-	});
-
-	it("uses the quay name as header when publicCode is missing but names differ", () => {
-		const calls = [
-			call({
-				quay: { id: "Q1", publicCode: null, name: "Mot sentrum" },
-			}),
-			call({
-				quay: { id: "Q2", publicCode: null, name: "Mot Oslo" },
-			}),
+			call({ quay: { id: "Q1", publicCode: null, name: "Mot sentrum" } }),
+			call({ quay: { id: "Q2", publicCode: null, name: "Mot Oslo" } }),
 		];
 		render(<DepartureBoard calls={calls} />);
 		expect(screen.getByText("Mot sentrum")).toBeTruthy();
 		expect(screen.getByText("Mot Oslo")).toBeTruthy();
 	});
 
-	it("falls back to 'Other' for label-less quays only when other groups have labels", () => {
+	it("derives direction from destinations when quay names are identical (Jevnaker case)", () => {
+		const calls = [
+			call({
+				quay: { id: "Q1", publicCode: null, name: "Jevnaker stasjon" },
+				destinationDisplay: { frontText: "Bergermoen" },
+			}),
+			call({
+				quay: { id: "Q1", publicCode: null, name: "Jevnaker stasjon" },
+				destinationDisplay: { frontText: "Hønefoss over Eggemoen" },
+			}),
+			call({
+				quay: { id: "Q2", publicCode: null, name: "Jevnaker stasjon" },
+				destinationDisplay: { frontText: "Jevnaker via Brandbu" },
+			}),
+			call({
+				quay: { id: "Q2", publicCode: null, name: "Jevnaker stasjon" },
+				destinationDisplay: { frontText: "Brandbu via Grymyr" },
+			}),
+		];
+		render(<DepartureBoard calls={calls} />);
+		expect(
+			screen.getByText("Towards Bergermoen, Hønefoss over Eggemoen"),
+		).toBeTruthy();
+		expect(
+			screen.getByText("Towards Jevnaker via Brandbu, Brandbu via Grymyr"),
+		).toBeTruthy();
+	});
+
+	it("derives direction with a single destination as 'Towards X'", () => {
+		const calls = [
+			call({
+				quay: { id: "Q1", publicCode: null, name: null },
+				destinationDisplay: { frontText: "Sentrum" },
+			}),
+			call({
+				quay: { id: "Q2", publicCode: null, name: null },
+				destinationDisplay: { frontText: "Bryn" },
+			}),
+		];
+		render(<DepartureBoard calls={calls} />);
+		expect(screen.getByText("Towards Sentrum")).toBeTruthy();
+		expect(screen.getByText("Towards Bryn")).toBeTruthy();
+	});
+
+	it("dedupes repeated destinations when building the direction label", () => {
+		const calls = [
+			call({
+				quay: { id: "Q1", publicCode: null, name: null },
+				destinationDisplay: { frontText: "Sentrum" },
+			}),
+			call({
+				quay: { id: "Q1", publicCode: null, name: null },
+				destinationDisplay: { frontText: "Sentrum" },
+			}),
+			call({
+				quay: { id: "Q2", publicCode: null, name: null },
+				destinationDisplay: { frontText: "Bryn" },
+			}),
+		];
+		render(<DepartureBoard calls={calls} />);
+		expect(screen.getByText("Towards Sentrum")).toBeTruthy();
+		expect(screen.getByText("Towards Bryn")).toBeTruthy();
+	});
+
+	it("flattens when groups are indistinguishable even by direction", () => {
+		const calls = [
+			call({
+				quay: { id: "Q1", publicCode: null, name: null },
+				destinationDisplay: { frontText: null },
+			}),
+			call({
+				quay: { id: "Q2", publicCode: null, name: null },
+				destinationDisplay: { frontText: null },
+			}),
+		];
+		render(<DepartureBoard calls={calls} />);
+		expect(screen.queryByText("Other")).toBeNull();
+		expect(screen.getAllByRole("listitem")).toHaveLength(2);
+	});
+
+	it("falls back to 'Other' for label-less quays when other groups have labels", () => {
 		const calls = [
 			call({ quay: { id: "Q1", publicCode: "1", name: null } }),
-			call({ quay: { id: "Q2", publicCode: null, name: null } }),
+			call({
+				quay: { id: "Q2", publicCode: null, name: null },
+				destinationDisplay: { frontText: null },
+			}),
 		];
 		render(<DepartureBoard calls={calls} />);
 		expect(screen.getByText("Platform 1")).toBeTruthy();
