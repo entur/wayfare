@@ -1,6 +1,6 @@
 import { delayMinutes, formatRelativeMinutes } from "../../lib/departure-time";
 import type { EstimatedCall } from "../../types/departures";
-import DelayChip from "./DelayChip";
+import DepartureStatusDot from "./DepartureStatusDot";
 
 interface Props {
 	call: EstimatedCall;
@@ -54,7 +54,7 @@ export default function DepartureRow({ call, now }: Props) {
 					{formatRelativeMinutes(call.expectedDepartureTime, now)}
 				</span>
 			</div>
-			<DelayChip
+			<DepartureStatusDot
 				delayMinutes={delay}
 				cancelled={call.cancellation}
 				realtime={call.realtime}

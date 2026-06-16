@@ -1,7 +1,7 @@
 export { useMap } from "./context";
-export { default as DelayChip } from "./DelayChip";
 export { default as DepartureBoard } from "./DepartureBoard";
 export { default as DepartureRow } from "./DepartureRow";
+export { default as DepartureStatusDot } from "./DepartureStatusDot";
 export { default as MapBottomSheet } from "./MapBottomSheet";
 export type { MapArcDatum, MapArcEvent } from "./MapArc";
 export { MapArc } from "./MapArc";

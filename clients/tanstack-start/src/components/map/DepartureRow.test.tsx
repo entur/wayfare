@@ -1,8 +1,12 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import type { EstimatedCall } from "../../types/departures";
 import DepartureRow from "./DepartureRow";
+
+afterEach(() => {
+	cleanup();
+});
 
 const NOW = new Date("2026-06-16T10:00:00Z");
 
@@ -33,7 +37,7 @@ describe("DepartureRow", () => {
 		expect(screen.getByText("in 5 min")).toBeTruthy();
 	});
 
-	it("renders planned time when delayed", () => {
+	it("renders a delayed status when expected exceeds aimed", () => {
 		render(
 			<DepartureRow
 				call={call({
@@ -43,11 +47,15 @@ describe("DepartureRow", () => {
 				now={NOW}
 			/>,
 		);
-		expect(screen.getByText("+3 min")).toBeTruthy();
+		expect(screen.getByRole("status").getAttribute("data-status")).toBe(
+			"delayed-low",
+		);
 	});
 
-	it("renders 'Cancelled' chip when cancelled", () => {
+	it("renders a cancelled status dot when cancelled", () => {
 		render(<DepartureRow call={call({ cancellation: true })} now={NOW} />);
-		expect(screen.getByText("Cancelled")).toBeTruthy();
+		expect(screen.getByRole("status").getAttribute("data-status")).toBe(
+			"cancelled",
+		);
 	});
 });
