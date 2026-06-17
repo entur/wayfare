@@ -59,7 +59,7 @@ export default function Header() {
 
 	return (
 		<header className="sticky top-0 z-50 border-b border-wayfare-line bg-wayfare-header-bg backdrop-blur-lg">
-			<nav className="page-wrap flex items-center gap-4 px-4 py-3 sm:py-4">
+			<nav className="page-wrap flex items-center gap-4 px-3 py-2 sm:px-4 sm:py-4">
 				<Link
 					to="/"
 					className="flex items-center text-wayfare-primary no-underline"
@@ -67,7 +67,7 @@ export default function Header() {
 					<WayfareWordmark height={16} />
 				</Link>
 
-				<div className="ml-auto flex items-center gap-1">
+				<div className="ml-auto hidden items-center gap-1 sm:flex">
 					<NavItem
 						to="/"
 						active={pathname === "/"}
@@ -110,6 +110,9 @@ export default function Header() {
 						className="mx-1 h-4 w-px self-center bg-wayfare-line"
 						aria-hidden="true"
 					/>
+				</div>
+
+				<div className="ml-auto flex items-center gap-1 sm:ml-0">
 					<ClientOnly>
 						<EnvToggle />
 					</ClientOnly>
