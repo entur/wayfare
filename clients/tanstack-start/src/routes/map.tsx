@@ -1006,7 +1006,7 @@ function MapContent() {
 					</div>
 				)}
 
-				<MapBottomSheet initialSnap={selectedStop ? "half" : "peek"}>
+				<MapBottomSheet desiredSnap={selectedStop ? "half" : "peek"}>
 					<MapSidebar
 						selectedStop={selectedStop}
 						onPlaceSearch={handlePlaceSearch}

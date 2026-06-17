@@ -64,7 +64,7 @@ export default function MapSidebar({
 
 	if (!selectedStop) {
 		return (
-			<div className="flex h-full flex-col gap-4 p-4">
+			<div className="mobile-tabbar-pad flex h-full flex-col gap-4 p-4">
 				<h2 className="text-base font-semibold text-wayfare-text">
 					Explore stops
 				</h2>
@@ -110,7 +110,7 @@ export default function MapSidebar({
 				onTravelTo={() => onTravelTo(selectedStop)}
 				onClose={onClose}
 			/>
-			<div className="flex-1 overflow-y-auto p-4">
+			<div className="mobile-tabbar-pad p-4 md:flex-1 md:overflow-y-auto">
 				{departures.isLoading && (
 					<div className="text-center text-sm text-wayfare-text-secondary">
 						Loading departures…
