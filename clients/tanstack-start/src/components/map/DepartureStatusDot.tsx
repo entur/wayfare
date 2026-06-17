@@ -65,7 +65,7 @@ export default function DepartureStatusDot({
 	const animate = status !== "scheduled";
 	return (
 		<span
-			role="status"
+			role="img"
 			data-status={status}
 			aria-label={statusLabel(status, delayMinutes)}
 			className="relative inline-flex h-2 w-2 shrink-0"
