@@ -66,7 +66,13 @@
       "lightningcss"
     ],
     "overrides": {
-      "@tanstack/router-core": "1.171.2"
+      "@tanstack/router-core": "1.171.2",
+      "@babel/core": ">=7.29.6",
+      "esbuild": ">=0.28.1",
+      "js-yaml": ">=4.2.0",
+      "launch-editor": ">=2.14.1",
+      "shell-quote": ">=1.8.4",
+      "ws": ">=8.21.0"
     }
   },
   "packageManager": "pnpm@10.33.2",
