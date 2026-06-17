@@ -20,6 +20,7 @@ interface ComboboxProps<T> {
 	debounceMs?: number;
 	noMatchText?: string;
 	minQueryLength?: number;
+	autoFocus?: boolean;
 }
 
 export default function Combobox<T>({
@@ -31,6 +32,7 @@ export default function Combobox<T>({
 	debounceMs = 300,
 	noMatchText = "No results found",
 	minQueryLength = 1,
+	autoFocus,
 }: ComboboxProps<T>) {
 	const id = useId();
 	const listboxId = `${id}-listbox`;
@@ -46,6 +48,12 @@ export default function Combobox<T>({
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
+
+	useEffect(() => {
+		if (autoFocus) {
+			inputRef.current?.focus();
+		}
+	}, [autoFocus]);
 
 	// Sync input display when selection is changed externally
 	useEffect(() => {

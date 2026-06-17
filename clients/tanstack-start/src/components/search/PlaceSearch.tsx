@@ -72,6 +72,7 @@ interface PlaceSearchProps {
 	value: PlaceReference | null;
 	onChange: (place: PlaceReference | null) => void;
 	placeholder?: string;
+	autoFocus?: boolean;
 }
 
 export default function PlaceSearch({
@@ -79,6 +80,7 @@ export default function PlaceSearch({
 	value,
 	onChange,
 	placeholder,
+	autoFocus,
 }: PlaceSearchProps) {
 	const selected = value ? { value, label: value.name ?? value.placeId } : null;
 
@@ -92,6 +94,7 @@ export default function PlaceSearch({
 			debounceMs={350}
 			minQueryLength={2}
 			noMatchText="No stops or zones found"
+			autoFocus={autoFocus}
 		/>
 	);
 }

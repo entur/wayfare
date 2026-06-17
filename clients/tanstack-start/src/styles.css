@@ -130,3 +130,13 @@ a:not([class]):hover {
 .map-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip {
 	border-left-color: var(--color-wayfare-surface);
 }
+
+/* Push content above the fixed mobile tab bar (<640px). Tab bar is h-14 = 3.5rem. */
+.mobile-tabbar-pad {
+	padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 640px) {
+	.mobile-tabbar-pad {
+		padding-bottom: 0;
+	}
+}

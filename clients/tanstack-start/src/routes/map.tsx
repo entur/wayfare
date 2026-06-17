@@ -3,7 +3,7 @@ import {
 	createFileRoute,
 	useNavigate,
 } from "@tanstack/react-router";
-import { ChevronDown, Layers, MapPin, Navigation, Search } from "lucide-react";
+import { ChevronDown, Layers } from "lucide-react";
 import type MapLibreGL from "maplibre-gl";
 import {
 	useCallback,
@@ -14,19 +14,21 @@ import {
 	useState,
 } from "react";
 import {
+	MapBottomSheet,
 	MapControls,
 	MapFillLayer,
 	MapMarker,
 	type MapRef,
+	MapSidebar,
 	MapView,
 	MarkerContent,
+	type SelectedStop,
 	useMap,
 } from "../components/map";
 import { useResolvedTheme } from "../components/map/theme";
 import { useStopIcons } from "../components/map/useStopIcons";
-import PlaceSearch from "../components/search/PlaceSearch";
-import Button from "../components/ui/Button";
 import { useSearchForm } from "../context/search-form";
+import type { RecentStop } from "../lib/recent-stops-storage";
 import { formatZoneName, OPERATOR_NAMES } from "../lib/zone-utils";
 import type { PlaceReference } from "../types/common";
 
@@ -39,8 +41,6 @@ interface MapStopPlace {
 }
 
 export const Route = createFileRoute("/map")({ component: MapPage });
-
-type PickTarget = "from" | "to";
 
 type FareZoneProperties = {
 	id: string;
@@ -566,115 +566,6 @@ function ZoneToggleButton({
 	);
 }
 
-function MapSearchOverlay({
-	pickTarget,
-	onPickTargetChange,
-	showZones,
-	onZoneToggle,
-	mapRef,
-}: {
-	pickTarget: PickTarget;
-	onPickTargetChange: (t: PickTarget) => void;
-	showZones: boolean;
-	onZoneToggle: () => void;
-	mapRef: React.RefObject<MapRef | null>;
-}) {
-	const { state, dispatch } = useSearchForm();
-	const navigate = useNavigate();
-
-	const handleFromChange = useCallback(
-		(place: PlaceReference | null) => {
-			dispatch({ type: "SET_FROM", payload: place });
-			if (place?.coordinates) {
-				mapRef.current?.flyTo({
-					center: place.coordinates,
-					zoom: 13,
-					duration: 1000,
-				});
-			}
-		},
-		[dispatch, mapRef],
-	);
-
-	const handleToChange = useCallback(
-		(place: PlaceReference | null) => {
-			dispatch({ type: "SET_TO", payload: place });
-			if (place?.coordinates) {
-				mapRef.current?.flyTo({
-					center: place.coordinates,
-					zoom: 13,
-					duration: 1000,
-				});
-			}
-		},
-		[dispatch, mapRef],
-	);
-
-	const canSearch = state.from !== null && state.to !== null;
-
-	return (
-		<div className="pointer-events-none absolute inset-0 z-10">
-			{/* Search panel */}
-			<div className="pointer-events-auto absolute top-3 left-3 w-72 rounded-xl border border-wayfare-line bg-wayfare-surface/95 p-3 shadow-lg backdrop-blur-sm">
-				{/* Pick target + zone toggle row */}
-				<div className="mb-2 flex items-center gap-1.5">
-					<button
-						type="button"
-						onClick={() => onPickTargetChange("from")}
-						className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
-							pickTarget === "from"
-								? "bg-wayfare-primary text-white"
-								: "bg-wayfare-bg text-wayfare-text-secondary hover:bg-wayfare-line"
-						}`}
-					>
-						<Navigation className="size-3" />
-						From
-					</button>
-					<button
-						type="button"
-						onClick={() => onPickTargetChange("to")}
-						className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
-							pickTarget === "to"
-								? "bg-wayfare-primary text-white"
-								: "bg-wayfare-bg text-wayfare-text-secondary hover:bg-wayfare-line"
-						}`}
-					>
-						<MapPin className="size-3" />
-						To
-					</button>
-					<div className="ml-auto">
-						<ZoneToggleButton showZones={showZones} onToggle={onZoneToggle} />
-					</div>
-				</div>
-
-				<div className="flex flex-col gap-2">
-					<PlaceSearch
-						label="From"
-						value={state.from}
-						onChange={handleFromChange}
-						placeholder="Departure stop or zone"
-					/>
-					<PlaceSearch
-						label="To"
-						value={state.to}
-						onChange={handleToChange}
-						placeholder="Arrival stop or zone"
-					/>
-				</div>
-
-				<Button
-					className="mt-3 w-full"
-					disabled={!canSearch}
-					onClick={() => navigate({ to: "/" })}
-				>
-					<Search className="size-4" />
-					Search tickets
-				</Button>
-			</div>
-		</div>
-	);
-}
-
 function ZoomHint() {
 	const { map, isLoaded } = useMap();
 	const [zoom, setZoom] = useState<number | null>(null);
@@ -818,9 +709,10 @@ function ZoneLegend({
 
 function MapContent() {
 	const { state, dispatch } = useSearchForm();
+	const navigate = useNavigate();
 	const theme = useResolvedTheme();
 	const mapRef = useRef<MapRef | null>(null);
-	const [pickTarget, setPickTarget] = useState<PickTarget>("from");
+	const [selectedStop, setSelectedStop] = useState<SelectedStop | null>(null);
 	const [showZones, setShowZones] = useState(false);
 	const [hiddenOperators, setHiddenOperators] = useState<Set<string>>(
 		new Set(),
@@ -890,167 +782,241 @@ function MapContent() {
 				name: formatZoneName(feature.properties.name, operatorName),
 				type: "zone",
 			};
-			if (pickTarget === "from") {
+			if (!state.from) {
 				dispatch({ type: "SET_FROM", payload: place });
-				setPickTarget("to");
-			} else {
+			} else if (!state.to) {
 				dispatch({ type: "SET_TO", payload: place });
-				setPickTarget("from");
+			} else {
+				dispatch({ type: "SET_FROM", payload: place });
 			}
 		},
-		[pickTarget, dispatch],
+		[dispatch, state.from, state.to],
 	);
 
-	const handleStopSelect = useCallback(
-		(stop: MapStopPlace) => {
+	const handleStopSelect = useCallback((stop: MapStopPlace) => {
+		setSelectedStop({
+			id: stop.id,
+			name: stop.name,
+			coordinates: [stop.longitude, stop.latitude],
+			modes: stop.transportMode,
+		});
+		const currentZoom = mapRef.current?.getZoom?.() ?? 13;
+		mapRef.current?.flyTo({
+			center: [stop.longitude, stop.latitude],
+			zoom: Math.max(currentZoom, 13),
+			duration: 600,
+		});
+	}, []);
+
+	const handlePlaceSearch = useCallback((place: PlaceReference | null) => {
+		if (!place || place.type !== "stop" || !place.coordinates) return;
+		setSelectedStop({
+			id: place.placeId,
+			name: place.name ?? "",
+			coordinates: place.coordinates,
+			modes: [],
+		});
+		mapRef.current?.flyTo({
+			center: place.coordinates,
+			zoom: 14,
+			duration: 800,
+		});
+	}, []);
+
+	const handlePickRecent = useCallback((s: RecentStop) => {
+		setSelectedStop({
+			id: s.id,
+			name: s.name,
+			coordinates: s.coordinates,
+			modes: [],
+		});
+		mapRef.current?.flyTo({ center: s.coordinates, zoom: 14, duration: 800 });
+	}, []);
+
+	const handleTravelFrom = useCallback(
+		(s: SelectedStop) => {
 			const place: PlaceReference = {
-				placeId: stop.id,
-				name: stop.name,
+				placeId: s.id,
+				name: s.name,
 				type: "stop",
-				coordinates: [stop.longitude, stop.latitude],
+				coordinates: s.coordinates,
 			};
-			if (pickTarget === "from") {
-				dispatch({ type: "SET_FROM", payload: place });
-				setPickTarget("to");
-			} else {
-				dispatch({ type: "SET_TO", payload: place });
-				setPickTarget("from");
-			}
+			dispatch({ type: "SET_FROM", payload: place });
+			navigate({ to: "/", search: { focus: "to" } });
 		},
-		[pickTarget, dispatch],
+		[dispatch, navigate],
+	);
+
+	const handleTravelTo = useCallback(
+		(s: SelectedStop) => {
+			const place: PlaceReference = {
+				placeId: s.id,
+				name: s.name,
+				type: "stop",
+				coordinates: s.coordinates,
+			};
+			dispatch({ type: "SET_TO", payload: place });
+			navigate({ to: "/", search: { focus: "from" } });
+		},
+		[dispatch, navigate],
 	);
 
 	const fromStopId = state.from?.type === "stop" ? state.from.placeId : null;
 	const toStopId = state.to?.type === "stop" ? state.to.placeId : null;
 
 	return (
-		<div className="relative h-full w-full">
-			<MapView
-				ref={mapRef}
-				center={NORWAY_CENTER}
-				zoom={5}
-				minZoom={4}
-				maxZoom={18}
-			>
-				{showZones && (
-					<MapFillLayer<FareZoneProperties>
-						data={FARE_ZONES_URL}
-						paint={{
-							"fill-color": [
-								"match",
-								["get", "operator"],
-								"RUT",
-								"#ef4444",
-								"ATB",
-								"#f97316",
-								"SKY",
-								"#eab308",
-								"BRA",
-								"#22c55e",
-								"INN",
-								"#14b8a6",
-								"KOL",
-								"#3b82f6",
-								"MOR",
-								"#8b5cf6",
-								"AKT",
-								"#ec4899",
-								"NOR",
-								"#06b6d4",
-								"OST",
-								"#84cc16",
-								"FIN",
-								"#f59e0b",
-								"TEL",
-								"#10b981",
-								"TRO",
-								"#6366f1",
-								"VKT",
-								"#d946ef",
-								"#4285F4",
-							],
-							"fill-opacity": 0.18,
-						}}
-						hoverPaint={{ "fill-opacity": 0.42 }}
-						outlinePaint={{
-							"line-color": "#ffffff",
-							"line-width": 0.5,
-							"line-opacity": 0.4,
-						}}
-						labelLayout={{
-							"text-field": [
-								"format",
-								["get", "name"],
-								{},
-								"\n",
-								{},
-								["get", "id"],
-								{ "font-scale": 0.75 },
-							],
-							"text-size": 11,
-							"text-font": ["Montserrat Bold", "Open Sans Regular"],
-							"text-anchor": "center",
-							"text-max-width": 10,
-						}}
-						labelPaint={zoneLabelPaint}
-						labelBackground
-						labelMinzoom={4}
-						filter={visibleFilter}
-						onClick={handleZoneClick}
-					/>
-				)}
-
-				{!showZones && (
-					<StopMarkers
-						onSelect={handleStopSelect}
-						fromStopId={fromStopId}
-						toStopId={toStopId}
-					/>
-				)}
-
-				{userPosition && (
-					<MapMarker
-						longitude={userPosition.longitude}
-						latitude={userPosition.latitude}
-					>
-						<MarkerContent>
-							<div className="relative flex h-5 w-5 items-center justify-center">
-								<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-50" />
-								<span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-blue-500 shadow-lg" />
-							</div>
-						</MarkerContent>
-					</MapMarker>
-				)}
-
-				<ZoomHint />
-				<MapControls
-					position="bottom-right"
-					showZoom
-					showCompass
-					showLocate
-					onLocate={handleLocate}
+		<div className="flex h-full w-full">
+			<aside className="hidden w-[380px] shrink-0 border-r border-wayfare-line bg-wayfare-surface md:block">
+				<MapSidebar
+					selectedStop={selectedStop}
+					onPlaceSearch={handlePlaceSearch}
+					onPickRecent={handlePickRecent}
+					onTravelFrom={handleTravelFrom}
+					onTravelTo={handleTravelTo}
+					onClose={() => setSelectedStop(null)}
 				/>
-			</MapView>
+			</aside>
 
-			<MapSearchOverlay
-				pickTarget={pickTarget}
-				onPickTargetChange={setPickTarget}
-				showZones={showZones}
-				onZoneToggle={() => setShowZones((v) => !v)}
-				mapRef={mapRef}
-			/>
+			<div className="relative flex-1">
+				<MapView
+					ref={mapRef}
+					center={NORWAY_CENTER}
+					zoom={5}
+					minZoom={4}
+					maxZoom={18}
+				>
+					{showZones && (
+						<MapFillLayer<FareZoneProperties>
+							data={FARE_ZONES_URL}
+							paint={{
+								"fill-color": [
+									"match",
+									["get", "operator"],
+									"RUT",
+									"#ef4444",
+									"ATB",
+									"#f97316",
+									"SKY",
+									"#eab308",
+									"BRA",
+									"#22c55e",
+									"INN",
+									"#14b8a6",
+									"KOL",
+									"#3b82f6",
+									"MOR",
+									"#8b5cf6",
+									"AKT",
+									"#ec4899",
+									"NOR",
+									"#06b6d4",
+									"OST",
+									"#84cc16",
+									"FIN",
+									"#f59e0b",
+									"TEL",
+									"#10b981",
+									"TRO",
+									"#6366f1",
+									"VKT",
+									"#d946ef",
+									"#4285F4",
+								],
+								"fill-opacity": 0.18,
+							}}
+							hoverPaint={{ "fill-opacity": 0.42 }}
+							outlinePaint={{
+								"line-color": "#ffffff",
+								"line-width": 0.5,
+								"line-opacity": 0.4,
+							}}
+							labelLayout={{
+								"text-field": [
+									"format",
+									["get", "name"],
+									{},
+									"\n",
+									{},
+									["get", "id"],
+									{ "font-scale": 0.75 },
+								],
+								"text-size": 11,
+								"text-font": ["Montserrat Bold", "Open Sans Regular"],
+								"text-anchor": "center",
+								"text-max-width": 10,
+							}}
+							labelPaint={zoneLabelPaint}
+							labelBackground
+							labelMinzoom={4}
+							filter={visibleFilter}
+							onClick={handleZoneClick}
+						/>
+					)}
 
-			{showZones && (
-				<div className="pointer-events-none absolute inset-0 z-10">
-					<div className="absolute top-3 right-3">
-						<ZoneLegend
-							hiddenOperators={hiddenOperators}
-							onToggle={toggleOperator}
-							onToggleAll={toggleAllOperators}
+					{!showZones && (
+						<StopMarkers
+							onSelect={handleStopSelect}
+							fromStopId={fromStopId}
+							toStopId={toStopId}
+						/>
+					)}
+
+					{userPosition && (
+						<MapMarker
+							longitude={userPosition.longitude}
+							latitude={userPosition.latitude}
+						>
+							<MarkerContent>
+								<div className="relative flex h-5 w-5 items-center justify-center">
+									<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-50" />
+									<span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-blue-500 shadow-lg" />
+								</div>
+							</MarkerContent>
+						</MapMarker>
+					)}
+
+					<ZoomHint />
+					<MapControls
+						position="bottom-right"
+						showZoom
+						showCompass
+						showLocate
+						onLocate={handleLocate}
+					/>
+				</MapView>
+
+				<div className="pointer-events-none absolute top-3 right-3 z-10">
+					<div className="pointer-events-auto">
+						<ZoneToggleButton
+							showZones={showZones}
+							onToggle={() => setShowZones((v) => !v)}
 						/>
 					</div>
 				</div>
-			)}
+
+				{showZones && (
+					<div className="pointer-events-none absolute inset-0 z-10">
+						<div className="absolute top-14 right-3">
+							<ZoneLegend
+								hiddenOperators={hiddenOperators}
+								onToggle={toggleOperator}
+								onToggleAll={toggleAllOperators}
+							/>
+						</div>
+					</div>
+				)}
+
+				<MapBottomSheet desiredSnap={selectedStop ? "half" : "peek"}>
+					<MapSidebar
+						selectedStop={selectedStop}
+						onPlaceSearch={handlePlaceSearch}
+						onPickRecent={handlePickRecent}
+						onTravelFrom={handleTravelFrom}
+						onTravelTo={handleTravelTo}
+						onClose={() => setSelectedStop(null)}
+					/>
+				</MapBottomSheet>
+			</div>
 		</div>
 	);
 }

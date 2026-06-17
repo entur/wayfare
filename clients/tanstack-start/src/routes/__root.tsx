@@ -8,6 +8,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import MobileTabBar from "../components/MobileTabBar";
 import { DevConfigProvider } from "../context/dev-config";
 import { ProfileProvider } from "../context/profile";
 import { SearchFormProvider } from "../context/search-form";
@@ -67,9 +68,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 							<SearchFormProvider>
 								<div className="flex h-screen flex-col overflow-hidden">
 									<Header />
-									<div className="flex flex-1 flex-col overflow-y-auto">
+									<div className="mobile-tabbar-pad flex flex-1 flex-col overflow-y-auto">
 										{children}
 									</div>
+									<MobileTabBar />
 									<Footer />
 								</div>
 							</SearchFormProvider>
