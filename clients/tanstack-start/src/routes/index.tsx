@@ -269,7 +269,7 @@ function SearchScreen() {
 			<div className="flex flex-col gap-4">
 				<form
 					onSubmit={handleSearch}
-					className="relative z-10 rise-in rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-6"
+					className="relative z-10 rise-in rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4 sm:p-6"
 				>
 					<div className="flex flex-col gap-4">
 						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_1fr_1fr_10rem] lg:items-end">

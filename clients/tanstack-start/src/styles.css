@@ -80,7 +80,8 @@ a:not([class]):hover {
 }
 
 .page-wrap {
-	width: min(1080px, calc(100% - 2rem));
+	width: 100%;
+	max-width: 1080px;
 	margin-inline: auto;
 }
 
