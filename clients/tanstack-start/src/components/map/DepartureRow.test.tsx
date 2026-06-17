@@ -47,14 +47,14 @@ describe("DepartureRow", () => {
 				now={NOW}
 			/>,
 		);
-		expect(screen.getByRole("status").getAttribute("data-status")).toBe(
+		expect(screen.getByRole("img").getAttribute("data-status")).toBe(
 			"delayed-low",
 		);
 	});
 
 	it("renders a cancelled status dot when cancelled", () => {
 		render(<DepartureRow call={call({ cancellation: true })} now={NOW} />);
-		expect(screen.getByRole("status").getAttribute("data-status")).toBe(
+		expect(screen.getByRole("img").getAttribute("data-status")).toBe(
 			"cancelled",
 		);
 	});
