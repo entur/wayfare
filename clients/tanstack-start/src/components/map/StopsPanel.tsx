@@ -58,7 +58,7 @@ export default function StopsPanel({
 
 	if (!selectedStop) {
 		return (
-			<div className="mobile-tabbar-pad flex h-full flex-col gap-4 p-4">
+			<div className="mobile-tabbar-pad flex flex-col gap-4 p-4">
 				<p className="text-sm text-wayfare-text-secondary">
 					Click any stop on the map for live departures, or search by name.
 				</p>
@@ -93,7 +93,7 @@ export default function StopsPanel({
 	}
 
 	return (
-		<div className="flex h-full flex-col">
+		<div className="flex flex-col">
 			<MapSidebarStopHeader
 				name={selectedStop.name}
 				modes={selectedStop.modes}
@@ -101,7 +101,7 @@ export default function StopsPanel({
 				onTravelTo={() => onTravelTo(selectedStop)}
 				onClose={onClose}
 			/>
-			<div className="mobile-tabbar-pad p-4 md:flex-1 md:overflow-y-auto">
+			<div className="mobile-tabbar-pad p-4">
 				{departures.isLoading && (
 					<div className="text-center text-sm text-wayfare-text-secondary">
 						Loading departures…

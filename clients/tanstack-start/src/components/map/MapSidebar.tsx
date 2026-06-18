@@ -64,8 +64,8 @@ export default function MapSidebar({
 	onSearchTripsWithZones,
 }: Props) {
 	return (
-		<div className="flex h-full flex-col">
-			<div className="border-b border-wayfare-line p-3">
+		<div className="flex flex-col md:h-full md:overflow-y-auto">
+			<div className="sticky top-0 z-10 border-b border-wayfare-line bg-wayfare-surface-strong p-3">
 				<SegmentedControl
 					legend="Map mode"
 					options={MODE_OPTIONS}
@@ -73,31 +73,29 @@ export default function MapSidebar({
 					onChange={onPanelModeChange}
 				/>
 			</div>
-			<div className="flex-1 overflow-hidden">
-				{panelMode === "stops" ? (
-					<StopsPanel
-						selectedStop={selectedStop}
-						onPlaceSearch={onPlaceSearch}
-						onPickRecent={onPickRecent}
-						onTravelFrom={onTravelFrom}
-						onTravelTo={onTravelTo}
-						onClose={onClose}
-					/>
-				) : (
-					<ZonesPanel
-						from={zoneFrom}
-						to={zoneTo}
-						onFromChange={onZoneFromChange}
-						onToChange={onZoneToChange}
-						nextSlot={nextZoneSlot}
-						onNextSlotChange={onNextZoneSlotChange}
-						hiddenOperators={hiddenOperators}
-						onToggleOperator={onToggleOperator}
-						onToggleAllOperators={onToggleAllOperators}
-						onSearchTrips={onSearchTripsWithZones}
-					/>
-				)}
-			</div>
+			{panelMode === "stops" ? (
+				<StopsPanel
+					selectedStop={selectedStop}
+					onPlaceSearch={onPlaceSearch}
+					onPickRecent={onPickRecent}
+					onTravelFrom={onTravelFrom}
+					onTravelTo={onTravelTo}
+					onClose={onClose}
+				/>
+			) : (
+				<ZonesPanel
+					from={zoneFrom}
+					to={zoneTo}
+					onFromChange={onZoneFromChange}
+					onToChange={onZoneToChange}
+					nextSlot={nextZoneSlot}
+					onNextSlotChange={onNextZoneSlotChange}
+					hiddenOperators={hiddenOperators}
+					onToggleOperator={onToggleOperator}
+					onToggleAllOperators={onToggleAllOperators}
+					onSearchTrips={onSearchTripsWithZones}
+				/>
+			)}
 		</div>
 	);
 }

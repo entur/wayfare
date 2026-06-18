@@ -63,7 +63,7 @@ export default function ZonesPanel({
 	const bothPicked = Boolean(from?.type === "zone" && to?.type === "zone");
 
 	return (
-		<div className="mobile-tabbar-pad flex h-full flex-col gap-4 overflow-y-auto p-4">
+		<div className="mobile-tabbar-pad flex flex-col gap-4 p-4">
 			<div>
 				<p className="mb-2 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 					Next tap fills
