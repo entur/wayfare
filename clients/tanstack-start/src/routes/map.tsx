@@ -3,7 +3,6 @@ import {
 	createFileRoute,
 	useNavigate,
 } from "@tanstack/react-router";
-import { ChevronDown, Layers } from "lucide-react";
 import type MapLibreGL from "maplibre-gl";
 import {
 	useCallback,
@@ -22,8 +21,10 @@ import {
 	MapSidebar,
 	MapView,
 	MarkerContent,
+	type PanelMode,
 	type SelectedStop,
 	useMap,
+	type ZoneSlot,
 } from "../components/map";
 import { useResolvedTheme } from "../components/map/theme";
 import { useStopIcons } from "../components/map/useStopIcons";
@@ -542,30 +543,6 @@ function StopMarkers({
 	);
 }
 
-function ZoneToggleButton({
-	showZones,
-	onToggle,
-}: {
-	showZones: boolean;
-	onToggle: () => void;
-}) {
-	return (
-		<button
-			type="button"
-			onClick={onToggle}
-			title={showZones ? "Hide fare zones" : "Show fare zones"}
-			className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium shadow-sm transition-colors ${
-				showZones
-					? "border-wayfare-primary bg-wayfare-primary text-white"
-					: "border-wayfare-line bg-wayfare-surface text-wayfare-text-secondary hover:bg-wayfare-bg"
-			}`}
-		>
-			<Layers className="size-3.5" />
-			Zones
-		</button>
-	);
-}
-
 function ZoomHint() {
 	const { map, isLoaded } = useMap();
 	const [zoom, setZoom] = useState<number | null>(null);
@@ -588,23 +565,6 @@ function ZoomHint() {
 		</div>
 	);
 }
-
-const OPERATOR_FILL_COLORS: Record<string, string> = {
-	RUT: "#ef4444",
-	ATB: "#f97316",
-	SKY: "#eab308",
-	BRA: "#22c55e",
-	INN: "#14b8a6",
-	KOL: "#3b82f6",
-	MOR: "#8b5cf6",
-	AKT: "#ec4899",
-	NOR: "#06b6d4",
-	OST: "#84cc16",
-	FIN: "#f59e0b",
-	TEL: "#10b981",
-	TRO: "#6366f1",
-	VKT: "#d946ef",
-};
 
 const ALL_OPERATORS = Object.keys(OPERATOR_NAMES).sort((a, b) =>
 	OPERATOR_NAMES[a].localeCompare(OPERATOR_NAMES[b]),
@@ -644,76 +604,15 @@ const ZONE_COLOR_MATCH: MapLibreGL.ExpressionSpecification = [
 	"#1a56db",
 ];
 
-function ZoneLegend({
-	hiddenOperators,
-	onToggle,
-	onToggleAll,
-}: {
-	hiddenOperators: Set<string>;
-	onToggle: (op: string) => void;
-	onToggleAll: () => void;
-}) {
-	const [collapsed, setCollapsed] = useState(false);
-	const allHidden = hiddenOperators.size === ALL_OPERATORS.length;
-
-	return (
-		<div className="pointer-events-auto w-44 rounded-xl border border-wayfare-line bg-wayfare-surface/95 shadow-lg backdrop-blur-sm">
-			<button
-				type="button"
-				onClick={() => setCollapsed((v) => !v)}
-				className="flex w-full items-center justify-between px-3 py-2"
-			>
-				<span className="text-xs font-semibold text-wayfare-text">
-					Operators
-				</span>
-				<ChevronDown
-					className={`size-3.5 text-wayfare-text-secondary transition-transform ${collapsed ? "" : "rotate-180"}`}
-				/>
-			</button>
-
-			{!collapsed && (
-				<div className="border-t border-wayfare-line px-2 pb-2 pt-1">
-					<button
-						type="button"
-						onClick={onToggleAll}
-						className="mb-1 w-full rounded px-1.5 py-0.5 text-left text-xs text-wayfare-text-secondary hover:bg-wayfare-bg"
-					>
-						{allHidden ? "Show all" : "Hide all"}
-					</button>
-					<div className="max-h-64 space-y-0.5 overflow-y-auto">
-						{ALL_OPERATORS.map((op) => {
-							const visible = !hiddenOperators.has(op);
-							return (
-								<button
-									key={op}
-									type="button"
-									onClick={() => onToggle(op)}
-									className={`flex w-full items-center gap-2 rounded px-1.5 py-1 text-left transition-opacity hover:bg-wayfare-bg ${visible ? "" : "opacity-40"}`}
-								>
-									<span
-										className="size-2.5 shrink-0 rounded-sm"
-										style={{ backgroundColor: OPERATOR_FILL_COLORS[op] }}
-									/>
-									<span className="truncate text-xs text-wayfare-text">
-										{OPERATOR_NAMES[op]}
-									</span>
-								</button>
-							);
-						})}
-					</div>
-				</div>
-			)}
-		</div>
-	);
-}
-
 function MapContent() {
 	const { state, dispatch } = useSearchForm();
 	const navigate = useNavigate();
 	const theme = useResolvedTheme();
 	const mapRef = useRef<MapRef | null>(null);
+
+	const [panelMode, setPanelMode] = useState<PanelMode>("stops");
 	const [selectedStop, setSelectedStop] = useState<SelectedStop | null>(null);
-	const [showZones, setShowZones] = useState(false);
+	const [nextZoneSlot, setNextZoneSlot] = useState<ZoneSlot>("from");
 	const [hiddenOperators, setHiddenOperators] = useState<Set<string>>(
 		new Set(),
 	);
@@ -721,6 +620,8 @@ function MapContent() {
 		longitude: number;
 		latitude: number;
 	} | null>(null);
+
+	const showZones = panelMode === "zones";
 
 	const handleLocate = useCallback(
 		(coords: { longitude: number; latitude: number }) => {
@@ -782,16 +683,35 @@ function MapContent() {
 				name: formatZoneName(feature.properties.name, operatorName),
 				type: "zone",
 			};
-			if (!state.from) {
+			if (nextZoneSlot === "from") {
 				dispatch({ type: "SET_FROM", payload: place });
-			} else if (!state.to) {
-				dispatch({ type: "SET_TO", payload: place });
+				// Auto-advance to the empty slot so a second tap fills it
+				if (!state.to || state.to.type !== "zone") setNextZoneSlot("to");
 			} else {
-				dispatch({ type: "SET_FROM", payload: place });
+				dispatch({ type: "SET_TO", payload: place });
+				if (!state.from || state.from.type !== "zone") setNextZoneSlot("from");
 			}
 		},
-		[dispatch, state.from, state.to],
+		[dispatch, nextZoneSlot, state.from, state.to],
 	);
+
+	const handleZoneFromChange = useCallback(
+		(place: PlaceReference | null) => {
+			dispatch({ type: "SET_FROM", payload: place });
+		},
+		[dispatch],
+	);
+
+	const handleZoneToChange = useCallback(
+		(place: PlaceReference | null) => {
+			dispatch({ type: "SET_TO", payload: place });
+		},
+		[dispatch],
+	);
+
+	const handleSearchTripsWithZones = useCallback(() => {
+		navigate({ to: "/" });
+	}, [navigate]);
 
 	const handleStopSelect = useCallback((stop: MapStopPlace) => {
 		setSelectedStop({
@@ -863,18 +783,44 @@ function MapContent() {
 
 	const fromStopId = state.from?.type === "stop" ? state.from.placeId : null;
 	const toStopId = state.to?.type === "stop" ? state.to.placeId : null;
+	const zoneFrom = state.from?.type === "zone" ? state.from : null;
+	const zoneTo = state.to?.type === "zone" ? state.to : null;
+
+	const selectedZones = useMemo(() => {
+		const list: Array<{ id: string; lineColor: string; lineWidth?: number }> =
+			[];
+		if (zoneFrom?.placeId)
+			list.push({ id: zoneFrom.placeId, lineColor: FROM_COLOR, lineWidth: 3 });
+		if (zoneTo?.placeId)
+			list.push({ id: zoneTo.placeId, lineColor: TO_COLOR, lineWidth: 3 });
+		return list;
+	}, [zoneFrom?.placeId, zoneTo?.placeId]);
+
+	const sidebarProps = {
+		panelMode,
+		onPanelModeChange: setPanelMode,
+		selectedStop,
+		onPlaceSearch: handlePlaceSearch,
+		onPickRecent: handlePickRecent,
+		onTravelFrom: handleTravelFrom,
+		onTravelTo: handleTravelTo,
+		onClose: () => setSelectedStop(null),
+		zoneFrom,
+		zoneTo,
+		onZoneFromChange: handleZoneFromChange,
+		onZoneToChange: handleZoneToChange,
+		nextZoneSlot,
+		onNextZoneSlotChange: setNextZoneSlot,
+		hiddenOperators,
+		onToggleOperator: toggleOperator,
+		onToggleAllOperators: toggleAllOperators,
+		onSearchTripsWithZones: handleSearchTripsWithZones,
+	};
 
 	return (
 		<div className="flex h-full w-full">
 			<aside className="hidden w-[380px] shrink-0 border-r border-wayfare-line bg-wayfare-surface md:block">
-				<MapSidebar
-					selectedStop={selectedStop}
-					onPlaceSearch={handlePlaceSearch}
-					onPickRecent={handlePickRecent}
-					onTravelFrom={handleTravelFrom}
-					onTravelTo={handleTravelTo}
-					onClose={() => setSelectedStop(null)}
-				/>
+				<MapSidebar {...sidebarProps} />
 			</aside>
 
 			<div className="relative flex-1">
@@ -949,6 +895,7 @@ function MapContent() {
 							labelBackground
 							labelMinzoom={4}
 							filter={visibleFilter}
+							selectedFeatures={selectedZones}
 							onClick={handleZoneClick}
 						/>
 					)}
@@ -985,36 +932,8 @@ function MapContent() {
 					/>
 				</MapView>
 
-				<div className="pointer-events-none absolute top-3 right-3 z-10">
-					<div className="pointer-events-auto">
-						<ZoneToggleButton
-							showZones={showZones}
-							onToggle={() => setShowZones((v) => !v)}
-						/>
-					</div>
-				</div>
-
-				{showZones && (
-					<div className="pointer-events-none absolute inset-0 z-10">
-						<div className="absolute top-14 right-3">
-							<ZoneLegend
-								hiddenOperators={hiddenOperators}
-								onToggle={toggleOperator}
-								onToggleAll={toggleAllOperators}
-							/>
-						</div>
-					</div>
-				)}
-
-				<MapBottomSheet desiredSnap={selectedStop ? "half" : "peek"}>
-					<MapSidebar
-						selectedStop={selectedStop}
-						onPlaceSearch={handlePlaceSearch}
-						onPickRecent={handlePickRecent}
-						onTravelFrom={handleTravelFrom}
-						onTravelTo={handleTravelTo}
-						onClose={() => setSelectedStop(null)}
-					/>
+				<MapBottomSheet>
+					<MapSidebar {...sidebarProps} />
 				</MapBottomSheet>
 			</div>
 		</div>

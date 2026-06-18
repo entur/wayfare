@@ -18,7 +18,8 @@ export {
 export { MapPopup } from "./MapPopup";
 export { MapRoute } from "./MapRoute";
 export { default as MapSidebar } from "./MapSidebar";
-export type { SelectedStop } from "./MapSidebar";
+export type { PanelMode, SelectedStop } from "./MapSidebar";
+export type { ZoneSlot } from "./ZonesPanel";
 export { default as MapSidebarStopHeader } from "./MapSidebarStopHeader";
 export { JourneyLegLabels } from "./JourneyLegLabels";
 export { JourneyStopMarkers } from "./JourneyStopMarkers";

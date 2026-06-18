@@ -47,6 +47,12 @@ type MapFillLayerProps<
 	labelBackground?: boolean;
 	/** Filter expression applied to all sublayers. Updated reactively. */
 	filter?: MapLibreGL.FilterSpecification | null;
+	/** Optional list of features to render with a highlighted outline on top of the fill. Reactive. */
+	selectedFeatures?: Array<{
+		id: string;
+		lineColor: string;
+		lineWidth?: number;
+	}>;
 	/** Callback when a feature is clicked. */
 	onClick?: (
 		feature: GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, P>,
@@ -106,6 +112,7 @@ function MapFillLayer<
 	labelMinzoom,
 	labelBackground = false,
 	filter,
+	selectedFeatures,
 	onClick,
 	onHover,
 	interactive = true,
@@ -221,7 +228,8 @@ function MapFillLayer<
 					map.removeImage(labelImageName);
 				if (map.getLayer(outlineLayerId)) map.removeLayer(outlineLayerId);
 				if (map.getLayer(fillLayerId)) map.removeLayer(fillLayerId);
-				if (map.getSource(sourceId)) map.removeSource(sourceId);
+				// Source removal is deferred to a later effect's cleanup so any
+				// selectedFeatures highlight layers have a chance to remove themselves first.
 			} catch {
 				// ignore
 			}
@@ -261,6 +269,55 @@ function MapFillLayer<
 		if (map.getLayer(outlineLayerId)) map.setFilter(outlineLayerId, f);
 		if (map.getLayer(labelLayerId)) map.setFilter(labelLayerId, f);
 	}, [isLoaded, map, fillLayerId, outlineLayerId, labelLayerId, filter]);
+
+	useEffect(() => {
+		if (!isLoaded || !map) return;
+		const items = selectedFeatures ?? [];
+		const addedIds: string[] = [];
+		// Insert highlights underneath the label layer (if present) so labels stay readable
+		const insertBefore = map.getLayer(labelLayerId) ? labelLayerId : beforeId;
+		items.forEach((item, idx) => {
+			const layerId = `fill-selected-${id}-${idx}`;
+			if (map.getLayer(layerId)) return;
+			map.addLayer(
+				{
+					id: layerId,
+					type: "line",
+					source: sourceId,
+					filter: ["==", ["get", "id"], item.id],
+					paint: {
+						"line-color": item.lineColor,
+						"line-width": item.lineWidth ?? 3,
+					},
+				},
+				insertBefore,
+			);
+			addedIds.push(layerId);
+		});
+		return () => {
+			for (const layerId of addedIds) {
+				try {
+					if (map.getLayer(layerId)) map.removeLayer(layerId);
+				} catch {
+					// ignore
+				}
+			}
+		};
+	}, [isLoaded, map, sourceId, id, labelLayerId, beforeId, selectedFeatures]);
+
+	// Source cleanup runs after the highlight-layer cleanup above so the source
+	// is never removed while a selectedFeatures highlight layer still references it.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional
+	useEffect(() => {
+		if (!isLoaded || !map) return;
+		return () => {
+			try {
+				if (map.getSource(sourceId)) map.removeSource(sourceId);
+			} catch {
+				// ignore
+			}
+		};
+	}, [isLoaded, map]);
 
 	useEffect(() => {
 		if (!isLoaded || !map || !interactive) return;
