@@ -68,6 +68,18 @@ export default function MapBottomSheet({
 		}
 	}, [snap]);
 
+	useEffect(() => {
+		if (snap === "peek") return;
+		function handler(e: PointerEvent) {
+			const target = e.target as Node | null;
+			if (!sheetRef.current || !target) return;
+			if (sheetRef.current.contains(target)) return;
+			setSnap("peek");
+		}
+		document.addEventListener("pointerdown", handler);
+		return () => document.removeEventListener("pointerdown", handler);
+	}, [snap]);
+
 	function cycleUp() {
 		setSnap((s) => (s === "peek" ? "half" : s === "half" ? "full" : "peek"));
 	}
