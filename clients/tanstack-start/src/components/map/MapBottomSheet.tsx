@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 type Snap = "peek" | "half" | "full";
 
 const HEIGHTS: Record<Snap, string> = {
-	peek: "calc(96px + 3.5rem + env(safe-area-inset-bottom))",
+	peek: "calc(160px + 3.5rem + env(safe-area-inset-bottom))",
 	half: "50vh",
 	full: "90vh",
 };
@@ -18,7 +18,7 @@ interface Props {
 
 function snapHeights(viewportH: number): Record<Snap, number> {
 	return {
-		peek: 152,
+		peek: 216,
 		half: viewportH * 0.5,
 		full: viewportH * 0.9,
 	};
