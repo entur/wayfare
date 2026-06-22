@@ -15,6 +15,11 @@ import {
 import { Link } from "@tanstack/react-router";
 import type { FC, SVGProps } from "react";
 import { usePackageItem, useTravelDocuments } from "../../hooks/use-documents";
+import {
+	formatZoneList,
+	getEffectiveZones,
+	sortFareZones,
+} from "../../lib/zone-utils";
 import type {
 	StoredPackage,
 	TravelDocumentProperties,
@@ -52,11 +57,6 @@ function getOperatorConfig(productId?: string): OperatorConfig | null {
 	if (!productId) return null;
 	const code = productId.split(":")[0].toUpperCase();
 	return OPERATORS[code] ?? null;
-}
-
-function formatFareZone(zone: string): string {
-	const suffix = zone.split(":").at(-1);
-	return suffix ? `Zone ${suffix}` : zone;
 }
 
 function formatJourneyTime(start: Date, end: Date | null): string {
@@ -147,18 +147,16 @@ export default function TicketCard({ pkg }: TicketCardProps) {
 	const OperatorIcon = operator?.icon ?? ValidTicketIcon;
 	const iconBg = operator?.color ?? undefined;
 
-	const fareZones =
-		firstOffer?.summary?.geographicalValidity?.zonalValidity?.fareZones ?? [];
-	const fallbackZones =
-		firstOffer?.summary?.geographicalValidity?.zonalValidity?.zones ?? [];
-	const activeZones = fareZones.length > 0 ? fareZones : fallbackZones;
+	const activeZones = sortFareZones(
+		getEffectiveZones(firstOffer?.summary?.geographicalValidity),
+	);
 
 	const from = props?.from?.name;
 	const to = props?.to?.name;
 
 	const validityLine =
 		activeZones.length > 0
-			? activeZones.map(formatFareZone).join(", ")
+			? formatZoneList(activeZones)
 			: from && to
 				? `${from} → ${to}`
 				: null;

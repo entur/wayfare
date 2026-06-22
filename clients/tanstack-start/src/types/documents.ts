@@ -120,9 +120,14 @@ export interface PackageItemProperties {
 	price?: { amount: number; currencyCode?: string };
 }
 
+export interface ZoneLabel {
+	id: string;
+	label: string;
+}
+
 export interface ZonalValidity {
-	zones?: string[];
-	fareZones?: string[];
+	fareZones?: ZoneLabel[];
+	groups?: ZoneLabel[];
 }
 
 export interface GeographicalValidity {

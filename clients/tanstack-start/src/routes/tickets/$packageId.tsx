@@ -17,6 +17,11 @@ import {
 } from "../../hooks/use-documents";
 import { useCancelPackage, useClaimRefund } from "../../hooks/use-purchase";
 import { getPackage, removePackage } from "../../lib/ticket-storage";
+import {
+	formatZoneList,
+	getEffectiveZones,
+	sortFareZones,
+} from "../../lib/zone-utils";
 import type {
 	StoredPackage,
 	TravelDocumentProperties,
@@ -33,11 +38,6 @@ function isDocExpired(
 	if (!props) return false;
 	if (props.type === "binary_ticket" && props.status === "EXPIRED") return true;
 	return new Date(props.endvalidity) < now;
-}
-
-function formatFareZone(zone: string): string {
-	const suffix = zone.split(":").at(-1);
-	return suffix ? `Zone ${suffix}` : zone;
 }
 
 function TicketDetailPage() {
@@ -119,7 +119,7 @@ function TicketDetailPage() {
 
 	const geoValidity =
 		packageItem?.offers?.[0]?.properties?.summary?.geographicalValidity;
-	const fareZones = geoValidity?.zonalValidity?.fareZones ?? [];
+	const fareZones = sortFareZones(getEffectiveZones(geoValidity));
 	const productName =
 		packageItem?.offers?.[0]?.properties?.products?.[0]?.productName;
 
@@ -222,9 +222,9 @@ function TicketDetailPage() {
 							)}
 							{fareZones.length > 0 && (
 								<div className="flex justify-between gap-4">
-									<span className="text-wayfare-text-secondary">Zones</span>
-									<span className="text-wayfare-text">
-										{fareZones.map(formatFareZone).join(", ")}
+									<span className="text-wayfare-text-secondary">Valid in</span>
+									<span className="text-right text-wayfare-text">
+										{formatZoneList(fareZones)}
 									</span>
 								</div>
 							)}

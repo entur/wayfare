@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { formatPrice } from "../../lib/format-price";
 import { partyLabel, type TravelParty } from "../../lib/travel-party";
-import type { Offer } from "../../types/search";
+import {
+	formatZoneList,
+	getEffectiveZones,
+	sortFareZones,
+} from "../../lib/zone-utils";
+import type { Offer, ZoneLabel } from "../../types/search";
 
 export interface OfferBundle {
 	groupKey: number | string;
@@ -33,6 +38,18 @@ function getOfferTravellerIds(offer: Offer): string[] {
 				.filter(Boolean) as string[],
 		),
 	];
+}
+
+function getOfferFareZones(offer: Offer): ZoneLabel[] {
+	return getEffectiveZones(offer.properties?.summary?.geographicalValidity);
+}
+
+function getBundleFareZones(offers: Offer[]): ZoneLabel[] {
+	const merged = new Map<string, ZoneLabel>();
+	for (const offer of offers) {
+		for (const zone of getOfferFareZones(offer)) merged.set(zone.id, zone);
+	}
+	return sortFareZones([...merged.values()]);
 }
 
 export function buildBundles(offers: Offer[]): OfferBundle[] {
@@ -109,6 +126,7 @@ export default function BundleCard({
 
 	const bundlePartyIds = new Set(bundle.offers.flatMap(getOfferTravellerIds));
 	const coveredParties = parties.filter((p) => bundlePartyIds.has(p.id));
+	const bundleZones = getBundleFareZones(bundle.offers);
 
 	return (
 		<label
@@ -179,6 +197,13 @@ export default function BundleCard({
 						</div>
 					)}
 
+					{bundleZones.length > 0 && (
+						<p className="m-0 mt-2 text-xs text-wayfare-text-secondary">
+							<span className="font-semibold">Valid in:</span>{" "}
+							{formatZoneList(bundleZones)}
+						</p>
+					)}
+
 					{offerCount > 1 && (
 						<>
 							<button
@@ -212,6 +237,7 @@ export default function BundleCard({
 												: ids.length > 0
 													? `${ids.length} traveller${ids.length !== 1 ? "s" : ""}`
 													: null;
+										const offerZones = sortFareZones(getOfferFareZones(offer));
 
 										return (
 											<div
@@ -225,6 +251,11 @@ export default function BundleCard({
 													{travellerText && (
 														<p className="m-0 text-xs text-wayfare-text-secondary">
 															{travellerText}
+														</p>
+													)}
+													{offerZones.length > 0 && (
+														<p className="m-0 text-xs text-wayfare-text-secondary">
+															{formatZoneList(offerZones)}
 														</p>
 													)}
 												</div>
