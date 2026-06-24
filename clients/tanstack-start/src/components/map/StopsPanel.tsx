@@ -7,6 +7,7 @@ import {
 } from "../../lib/recent-stops-storage";
 import type { PlaceReference } from "../../types/common";
 import PlaceSearch from "../search/PlaceSearch";
+import SituationBanner from "../situations/SituationBanner";
 import DepartureBoard from "./DepartureBoard";
 import type { SelectedStop } from "./MapSidebar";
 import MapSidebarStopHeader from "./MapSidebarStopHeader";
@@ -114,6 +115,11 @@ export default function StopsPanel({
 				)}
 				{departures.data && (
 					<>
+						{departures.data.stopSituations.length > 0 && (
+							<div className="mb-3">
+								<SituationBanner situations={departures.data.stopSituations} />
+							</div>
+						)}
 						<DepartureBoard calls={departures.data.calls} />
 						<div className="mt-3 text-right text-[10px] text-wayfare-text-secondary">
 							Updated {formatUpdatedAt(departures.data.fetchedAt)} · refreshes

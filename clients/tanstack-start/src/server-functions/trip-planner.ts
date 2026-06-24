@@ -42,8 +42,36 @@ const TRIP_QUERY = `
               longitude
             }
           }
-          serviceJourney { id }
-          line { publicCode name transportMode }
+          serviceJourney {
+            id
+            situations {
+              id
+              situationNumber
+              reportType
+              severity
+              summary { value language }
+              description { value language }
+              advice { value language }
+              validityPeriod { startTime endTime }
+              infoLinks { uri label }
+            }
+          }
+          line {
+            publicCode
+            name
+            transportMode
+            situations {
+              id
+              situationNumber
+              reportType
+              severity
+              summary { value language }
+              description { value language }
+              advice { value language }
+              validityPeriod { startTime endTime }
+              infoLinks { uri label }
+            }
+          }
           authority { name }
         }
       }

@@ -1,3 +1,5 @@
+import type { PtSituationElement } from "./situations";
+
 export interface DepartureLinePresentation {
 	colour?: string | null;
 	textColour?: string | null;
@@ -31,12 +33,14 @@ export interface EstimatedCall {
 	destinationDisplay?: DepartureDestinationDisplay | null;
 	quay?: DepartureQuay | null;
 	serviceJourney?: DepartureServiceJourney | null;
+	situations?: PtSituationElement[] | null;
 }
 
 export interface StopDepartures {
 	stopPlaceId: string;
 	fetchedAt: string;
 	calls: EstimatedCall[];
+	stopSituations: PtSituationElement[];
 }
 
 export interface QuayDepartures {

@@ -1,3 +1,5 @@
+import type { PtSituationElement } from "./situations";
+
 export type OtpTransportMode =
 	| "foot"
 	| "bus"
@@ -34,11 +36,15 @@ export interface TripLeg {
 	} | null;
 	fromPlace: TripPlace;
 	toPlace: TripPlace;
-	serviceJourney?: { id: string } | null;
+	serviceJourney?: {
+		id: string;
+		situations?: PtSituationElement[] | null;
+	} | null;
 	line?: {
 		publicCode?: string | null;
 		name?: string | null;
 		transportMode?: OtpTransportMode | null;
+		situations?: PtSituationElement[] | null;
 	} | null;
 	authority?: { name: string } | null;
 }
