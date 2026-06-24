@@ -8,6 +8,7 @@ import {
 	SelectedJourneyLayer,
 } from "../../components/map";
 import Illustration from "../../components/shared/Illustration";
+import SituationBanner from "../../components/situations/SituationBanner";
 import DocumentViewer from "../../components/tickets/DocumentViewer";
 import Button from "../../components/ui/Button";
 import {
@@ -15,6 +16,7 @@ import {
 	useRefundOptions,
 	useTravelDocuments,
 } from "../../hooks/use-documents";
+import { useJourneySituations } from "../../hooks/use-journey-situations";
 import { useCancelPackage, useClaimRefund } from "../../hooks/use-purchase";
 import { getPackage, removePackage } from "../../lib/ticket-storage";
 import {
@@ -55,6 +57,15 @@ function TicketDetailPage() {
 	const { data: refundCollection } = useRefundOptions(packageId);
 	const cancelMutation = useCancelPackage();
 	const claimRefundMutation = useClaimRefund();
+
+	// Collect serviceJourney ids from the stored pattern (may be undefined until
+	// the effect above runs). useJourneySituations is disabled when ids is empty.
+	const serviceJourneyIds =
+		pkg?.pattern?.legs
+			.map((l) => l.serviceJourney?.id)
+			.filter((id): id is string => !!id) ?? [];
+	const { data: journeySituations = [] } =
+		useJourneySituations(serviceJourneyIds);
 
 	async function handleCancel() {
 		if (!confirm("Are you sure you want to cancel this ticket?")) return;
@@ -311,6 +322,11 @@ function TicketDetailPage() {
 					<h2 className="mb-3 text-sm font-semibold text-wayfare-text">
 						Your journey
 					</h2>
+					{journeySituations.length > 0 && (
+						<div className="mb-3">
+							<SituationBanner situations={journeySituations} />
+						</div>
+					)}
 					<div className="h-96 overflow-hidden rounded-xl border border-wayfare-line">
 						<MapView>
 							<SelectedJourneyLayer pattern={pkg.pattern} fitPadding={64} />

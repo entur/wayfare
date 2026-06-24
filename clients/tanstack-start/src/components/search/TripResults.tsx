@@ -4,11 +4,14 @@ import React, { useEffect, useRef, useState } from "react";
 import type { TravelerGroup } from "../../context/search-form";
 import { formatPrice } from "../../lib/format-price";
 import type { OfferPreview } from "../../lib/offer-query";
+import { dedupeSituations } from "../../lib/situations";
+import type { PtSituationElement } from "../../types/situations";
 import type {
 	OtpTransportMode,
 	TripLeg,
 	TripPattern,
 } from "../../types/trip-planner";
+import SituationBanner from "../situations/SituationBanner";
 import Spinner from "../ui/Spinner";
 
 type Transport =
@@ -71,6 +74,13 @@ function formatDuration(seconds: number): string {
 
 function hasTransitLegs(pattern: TripPattern): boolean {
 	return pattern.legs.some((l) => l.serviceJourney != null);
+}
+
+function collectPatternSituations(pattern: TripPattern): PtSituationElement[] {
+	const lists = pattern.legs
+		.filter((l) => l.serviceJourney != null)
+		.flatMap((l) => [l.serviceJourney?.situations, l.line?.situations]);
+	return dedupeSituations(...lists);
 }
 
 function getLegKey(leg: TripLeg): string {
@@ -286,46 +296,53 @@ export default function TripResults({
 				const preview = getPreview(pattern);
 				const selecting = isSelecting(pattern);
 				const disabled = anySelecting;
+				const situations = collectPatternSituations(pattern);
 
 				return (
-					<button
-						key={getPatternKey(pattern)}
-						type="button"
-						disabled={disabled}
-						onClick={() => onSelect(pattern)}
-						className={`w-full rounded-xl border p-4 text-left transition-all bg-wayfare-surface-strong ${
-							selecting
-								? "border-wayfare-primary"
-								: "border-wayfare-line hover:border-wayfare-primary"
-						} ${disabled && !selecting ? "opacity-50" : ""} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
-					>
-						{/* Row 1: origin + duration */}
-						<div className="mb-3 flex items-center justify-between gap-2">
-							<span className="text-sm font-bold text-wayfare-text">
-								From {originName}
-							</span>
-							<span className="flex shrink-0 items-center gap-1 text-sm text-wayfare-text-secondary">
-								<ClockIcon
-									aria-hidden="true"
-									className="text-wayfare-text-secondary"
-								/>
-								{formatDuration(pattern.duration)}
-							</span>
-						</div>
-
-						{/* Row 2: responsive leg timeline */}
-						<LegTimeline legs={transitLegs} endTime={pattern.expectedEndTime} />
-
-						{/* Row 3: price + CTA */}
-						{selecting ? (
-							<div className="flex items-center gap-1.5 border-t border-wayfare-line pt-3 text-sm text-wayfare-text-secondary">
-								<Spinner className="h-3.5 w-3.5" />
-								Loading offers…
+					<div key={getPatternKey(pattern)} className="flex flex-col gap-1.5">
+						<button
+							type="button"
+							disabled={disabled}
+							onClick={() => onSelect(pattern)}
+							className={`w-full rounded-xl border p-4 text-left transition-all bg-wayfare-surface-strong ${
+								selecting
+									? "border-wayfare-primary"
+									: "border-wayfare-line hover:border-wayfare-primary"
+							} ${disabled && !selecting ? "opacity-50" : ""} ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
+						>
+							{/* Row 1: origin + duration */}
+							<div className="mb-3 flex items-center justify-between gap-2">
+								<span className="text-sm font-bold text-wayfare-text">
+									From {originName}
+								</span>
+								<span className="flex shrink-0 items-center gap-1 text-sm text-wayfare-text-secondary">
+									<ClockIcon
+										aria-hidden="true"
+										className="text-wayfare-text-secondary"
+									/>
+									{formatDuration(pattern.duration)}
+								</span>
 							</div>
-						) : (
-							<PriceLine preview={preview} travelerCount={travelerCount} />
-						)}
-					</button>
+
+							{/* Row 2: responsive leg timeline */}
+							<LegTimeline
+								legs={transitLegs}
+								endTime={pattern.expectedEndTime}
+							/>
+
+							{/* Row 3: price + CTA */}
+							{selecting ? (
+								<div className="flex items-center gap-1.5 border-t border-wayfare-line pt-3 text-sm text-wayfare-text-secondary">
+									<Spinner className="h-3.5 w-3.5" />
+									Loading offers…
+								</div>
+							) : (
+								<PriceLine preview={preview} travelerCount={travelerCount} />
+							)}
+						</button>
+
+						<SituationBanner situations={situations} />
+					</div>
 				);
 			})}
 		</div>
