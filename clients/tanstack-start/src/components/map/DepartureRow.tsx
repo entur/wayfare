@@ -3,6 +3,7 @@ import {
 	ValidationInfoIcon,
 	WarningIcon,
 } from "@entur/icons";
+import { useState } from "react";
 import { delayMinutes, formatRelativeMinutes } from "../../lib/departure-time";
 import { pickText, severityRank } from "../../lib/situations";
 import type { EstimatedCall } from "../../types/departures";
@@ -28,39 +29,33 @@ function topSituation(
 	);
 }
 
-function SituationDot({
-	situations,
-}: {
-	situations: PtSituationElement[] | null | undefined;
-}) {
-	const top = topSituation(situations);
-	if (!top) return null;
+type SituationTier = "info" | "warning" | "error";
 
+function situationTier(top: PtSituationElement): SituationTier {
 	const rank = severityRank(top.severity);
-	const label = pickText(top.summary);
-	if (!label) return null;
-
-	let Icon = ValidationInfoIcon;
-	let colorClass = "text-blue-500";
-	if (rank >= 4) {
-		Icon = ValidationErrorIcon;
-		colorClass = "text-red-500";
-	} else if (rank >= 3) {
-		Icon = WarningIcon;
-		colorClass = "text-yellow-600 dark:text-yellow-400";
-	}
-
-	return (
-		<span
-			role="img"
-			title={label}
-			aria-label={label}
-			className={`shrink-0 ${colorClass}`}
-		>
-			<Icon aria-hidden className="h-4 w-4" />
-		</span>
-	);
+	if (rank >= 4) return "error";
+	if (rank >= 3) return "warning";
+	return "info";
 }
+
+const TIER_ICON = {
+	info: ValidationInfoIcon,
+	warning: WarningIcon,
+	error: ValidationErrorIcon,
+} as const;
+
+const TIER_COLOR = {
+	info: "text-blue-500",
+	warning: "text-yellow-600 dark:text-yellow-400",
+	error: "text-red-500",
+} as const;
+
+const TIER_BG = {
+	info: "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300",
+	warning:
+		"bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-200",
+	error: "bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200",
+} as const;
 
 function formatClock(iso: string): string {
 	const d = new Date(iso);
@@ -82,6 +77,7 @@ const STATUS_TEXT_CLASS: Record<Status, string> = {
 };
 
 export default function DepartureRow({ call, now }: Props) {
+	const [situationOpen, setSituationOpen] = useState(false);
 	const line = call.serviceJourney?.line;
 	const delay = delayMinutes(call);
 	const status = resolveStatus(delay, call.cancellation, call.realtime);
@@ -92,40 +88,75 @@ export default function DepartureRow({ call, now }: Props) {
 	const bg = normaliseColour(line?.presentation?.colour) ?? "#374151";
 	const fg = normaliseColour(line?.presentation?.textColour) ?? "#ffffff";
 
+	const top = topSituation(call.situations);
+	const tier = top ? situationTier(top) : null;
+	const SituationIcon = tier ? TIER_ICON[tier] : null;
+	const summary = top ? pickText(top.summary) : null;
+	const description = top ? pickText(top.description) : null;
+	const advice = top ? pickText(top.advice) : null;
+
+	const hasSituation = !!(top && tier && summary);
+
 	return (
-		<li
-			className={`flex items-center gap-3 py-2 ${
-				call.cancellation ? "line-through opacity-60" : ""
-			}`}
-		>
-			<span
-				className="inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 text-xs font-semibold tabular-nums"
-				style={{ backgroundColor: bg, color: fg }}
+		<li className={call.cancellation ? "opacity-60" : ""}>
+			<button
+				type="button"
+				disabled={!hasSituation}
+				onClick={hasSituation ? () => setSituationOpen((v) => !v) : undefined}
+				aria-expanded={hasSituation ? situationOpen : undefined}
+				className={`flex w-full items-center gap-3 py-2 text-left ${call.cancellation ? "line-through" : ""} ${hasSituation ? "cursor-pointer" : "cursor-default"}`}
 			>
-				{bullet}
-			</span>
-			<span className="flex-1 truncate text-sm text-wayfare-text">
-				{destination}
-			</span>
-			<SituationDot situations={call.situations} />
-			<div className="flex flex-col items-end leading-tight">
-				<span className={`font-mono text-sm tabular-nums ${timeColour}`}>
-					{formatClock(call.expectedDepartureTime)}
+				<span
+					className="inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 text-xs font-semibold tabular-nums"
+					style={{ backgroundColor: bg, color: fg }}
+				>
+					{bullet}
 				</span>
-				{isDelayed && !call.cancellation && (
-					<span className="font-mono text-[10px] tabular-nums text-wayfare-text-secondary line-through">
-						{formatClock(call.aimedDepartureTime)}
+				<span className="flex-1 truncate text-sm text-wayfare-text">
+					{destination}
+				</span>
+				{hasSituation && SituationIcon && tier && (
+					<span aria-hidden className={`shrink-0 ${TIER_COLOR[tier]}`}>
+						<SituationIcon className="h-4 w-4" />
 					</span>
 				)}
-				<span className="text-[10px] text-wayfare-text-secondary">
-					{formatRelativeMinutes(call.expectedDepartureTime, now)}
-				</span>
-			</div>
-			<DepartureStatusDot
-				delayMinutes={delay}
-				cancelled={call.cancellation}
-				realtime={call.realtime}
-			/>
+				<div className="flex flex-col items-end leading-tight">
+					<span className={`font-mono text-sm tabular-nums ${timeColour}`}>
+						{formatClock(call.expectedDepartureTime)}
+					</span>
+					{isDelayed && !call.cancellation && (
+						<span className="font-mono text-[10px] tabular-nums text-wayfare-text-secondary line-through">
+							{formatClock(call.aimedDepartureTime)}
+						</span>
+					)}
+					<span className="text-[10px] text-wayfare-text-secondary">
+						{formatRelativeMinutes(call.expectedDepartureTime, now)}
+					</span>
+				</div>
+				<DepartureStatusDot
+					delayMinutes={delay}
+					cancelled={call.cancellation}
+					realtime={call.realtime}
+				/>
+			</button>
+			{situationOpen && top && tier && summary && (
+				<div className={`mb-2 rounded-md px-3 py-2 text-xs ${TIER_BG[tier]}`}>
+					<p className="font-medium">{summary}</p>
+					{description && <p className="mt-1 opacity-90">{description}</p>}
+					{advice && <p className="mt-1 italic opacity-90">{advice}</p>}
+					{top.infoLinks?.map((link) => (
+						<a
+							key={link.uri}
+							href={link.uri}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="mt-1 block underline underline-offset-2"
+						>
+							{link.label ?? link.uri}
+						</a>
+					))}
+				</div>
+			)}
 		</li>
 	);
 }
