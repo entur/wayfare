@@ -12,6 +12,7 @@ export interface DepartureLine {
 }
 
 export interface DepartureServiceJourney {
+	id?: string | null;
 	line?: DepartureLine | null;
 }
 

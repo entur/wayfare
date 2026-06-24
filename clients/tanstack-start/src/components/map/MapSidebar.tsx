@@ -1,5 +1,6 @@
 import type { RecentStop } from "../../lib/recent-stops-storage";
 import type { PlaceReference } from "../../types/common";
+import type { EstimatedCall } from "../../types/departures";
 import SegmentedControl from "../ui/SegmentedControl";
 import StopsPanel from "./StopsPanel";
 import ZonesPanel, { type ZoneSlot } from "./ZonesPanel";
@@ -24,6 +25,8 @@ interface Props {
 	onTravelFrom: (stop: SelectedStop) => void;
 	onTravelTo: (stop: SelectedStop) => void;
 	onClose: () => void;
+	selectedJourneyId?: string | null;
+	onSelectDeparture?: (call: EstimatedCall) => void;
 
 	// Zones mode
 	zoneFrom: PlaceReference | null;
@@ -52,6 +55,8 @@ export default function MapSidebar({
 	onTravelFrom,
 	onTravelTo,
 	onClose,
+	selectedJourneyId,
+	onSelectDeparture,
 	zoneFrom,
 	zoneTo,
 	onZoneFromChange,
@@ -81,6 +86,8 @@ export default function MapSidebar({
 					onTravelFrom={onTravelFrom}
 					onTravelTo={onTravelTo}
 					onClose={onClose}
+					selectedJourneyId={selectedJourneyId}
+					onSelectDeparture={onSelectDeparture}
 				/>
 			) : (
 				<ZonesPanel

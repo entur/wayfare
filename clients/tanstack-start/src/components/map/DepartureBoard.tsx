@@ -8,6 +8,8 @@ const FLAT_GROUP_KEY = "__flat__";
 
 interface Props {
 	calls: EstimatedCall[];
+	selectedJourneyId?: string | null;
+	onSelectDeparture?: (call: EstimatedCall) => void;
 }
 
 function directionLabel(group: QuayDepartures): string | null {
@@ -49,7 +51,11 @@ function shouldFlatten(labels: (string | null)[]): boolean {
 	return new Set(labels).size === 1; // all identical (incl. all-null)
 }
 
-export default function DepartureBoard({ calls }: Props) {
+export default function DepartureBoard({
+	calls,
+	selectedJourneyId,
+	onSelectDeparture,
+}: Props) {
 	const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
 	if (calls.length === 0) {
@@ -91,6 +97,8 @@ export default function DepartureBoard({ calls }: Props) {
 							key={`${key}-${c.aimedDepartureTime}-${c.serviceJourney?.line?.publicCode ?? ""}-${c.destinationDisplay?.frontText ?? ""}`}
 							call={c}
 							now={now}
+							selectedJourneyId={selectedJourneyId}
+							onSelectDeparture={onSelectDeparture}
 						/>
 					))}
 				</ul>

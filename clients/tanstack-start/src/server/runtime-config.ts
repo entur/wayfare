@@ -9,6 +9,7 @@ interface ModeDefaults {
 	omsaBaseUrl: string;
 	salesBaseUrl: string;
 	journeyPlannerUrl: string;
+	vehiclePositionsUrl: string;
 	geocoderUrl: string;
 	oauthTokenUrl: string;
 	auth0Audience: string;
@@ -19,6 +20,7 @@ export interface RuntimeConfig {
 	omsaBaseUrl: string;
 	salesBaseUrl: string;
 	journeyPlannerUrl: string;
+	vehiclePositionsUrl: string;
 	geocoderUrl: string;
 	oauthTokenUrl: string;
 	auth0Audience: string;
@@ -33,6 +35,7 @@ export interface RuntimeConfig {
 interface EnvironmentDefaults {
 	salesBaseUrl: string;
 	journeyPlannerUrl: string;
+	vehiclePositionsUrl: string;
 	geocoderUrl: string;
 	oauthTokenUrl: string;
 	auth0Audience: string;
@@ -41,6 +44,7 @@ interface EnvironmentDefaults {
 const DEV_ENVIRONMENT_DEFAULTS: EnvironmentDefaults = {
 	salesBaseUrl: "https://api.dev.entur.io/sales/v1",
 	journeyPlannerUrl: "https://api.dev.entur.io/journey-planner/v3/graphql",
+	vehiclePositionsUrl: "https://api.dev.entur.io/realtime/v2/vehicles/graphql",
 	geocoderUrl: "https://api.dev.entur.io/geocoder/v1",
 	oauthTokenUrl: "https://partner.dev.entur.org/oauth/token",
 	auth0Audience: "https://api.dev.entur.io",
@@ -49,6 +53,8 @@ const DEV_ENVIRONMENT_DEFAULTS: EnvironmentDefaults = {
 const STAGING_ENVIRONMENT_DEFAULTS: EnvironmentDefaults = {
 	salesBaseUrl: "https://api.staging.entur.io/sales/v1",
 	journeyPlannerUrl: "https://api.staging.entur.io/journey-planner/v3/graphql",
+	vehiclePositionsUrl:
+		"https://api.staging.entur.io/realtime/v2/vehicles/graphql",
 	geocoderUrl: "https://api.staging.entur.io/geocoder/v1",
 	oauthTokenUrl: "https://partner.staging.entur.org/oauth/token",
 	auth0Audience: "https://api.staging.entur.io",
@@ -145,6 +151,10 @@ export function getRuntimeConfig(
 		journeyPlannerUrl: normalizeUrl(
 			resolveEnvField("JOURNEY_PLANNER_URL", mode) ??
 				defaults.journeyPlannerUrl,
+		),
+		vehiclePositionsUrl: normalizeUrl(
+			resolveEnvField("VEHICLE_POSITIONS_URL", mode) ??
+				defaults.vehiclePositionsUrl,
 		),
 		geocoderUrl: normalizeUrl(
 			resolveEnvField("GEOCODER_URL", mode) ?? defaults.geocoderUrl,

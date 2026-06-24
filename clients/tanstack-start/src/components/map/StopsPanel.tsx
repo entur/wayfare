@@ -6,6 +6,7 @@ import {
 	type RecentStop,
 } from "../../lib/recent-stops-storage";
 import type { PlaceReference } from "../../types/common";
+import type { EstimatedCall } from "../../types/departures";
 import PlaceSearch from "../search/PlaceSearch";
 import SituationBanner from "../situations/SituationBanner";
 import DepartureBoard from "./DepartureBoard";
@@ -19,6 +20,8 @@ interface Props {
 	onTravelFrom: (stop: SelectedStop) => void;
 	onTravelTo: (stop: SelectedStop) => void;
 	onClose: () => void;
+	selectedJourneyId?: string | null;
+	onSelectDeparture?: (call: EstimatedCall) => void;
 }
 
 function formatUpdatedAt(iso: string | undefined): string {
@@ -38,6 +41,8 @@ export default function StopsPanel({
 	onTravelFrom,
 	onTravelTo,
 	onClose,
+	selectedJourneyId,
+	onSelectDeparture,
 }: Props) {
 	const departures = useStopDepartures(selectedStop?.id ?? null);
 	const [recent, setRecent] = useState<RecentStop[]>([]);
@@ -120,7 +125,11 @@ export default function StopsPanel({
 								<SituationBanner situations={departures.data.stopSituations} />
 							</div>
 						)}
-						<DepartureBoard calls={departures.data.calls} />
+						<DepartureBoard
+							calls={departures.data.calls}
+							selectedJourneyId={selectedJourneyId}
+							onSelectDeparture={onSelectDeparture}
+						/>
 						<div className="mt-3 text-right text-[10px] text-wayfare-text-secondary">
 							Updated {formatUpdatedAt(departures.data.fetchedAt)} · refreshes
 							every 30 s

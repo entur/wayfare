@@ -26,12 +26,42 @@ import {
 	useMap,
 	type ZoneSlot,
 } from "../components/map";
+import { SelectedVehicleLayer } from "../components/map/SelectedVehicleLayer";
 import { useResolvedTheme } from "../components/map/theme";
 import { useStopIcons } from "../components/map/useStopIcons";
 import { useSearchForm } from "../context/search-form";
 import type { RecentStop } from "../lib/recent-stops-storage";
 import { formatZoneName, OPERATOR_NAMES } from "../lib/zone-utils";
 import type { PlaceReference } from "../types/common";
+import type { EstimatedCall } from "../types/departures";
+import type { OtpTransportMode } from "../types/trip-planner";
+
+const VALID_MODES: OtpTransportMode[] = [
+	"foot",
+	"bus",
+	"coach",
+	"rail",
+	"tram",
+	"metro",
+	"water",
+	"air",
+	"bicycle",
+	"car",
+	"ferry",
+];
+
+function toTransportMode(raw: string | null | undefined): OtpTransportMode {
+	const m = raw?.toLowerCase() ?? "";
+	return (
+		VALID_MODES.includes(m as OtpTransportMode) ? m : "bus"
+	) as OtpTransportMode;
+}
+
+interface SelectedJourney {
+	serviceJourneyId: string;
+	mode: OtpTransportMode;
+	lineName?: string;
+}
 
 interface MapStopPlace {
 	id: string;
@@ -612,6 +642,8 @@ function MapContent() {
 
 	const [panelMode, setPanelMode] = useState<PanelMode>("stops");
 	const [selectedStop, setSelectedStop] = useState<SelectedStop | null>(null);
+	const [selectedJourney, setSelectedJourney] =
+		useState<SelectedJourney | null>(null);
 	const [nextZoneSlot, setNextZoneSlot] = useState<ZoneSlot>("from");
 	const [hiddenOperators, setHiddenOperators] = useState<Set<string>>(
 		new Set(),
@@ -720,12 +752,25 @@ function MapContent() {
 			coordinates: [stop.longitude, stop.latitude],
 			modes: stop.transportMode,
 		});
+		setSelectedJourney(null);
 		const currentZoom = mapRef.current?.getZoom?.() ?? 13;
 		mapRef.current?.flyTo({
 			center: [stop.longitude, stop.latitude],
 			zoom: Math.max(currentZoom, 13),
 			duration: 600,
 		});
+	}, []);
+
+	const handleSelectDeparture = useCallback((call: EstimatedCall) => {
+		const serviceJourneyId = call.serviceJourney?.id;
+		if (!serviceJourneyId) return;
+		const mode = toTransportMode(call.serviceJourney?.line?.transportMode);
+		const lineName = call.serviceJourney?.line?.publicCode ?? undefined;
+		setSelectedJourney((prev) =>
+			prev?.serviceJourneyId === serviceJourneyId
+				? null
+				: { serviceJourneyId, mode, lineName },
+		);
 	}, []);
 
 	const handlePlaceSearch = useCallback((place: PlaceReference | null) => {
@@ -736,6 +781,7 @@ function MapContent() {
 			coordinates: place.coordinates,
 			modes: [],
 		});
+		setSelectedJourney(null);
 		mapRef.current?.flyTo({
 			center: place.coordinates,
 			zoom: 14,
@@ -750,6 +796,7 @@ function MapContent() {
 			coordinates: s.coordinates,
 			modes: [],
 		});
+		setSelectedJourney(null);
 		mapRef.current?.flyTo({ center: s.coordinates, zoom: 14, duration: 800 });
 	}, []);
 
@@ -804,7 +851,12 @@ function MapContent() {
 		onPickRecent: handlePickRecent,
 		onTravelFrom: handleTravelFrom,
 		onTravelTo: handleTravelTo,
-		onClose: () => setSelectedStop(null),
+		onClose: () => {
+			setSelectedStop(null);
+			setSelectedJourney(null);
+		},
+		selectedJourneyId: selectedJourney?.serviceJourneyId ?? null,
+		onSelectDeparture: handleSelectDeparture,
 		zoneFrom,
 		zoneTo,
 		onZoneFromChange: handleZoneFromChange,
@@ -923,6 +975,14 @@ function MapContent() {
 					)}
 
 					<ZoomHint />
+					{selectedJourney && (
+						<SelectedVehicleLayer
+							key={selectedJourney.serviceJourneyId}
+							serviceJourneyId={selectedJourney.serviceJourneyId}
+							mode={selectedJourney.mode}
+							lineName={selectedJourney.lineName}
+						/>
+					)}
 					<MapControls
 						position="bottom-right"
 						showZoom
