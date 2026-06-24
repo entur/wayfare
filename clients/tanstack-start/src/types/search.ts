@@ -82,10 +82,14 @@ export interface TravellerMapping {
 	userType?: string;
 }
 
+export interface ZoneLabel {
+	id: string;
+	label: string;
+}
+
 export interface ZonalValidity {
-	zones?: string[];
-	fareZones?: string[];
-	groupOfTariffZones?: string[];
+	fareZones?: ZoneLabel[];
+	groups?: ZoneLabel[];
 }
 
 export interface GeographicalValidity {
