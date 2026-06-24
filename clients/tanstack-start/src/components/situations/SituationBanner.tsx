@@ -27,20 +27,20 @@ const TIER_STYLES: Record<
 > = {
 	info: {
 		border: "border-l-blue-400",
-		bg: "bg-blue-50 dark:bg-blue-950/30",
-		text: "text-blue-700 dark:text-blue-300",
-		icon: "text-blue-500",
+		bg: "bg-blue-100 dark:bg-blue-950/40",
+		text: "text-blue-800 dark:text-blue-300",
+		icon: "text-blue-600",
 	},
 	warning: {
 		border: "border-l-yellow-500",
-		bg: "bg-yellow-50 dark:bg-yellow-950/30",
-		text: "text-yellow-800 dark:text-yellow-200",
+		bg: "bg-yellow-100 dark:bg-yellow-950/40",
+		text: "text-yellow-900 dark:text-yellow-200",
 		icon: "text-yellow-600 dark:text-yellow-400",
 	},
 	error: {
 		border: "border-l-red-500",
-		bg: "bg-red-50 dark:bg-red-950/30",
-		text: "text-red-800 dark:text-red-200",
+		bg: "bg-red-100 dark:bg-red-950/40",
+		text: "text-red-900 dark:text-red-200",
 		icon: "text-red-600 dark:text-red-400",
 	},
 };

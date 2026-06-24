@@ -51,10 +51,11 @@ const TIER_COLOR = {
 } as const;
 
 const TIER_BG = {
-	info: "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300",
+	info: "border-l-4 border-l-blue-400 bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300",
 	warning:
-		"bg-yellow-50 dark:bg-yellow-950/30 text-yellow-800 dark:text-yellow-200",
-	error: "bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200",
+		"border-l-4 border-l-yellow-500 bg-yellow-100 dark:bg-yellow-950/40 text-yellow-900 dark:text-yellow-200",
+	error:
+		"border-l-4 border-l-red-500 bg-red-100 dark:bg-red-950/40 text-red-900 dark:text-red-200",
 } as const;
 
 function formatClock(iso: string): string {
