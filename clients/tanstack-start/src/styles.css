@@ -22,6 +22,17 @@
 	--color-wayfare-line: rgba(24, 28, 32, 0.12);
 	--color-wayfare-header-bg: rgba(255, 255, 255, 0.88);
 	--color-wayfare-accent-soft: rgba(233, 0, 55, 0.08);
+
+	/* Situation alert colors (light mode) — aligned with Entur validation tokens */
+	--color-wayfare-alert-info-bg: #e1eff8;
+	--color-wayfare-alert-info-border: #0082b9;
+	--color-wayfare-alert-info-text: #004d70;
+	--color-wayfare-alert-warning-bg: #fff4cd;
+	--color-wayfare-alert-warning-border: #f0a500;
+	--color-wayfare-alert-warning-text: #6b3a00;
+	--color-wayfare-alert-error-bg: #ffcece;
+	--color-wayfare-alert-error-border: #d31b1b;
+	--color-wayfare-alert-error-text: #7a0000;
 }
 
 :root[data-color-mode="dark"] {
@@ -35,6 +46,17 @@
 	--color-wayfare-line: rgba(232, 234, 237, 0.12);
 	--color-wayfare-header-bg: rgba(18, 21, 26, 0.88);
 	--color-wayfare-accent-soft: rgba(255, 51, 85, 0.1);
+
+	/* Situation alert colors (dark mode) */
+	--color-wayfare-alert-info-bg: rgba(0, 130, 185, 0.15);
+	--color-wayfare-alert-info-border: #64b3e7;
+	--color-wayfare-alert-info-text: #a8d4f0;
+	--color-wayfare-alert-warning-bg: rgba(255, 202, 40, 0.12);
+	--color-wayfare-alert-warning-border: #ffca28;
+	--color-wayfare-alert-warning-text: #ffe082;
+	--color-wayfare-alert-error-bg: rgba(211, 27, 27, 0.15);
+	--color-wayfare-alert-error-border: #ff9494;
+	--color-wayfare-alert-error-text: #ffcece;
 }
 
 

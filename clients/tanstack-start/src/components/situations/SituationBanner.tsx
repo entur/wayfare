@@ -26,22 +26,22 @@ const TIER_STYLES: Record<
 	{ border: string; bg: string; text: string; icon: string }
 > = {
 	info: {
-		border: "border-l-blue-400",
-		bg: "bg-blue-100 dark:bg-blue-950/40",
-		text: "text-blue-800 dark:text-blue-300",
-		icon: "text-blue-600",
+		border: "border-l-wayfare-alert-info-border",
+		bg: "bg-wayfare-alert-info-bg",
+		text: "text-wayfare-alert-info-text",
+		icon: "text-wayfare-alert-info-border",
 	},
 	warning: {
-		border: "border-l-yellow-500",
-		bg: "bg-yellow-100 dark:bg-yellow-950/40",
-		text: "text-yellow-900 dark:text-yellow-200",
-		icon: "text-yellow-600 dark:text-yellow-400",
+		border: "border-l-wayfare-alert-warning-border",
+		bg: "bg-wayfare-alert-warning-bg",
+		text: "text-wayfare-alert-warning-text",
+		icon: "text-wayfare-alert-warning-border",
 	},
 	error: {
-		border: "border-l-red-500",
-		bg: "bg-red-100 dark:bg-red-950/40",
-		text: "text-red-900 dark:text-red-200",
-		icon: "text-red-600 dark:text-red-400",
+		border: "border-l-wayfare-alert-error-border",
+		bg: "bg-wayfare-alert-error-bg",
+		text: "text-wayfare-alert-error-text",
+		icon: "text-wayfare-alert-error-border",
 	},
 };
 

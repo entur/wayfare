@@ -45,17 +45,17 @@ const TIER_ICON = {
 } as const;
 
 const TIER_COLOR = {
-	info: "text-blue-500",
-	warning: "text-yellow-600 dark:text-yellow-400",
-	error: "text-red-500",
+	info: "text-wayfare-alert-info-border",
+	warning: "text-wayfare-alert-warning-border",
+	error: "text-wayfare-alert-error-border",
 } as const;
 
 const TIER_BG = {
-	info: "border-l-4 border-l-blue-400 bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300",
+	info: "border-l-4 border-l-wayfare-alert-info-border bg-wayfare-alert-info-bg text-wayfare-alert-info-text",
 	warning:
-		"border-l-4 border-l-yellow-500 bg-yellow-100 dark:bg-yellow-950/40 text-yellow-900 dark:text-yellow-200",
+		"border-l-4 border-l-wayfare-alert-warning-border bg-wayfare-alert-warning-bg text-wayfare-alert-warning-text",
 	error:
-		"border-l-4 border-l-red-500 bg-red-100 dark:bg-red-950/40 text-red-900 dark:text-red-200",
+		"border-l-4 border-l-wayfare-alert-error-border bg-wayfare-alert-error-bg text-wayfare-alert-error-text",
 } as const;
 
 function formatClock(iso: string): string {
