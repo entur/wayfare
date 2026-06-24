@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { devConfigMiddleware } from "../server/middleware";
 import { createJourneyPlannerClient } from "../server/omsa-client";
 import type { TripPattern } from "../types/trip-planner";
+import { SITUATION_FRAGMENT } from "./graphql-fragments";
 
 const TRIP_QUERY = `
   query TripSearch($from: Location!, $to: Location!, $dateTime: DateTime) {
@@ -44,33 +45,13 @@ const TRIP_QUERY = `
           }
           serviceJourney {
             id
-            situations {
-              id
-              situationNumber
-              reportType
-              severity
-              summary { value language }
-              description { value language }
-              advice { value language }
-              validityPeriod { startTime endTime }
-              infoLinks { uri label }
-            }
+            situations { ${SITUATION_FRAGMENT} }
           }
           line {
             publicCode
             name
             transportMode
-            situations {
-              id
-              situationNumber
-              reportType
-              severity
-              summary { value language }
-              description { value language }
-              advice { value language }
-              validityPeriod { startTime endTime }
-              infoLinks { uri label }
-            }
+            situations { ${SITUATION_FRAGMENT} }
           }
           authority { name }
         }

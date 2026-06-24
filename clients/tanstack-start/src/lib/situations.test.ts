@@ -15,20 +15,20 @@ function situation(
 }
 
 describe("pickText", () => {
-	it("returns the Norwegian text when available", () => {
+	it("returns English text by default", () => {
 		const strings = [
 			{ value: "Test disruption", language: "en" },
 			{ value: "Testforstyrrelse", language: "no" },
 		];
-		expect(pickText(strings)).toBe("Testforstyrrelse");
+		expect(pickText(strings)).toBe("Test disruption");
 	});
 
-	it("accepts 'nb' as equivalent to 'no'", () => {
+	it("accepts 'nb' as equivalent to 'no' when lang is 'no'", () => {
 		const strings = [
 			{ value: "Testforstyrrelse", language: "nb" },
 			{ value: "Test disruption", language: "en" },
 		];
-		expect(pickText(strings)).toBe("Testforstyrrelse");
+		expect(pickText(strings, "no")).toBe("Testforstyrrelse");
 	});
 
 	it("falls back to English when Norwegian is absent", () => {

@@ -3,18 +3,7 @@ import { devConfigMiddleware } from "../server/middleware";
 import { createJourneyPlannerClient } from "../server/omsa-client";
 import type { EstimatedCall, StopDepartures } from "../types/departures";
 import type { PtSituationElement } from "../types/situations";
-
-const SITUATION_FRAGMENT = `
-	id
-	situationNumber
-	reportType
-	severity
-	summary { value language }
-	description { value language }
-	advice { value language }
-	validityPeriod { startTime endTime }
-	infoLinks { uri label }
-`;
+import { SITUATION_FRAGMENT } from "./graphql-fragments";
 
 const STOP_DEPARTURES_QUERY = `
 	query StopDepartures($id: String!, $numberOfDepartures: Int!, $timeRange: Int!) {

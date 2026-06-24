@@ -20,11 +20,11 @@ const SEVERITY_ORDER: Record<
 
 /**
  * Returns the best-fit text for the given language preference.
- * Falls back to "nb" then "en" then the first non-empty value.
+ * Defaults to "en". Falls back through "nb", "no", then the first non-empty value.
  */
 export function pickText(
 	strings: MultilingualString[],
-	lang = "no",
+	lang = "en",
 ): string | undefined {
 	if (!strings || strings.length === 0) return undefined;
 

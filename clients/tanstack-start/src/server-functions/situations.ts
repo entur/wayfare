@@ -3,18 +3,7 @@ import { dedupeSituations } from "../lib/situations";
 import { devConfigMiddleware } from "../server/middleware";
 import { createJourneyPlannerClient } from "../server/omsa-client";
 import type { PtSituationElement } from "../types/situations";
-
-const SITUATION_FRAGMENT = `
-	id
-	situationNumber
-	reportType
-	severity
-	summary { value language }
-	description { value language }
-	advice { value language }
-	validityPeriod { startTime endTime }
-	infoLinks { uri label }
-`;
+import { SITUATION_FRAGMENT } from "./graphql-fragments";
 
 const SERVICE_JOURNEY_SITUATIONS_QUERY = `
 	query ServiceJourneySituations($id: String!) {
@@ -64,7 +53,7 @@ export const fetchJourneySituations = createServerFn({ method: "POST" })
 			if (r.status === "rejected") return [];
 			const sj = r.value.serviceJourney;
 			if (!sj) return [];
-			return [sj.situations, sj.line?.situations ?? []].flat();
+			return [...(sj.situations ?? []), ...(sj.line?.situations ?? [])];
 		});
 
 		return dedupeSituations(allSituations);
