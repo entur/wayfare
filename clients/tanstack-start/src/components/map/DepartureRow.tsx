@@ -143,7 +143,9 @@ export default function DepartureRow({ call, now }: Props) {
 			{situationOpen && top && tier && summary && (
 				<div className={`mb-2 rounded-md px-3 py-2 text-xs ${TIER_BG[tier]}`}>
 					<p className="font-medium">{summary}</p>
-					{description && <p className="mt-1 opacity-90">{description}</p>}
+					{description && description !== summary && (
+						<p className="mt-1 opacity-90">{description}</p>
+					)}
 					{advice && <p className="mt-1 italic opacity-90">{advice}</p>}
 					{top.infoLinks?.map((link) => (
 						<a

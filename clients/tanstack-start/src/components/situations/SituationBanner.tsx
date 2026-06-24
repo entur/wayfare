@@ -66,8 +66,9 @@ function SituationItem({ situation }: { situation: PtSituationElement }) {
 
 	const summary = pickText(situation.summary);
 	const description = pickText(situation.description);
+	const uniqueDescription = description !== summary ? description : undefined;
 	const advice = pickText(situation.advice);
-	const hasMore = description || advice || situation.infoLinks?.length;
+	const hasMore = uniqueDescription || advice || situation.infoLinks?.length;
 
 	if (!summary) return null;
 
@@ -85,7 +86,7 @@ function SituationItem({ situation }: { situation: PtSituationElement }) {
 
 					{expanded && (
 						<div className={`mt-2 space-y-1.5 ${styles.text} opacity-90`}>
-							{description && <p>{description}</p>}
+							{uniqueDescription && <p>{uniqueDescription}</p>}
 							{advice && <p className="italic">{advice}</p>}
 							{situation.infoLinks?.map((link) => (
 								<a
