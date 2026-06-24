@@ -40,7 +40,12 @@ import { decodePolyline } from "../../lib/polyline";
 import { getTransportColor } from "../../lib/transport-colors";
 import type { OtpTransportMode } from "../../types/trip-planner";
 import { useMap } from "./context";
-import { MapMarker, MarkerContent, MarkerTooltip } from "./MapMarker";
+import {
+	MapMarker,
+	MarkerContent,
+	MarkerLabel,
+	MarkerTooltip,
+} from "./MapMarker";
 import { MapRoute } from "./MapRoute";
 import { useResolvedTheme } from "./theme";
 
@@ -61,6 +66,28 @@ function formatUpdatedAgo(iso: string): string {
 	const secs = Math.round(diffMs / 1000);
 	if (secs < 60) return `${secs}s ago`;
 	return `${Math.round(secs / 60)}m ago`;
+}
+
+function TerminusMarker({ color }: { color: string }) {
+	return (
+		<svg
+			aria-hidden="true"
+			width="16"
+			height="16"
+			viewBox="0 0 16 16"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+		>
+			<circle
+				cx="8"
+				cy="8"
+				r="7"
+				fill={color}
+				stroke="white"
+				strokeWidth="2.5"
+			/>
+		</svg>
+	);
 }
 
 function VehicleIcon({ color }: { color: string }) {
@@ -184,6 +211,9 @@ export function SelectedVehicleLayer({
 	}, [isLoaded, map, stopLayerId, color]);
 
 	const vehicle = position.data;
+	const stops = route.data?.stops ?? [];
+	const firstStop = stops[0];
+	const lastStop = stops[stops.length - 1];
 
 	return (
 		<>
@@ -197,6 +227,34 @@ export function SelectedVehicleLayer({
 					interactive={false}
 					beforeId={stopLayerId}
 				/>
+			)}
+			{coordinates && coordinates.length >= 2 && firstStop && (
+				<MapMarker
+					longitude={coordinates[0][0]}
+					latitude={coordinates[0][1]}
+					anchor="center"
+				>
+					<MarkerContent>
+						<TerminusMarker color={color} />
+					</MarkerContent>
+					<MarkerLabel position="top" className="font-semibold">
+						<span style={{ color }}>{firstStop.name}</span>
+					</MarkerLabel>
+				</MapMarker>
+			)}
+			{coordinates && coordinates.length >= 2 && lastStop && (
+				<MapMarker
+					longitude={coordinates[coordinates.length - 1][0]}
+					latitude={coordinates[coordinates.length - 1][1]}
+					anchor="center"
+				>
+					<MarkerContent>
+						<TerminusMarker color={color} />
+					</MarkerContent>
+					<MarkerLabel position="bottom" className="font-semibold">
+						<span style={{ color }}>{lastStop.name}</span>
+					</MarkerLabel>
+				</MapMarker>
 			)}
 			{vehicle && (
 				<MapMarker
