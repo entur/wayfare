@@ -24,6 +24,8 @@ type MapRouteProps = {
 	onMouseLeave?: () => void;
 	/** Whether the route is interactive - shows pointer cursor on hover (default: true) */
 	interactive?: boolean;
+	/** Insert this layer before (below) the given layer ID */
+	beforeId?: string;
 };
 
 function MapRoute({
@@ -37,6 +39,7 @@ function MapRoute({
 	onMouseEnter,
 	onMouseLeave,
 	interactive = true,
+	beforeId,
 }: MapRouteProps) {
 	const { map, isLoaded } = useMap();
 	const autoId = useId();
@@ -57,18 +60,21 @@ function MapRoute({
 			},
 		});
 
-		map.addLayer({
-			id: layerId,
-			type: "line",
-			source: sourceId,
-			layout: { "line-join": "round", "line-cap": "round" },
-			paint: {
-				"line-color": color,
-				"line-width": width,
-				"line-opacity": opacity,
-				...(dashArray && { "line-dasharray": dashArray }),
+		map.addLayer(
+			{
+				id: layerId,
+				type: "line",
+				source: sourceId,
+				layout: { "line-join": "round", "line-cap": "round" },
+				paint: {
+					"line-color": color,
+					"line-width": width,
+					"line-opacity": opacity,
+					...(dashArray && { "line-dasharray": dashArray }),
+				},
 			},
-		});
+			beforeId,
+		);
 
 		return () => {
 			try {

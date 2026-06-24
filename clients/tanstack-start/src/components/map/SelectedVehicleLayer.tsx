@@ -1,5 +1,39 @@
 import MapLibreGL from "maplibre-gl";
 import { useEffect, useId, useMemo, useState } from "react";
+
+function projectPointOnSegment(
+	p: [number, number],
+	a: [number, number],
+	b: [number, number],
+): [number, number] {
+	const dx = b[0] - a[0];
+	const dy = b[1] - a[1];
+	const len2 = dx * dx + dy * dy;
+	if (len2 === 0) return a;
+	const t = Math.max(
+		0,
+		Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2),
+	);
+	return [a[0] + t * dx, a[1] + t * dy];
+}
+
+function snapToPolyline(
+	point: [number, number],
+	polyline: [number, number][],
+): [number, number] {
+	let best: [number, number] = point;
+	let minDist = Infinity;
+	for (let i = 0; i < polyline.length - 1; i++) {
+		const proj = projectPointOnSegment(point, polyline[i], polyline[i + 1]);
+		const d = (proj[0] - point[0]) ** 2 + (proj[1] - point[1]) ** 2;
+		if (d < minDist) {
+			minDist = d;
+			best = proj;
+		}
+	}
+	return best;
+}
+
 import { useServiceJourneyRoute } from "../../hooks/use-service-journey-route";
 import { useVehiclePosition } from "../../hooks/use-vehicle-position";
 import { decodePolyline } from "../../lib/polyline";
@@ -118,26 +152,29 @@ export function SelectedVehicleLayer({
 		};
 	}, [isLoaded, map]);
 
-	// Update stop source data when route loads
+	// Update stop source data when route loads; snap stop coords to the polyline
 	useEffect(() => {
 		if (!isLoaded || !map) return;
 		const source = map.getSource(stopSourceId) as
 			| MapLibreGL.GeoJSONSource
 			| undefined;
 		if (!source) return;
-		const features: GeoJSON.Feature<GeoJSON.Point>[] = (
-			route.data?.stops ?? []
-		).map((stop, i) => ({
-			type: "Feature",
-			id: i,
-			geometry: {
-				type: "Point",
-				coordinates: [stop.longitude, stop.latitude],
-			},
-			properties: { name: stop.name },
-		}));
+		const stops = route.data?.stops ?? [];
+		const features: GeoJSON.Feature<GeoJSON.Point>[] = stops.map((stop, i) => {
+			const raw: [number, number] = [stop.longitude, stop.latitude];
+			const snapped =
+				coordinates && coordinates.length >= 2
+					? snapToPolyline(raw, coordinates)
+					: raw;
+			return {
+				type: "Feature",
+				id: i,
+				geometry: { type: "Point", coordinates: snapped },
+				properties: { name: stop.name },
+			};
+		});
 		source.setData({ type: "FeatureCollection", features });
-	}, [isLoaded, map, route.data?.stops, stopSourceId]);
+	}, [isLoaded, map, route.data?.stops, stopSourceId, coordinates]);
 
 	// Keep stop stroke color in sync with theme
 	useEffect(() => {
@@ -145,14 +182,6 @@ export function SelectedVehicleLayer({
 		if (!map.getLayer(stopLayerId)) return;
 		map.setPaintProperty(stopLayerId, "circle-stroke-color", color);
 	}, [isLoaded, map, stopLayerId, color]);
-
-	// Move stop circles above the route line whenever route loads
-	// biome-ignore lint/correctness/useExhaustiveDependencies: coordinates triggers re-raise after MapRoute mounts
-	useEffect(() => {
-		if (!isLoaded || !map) return;
-		if (!map.getLayer(stopLayerId)) return;
-		map.moveLayer(stopLayerId);
-	}, [isLoaded, map, stopLayerId, coordinates]);
 
 	const vehicle = position.data;
 
@@ -166,6 +195,7 @@ export function SelectedVehicleLayer({
 					width={5}
 					opacity={0.9}
 					interactive={false}
+					beforeId={stopLayerId}
 				/>
 			)}
 			{vehicle && (

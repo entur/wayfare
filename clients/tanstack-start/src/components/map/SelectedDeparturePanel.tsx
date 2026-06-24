@@ -133,12 +133,10 @@ export default function SelectedDeparturePanel({
 							return (
 								<li
 									key={stop.quayId ?? `${stop.name}-${i}`}
-									className={`flex items-center gap-3 py-1.5 ${
-										passed ? "opacity-40" : ""
-									}`}
+									className="flex items-center gap-3 py-1.5"
 								>
 									{/* Dot */}
-									<span className="relative z-10 shrink-0">
+									<span className="relative z-10 flex h-5 w-5 shrink-0 items-center justify-center">
 										{isCurrent ? (
 											<span
 												className="flex h-5 w-5 items-center justify-center rounded-full"
@@ -164,7 +162,7 @@ export default function SelectedDeparturePanel({
 											isCurrent
 												? "font-semibold text-wayfare-text"
 												: passed
-													? "text-wayfare-text-secondary"
+													? "opacity-40 text-wayfare-text-secondary"
 													: "text-wayfare-text"
 										}`}
 									>
@@ -175,10 +173,10 @@ export default function SelectedDeparturePanel({
 									{time && (
 										<span
 											className={`shrink-0 font-mono text-xs tabular-nums ${
-												passed
-													? "text-wayfare-text-secondary"
-													: isCurrent
-														? "font-semibold text-wayfare-text"
+												isCurrent
+													? "font-semibold text-wayfare-text"
+													: passed
+														? "opacity-40 text-wayfare-text-secondary"
 														: "text-wayfare-text-secondary"
 											}`}
 										>
