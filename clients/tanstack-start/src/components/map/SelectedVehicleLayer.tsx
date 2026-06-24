@@ -146,6 +146,14 @@ export function SelectedVehicleLayer({
 		map.setPaintProperty(stopLayerId, "circle-stroke-color", color);
 	}, [isLoaded, map, stopLayerId, color]);
 
+	// Move stop circles above the route line whenever route loads
+	// biome-ignore lint/correctness/useExhaustiveDependencies: coordinates triggers re-raise after MapRoute mounts
+	useEffect(() => {
+		if (!isLoaded || !map) return;
+		if (!map.getLayer(stopLayerId)) return;
+		map.moveLayer(stopLayerId);
+	}, [isLoaded, map, stopLayerId, coordinates]);
+
 	const vehicle = position.data;
 
 	return (

@@ -24,6 +24,7 @@ export { default as MapSidebar } from "./MapSidebar";
 export { default as MapSidebarStopHeader } from "./MapSidebarStopHeader";
 export type { MapRef, MapViewport } from "./MapView";
 export { MapView } from "./MapView";
+export { default as SelectedDeparturePanel } from "./SelectedDeparturePanel";
 export { SelectedJourneyLayer } from "./SelectedJourneyLayer";
 export { SelectedVehicleLayer } from "./SelectedVehicleLayer";
 export type { ZoneSlot } from "./ZonesPanel";

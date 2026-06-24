@@ -62,7 +62,15 @@ const SERVICE_JOURNEY_ROUTE_QUERY = `
 		serviceJourney(id: $id) {
 			pointsOnLink { points }
 			estimatedCalls {
+				realtime
+				aimedArrivalTime
+				expectedArrivalTime
+				actualArrivalTime
+				aimedDepartureTime
+				expectedDepartureTime
+				actualDepartureTime
 				quay {
+					id
 					name
 					latitude
 					longitude
@@ -72,16 +80,26 @@ const SERVICE_JOURNEY_ROUTE_QUERY = `
 	}
 `;
 
+interface RawEstimatedCall {
+	realtime?: boolean | null;
+	aimedArrivalTime?: string | null;
+	expectedArrivalTime?: string | null;
+	actualArrivalTime?: string | null;
+	aimedDepartureTime?: string | null;
+	expectedDepartureTime?: string | null;
+	actualDepartureTime?: string | null;
+	quay: {
+		id?: string | null;
+		name?: string | null;
+		latitude?: number | null;
+		longitude?: number | null;
+	} | null;
+}
+
 interface RawServiceJourneyData {
 	serviceJourney: {
 		pointsOnLink: { points: string } | null;
-		estimatedCalls: Array<{
-			quay: {
-				name?: string | null;
-				latitude?: number | null;
-				longitude?: number | null;
-			} | null;
-		}>;
+		estimatedCalls: RawEstimatedCall[];
 	} | null;
 }
 
@@ -97,18 +115,32 @@ export const fetchServiceJourneyRoute = createServerFn({ method: "POST" })
 		const sj = result.serviceJourney;
 		if (!sj?.pointsOnLink?.points) return null;
 		const stops = sj.estimatedCalls
-			.map((c) => c.quay)
 			.filter(
-				(q): q is NonNullable<typeof q> =>
-					q !== null &&
-					q !== undefined &&
-					q.latitude != null &&
-					q.longitude != null,
+				(
+					c,
+				): c is RawEstimatedCall & {
+					quay: NonNullable<RawEstimatedCall["quay"]> & {
+						latitude: number;
+						longitude: number;
+					};
+				} =>
+					c.quay !== null &&
+					c.quay !== undefined &&
+					c.quay.latitude != null &&
+					c.quay.longitude != null,
 			)
-			.map((q) => ({
-				name: q.name ?? "",
-				latitude: q.latitude as number,
-				longitude: q.longitude as number,
+			.map((c) => ({
+				quayId: c.quay.id ?? null,
+				name: c.quay.name ?? "",
+				latitude: c.quay.latitude,
+				longitude: c.quay.longitude,
+				realtime: c.realtime ?? null,
+				aimedArrivalTime: c.aimedArrivalTime ?? null,
+				expectedArrivalTime: c.expectedArrivalTime ?? null,
+				actualArrivalTime: c.actualArrivalTime ?? null,
+				aimedDepartureTime: c.aimedDepartureTime ?? null,
+				expectedDepartureTime: c.expectedDepartureTime ?? null,
+				actualDepartureTime: c.actualDepartureTime ?? null,
 			}));
 		return { points: sj.pointsOnLink.points, stops };
 	});

@@ -1,5 +1,10 @@
 import type { EstimatedCall, QuayDepartures } from "../types/departures";
 
+export function formatClock(iso: string): string {
+	const d = new Date(iso);
+	return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 interface TimedPair {
 	aimedDepartureTime: string;
 	expectedDepartureTime: string;

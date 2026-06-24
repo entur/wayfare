@@ -7,11 +7,14 @@ import {
 } from "../../lib/recent-stops-storage";
 import type { PlaceReference } from "../../types/common";
 import type { EstimatedCall } from "../../types/departures";
+import type { PtSituationElement } from "../../types/situations";
+import type { OtpTransportMode } from "../../types/trip-planner";
 import PlaceSearch from "../search/PlaceSearch";
 import SituationBanner from "../situations/SituationBanner";
 import DepartureBoard from "./DepartureBoard";
 import type { SelectedStop } from "./MapSidebar";
 import MapSidebarStopHeader from "./MapSidebarStopHeader";
+import SelectedDeparturePanel from "./SelectedDeparturePanel";
 
 interface Props {
 	selectedStop: SelectedStop | null;
@@ -20,8 +23,16 @@ interface Props {
 	onTravelFrom: (stop: SelectedStop) => void;
 	onTravelTo: (stop: SelectedStop) => void;
 	onClose: () => void;
+	selectedJourney?: {
+		serviceJourneyId: string;
+		mode: OtpTransportMode;
+		lineName?: string;
+		destination?: string;
+		situations?: PtSituationElement[];
+	} | null;
 	selectedJourneyId?: string | null;
 	onSelectDeparture?: (call: EstimatedCall) => void;
+	onClearJourney?: () => void;
 }
 
 function formatUpdatedAt(iso: string | undefined): string {
@@ -41,8 +52,10 @@ export default function StopsPanel({
 	onTravelFrom,
 	onTravelTo,
 	onClose,
+	selectedJourney,
 	selectedJourneyId,
 	onSelectDeparture,
+	onClearJourney,
 }: Props) {
 	const departures = useStopDepartures(selectedStop?.id ?? null);
 	const [recent, setRecent] = useState<RecentStop[]>([]);
@@ -118,24 +131,36 @@ export default function StopsPanel({
 						Could not load departures
 					</div>
 				)}
-				{departures.data && (
-					<>
-						{departures.data.stopSituations.length > 0 && (
-							<div className="mb-3">
-								<SituationBanner situations={departures.data.stopSituations} />
-							</div>
-						)}
-						<DepartureBoard
-							calls={departures.data.calls}
-							selectedJourneyId={selectedJourneyId}
-							onSelectDeparture={onSelectDeparture}
+				{departures.data &&
+					(selectedJourney ? (
+						<SelectedDeparturePanel
+							serviceJourneyId={selectedJourney.serviceJourneyId}
+							mode={selectedJourney.mode}
+							lineName={selectedJourney.lineName}
+							destination={selectedJourney.destination}
+							situations={selectedJourney.situations}
+							onBack={onClearJourney ?? (() => {})}
 						/>
-						<div className="mt-3 text-right text-[10px] text-wayfare-text-secondary">
-							Updated {formatUpdatedAt(departures.data.fetchedAt)} · refreshes
-							every 30 s
-						</div>
-					</>
-				)}
+					) : (
+						<>
+							{departures.data.stopSituations.length > 0 && (
+								<div className="mb-3">
+									<SituationBanner
+										situations={departures.data.stopSituations}
+									/>
+								</div>
+							)}
+							<DepartureBoard
+								calls={departures.data.calls}
+								selectedJourneyId={selectedJourneyId}
+								onSelectDeparture={onSelectDeparture}
+							/>
+							<div className="mt-3 text-right text-[10px] text-wayfare-text-secondary">
+								Updated {formatUpdatedAt(departures.data.fetchedAt)} · refreshes
+								every 30 s
+							</div>
+						</>
+					))}
 			</div>
 		</div>
 	);

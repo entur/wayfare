@@ -3,8 +3,11 @@ import {
 	ValidationInfoIcon,
 	WarningIcon,
 } from "@entur/icons";
-import { useState } from "react";
-import { delayMinutes, formatRelativeMinutes } from "../../lib/departure-time";
+import {
+	delayMinutes,
+	formatClock,
+	formatRelativeMinutes,
+} from "../../lib/departure-time";
 import { pickText, severityRank } from "../../lib/situations";
 import type { EstimatedCall } from "../../types/departures";
 import type { PtSituationElement } from "../../types/situations";
@@ -60,11 +63,6 @@ const TIER_BG = {
 		"border-l-4 border-l-wayfare-alert-error-border bg-wayfare-alert-error-bg text-wayfare-alert-error-text",
 } as const;
 
-function formatClock(iso: string): string {
-	const d = new Date(iso);
-	return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
 function normaliseColour(raw?: string | null): string | undefined {
 	if (!raw) return undefined;
 	return raw.startsWith("#") ? raw : `#${raw}`;
@@ -85,7 +83,6 @@ export default function DepartureRow({
 	selectedJourneyId,
 	onSelectDeparture,
 }: Props) {
-	const [situationOpen, setSituationOpen] = useState(false);
 	const line = call.serviceJourney?.line;
 	const serviceJourneyId = call.serviceJourney?.id;
 	const isSelected = !!(
@@ -158,18 +155,12 @@ export default function DepartureRow({
 					/>
 				</button>
 				{hasSituation && SituationIcon && tier && (
-					<button
-						type="button"
-						onClick={() => setSituationOpen((v) => !v)}
-						aria-expanded={situationOpen}
-						aria-label="Show service alert"
-						className={`shrink-0 px-1 ${TIER_COLOR[tier]}`}
-					>
+					<span aria-hidden className={`shrink-0 px-1 ${TIER_COLOR[tier]}`}>
 						<SituationIcon className="h-4 w-4" />
-					</button>
+					</span>
 				)}
 			</div>
-			{situationOpen && top && tier && summary && (
+			{hasSituation && top && tier && summary && (
 				<div className={`mb-2 rounded-md px-3 py-2 text-xs ${TIER_BG[tier]}`}>
 					<p className="font-medium">{summary}</p>
 					{description && description !== summary && (

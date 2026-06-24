@@ -34,6 +34,7 @@ import type { RecentStop } from "../lib/recent-stops-storage";
 import { formatZoneName, OPERATOR_NAMES } from "../lib/zone-utils";
 import type { PlaceReference } from "../types/common";
 import type { EstimatedCall } from "../types/departures";
+import type { PtSituationElement } from "../types/situations";
 import type { OtpTransportMode } from "../types/trip-planner";
 
 const VALID_MODES: OtpTransportMode[] = [
@@ -61,6 +62,8 @@ interface SelectedJourney {
 	serviceJourneyId: string;
 	mode: OtpTransportMode;
 	lineName?: string;
+	destination?: string;
+	situations?: PtSituationElement[];
 }
 
 interface MapStopPlace {
@@ -766,10 +769,12 @@ function MapContent() {
 		if (!serviceJourneyId) return;
 		const mode = toTransportMode(call.serviceJourney?.line?.transportMode);
 		const lineName = call.serviceJourney?.line?.publicCode ?? undefined;
+		const destination = call.destinationDisplay?.frontText ?? undefined;
+		const situations = call.situations ?? undefined;
 		setSelectedJourney((prev) =>
 			prev?.serviceJourneyId === serviceJourneyId
 				? null
-				: { serviceJourneyId, mode, lineName },
+				: { serviceJourneyId, mode, lineName, destination, situations },
 		);
 	}, []);
 
@@ -855,8 +860,10 @@ function MapContent() {
 			setSelectedStop(null);
 			setSelectedJourney(null);
 		},
+		selectedJourney: selectedJourney ?? null,
 		selectedJourneyId: selectedJourney?.serviceJourneyId ?? null,
 		onSelectDeparture: handleSelectDeparture,
+		onClearJourney: () => setSelectedJourney(null),
 		zoneFrom,
 		zoneTo,
 		onZoneFromChange: handleZoneFromChange,
@@ -992,7 +999,7 @@ function MapContent() {
 					/>
 				</MapView>
 
-				<MapBottomSheet>
+				<MapBottomSheet desiredSnap={selectedJourney ? "half" : undefined}>
 					<MapSidebar {...sidebarProps} />
 				</MapBottomSheet>
 			</div>
