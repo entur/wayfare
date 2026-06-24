@@ -40,14 +40,14 @@ function getOfferTravellerIds(offer: Offer): string[] {
 	];
 }
 
-function getOfferFareZones(offer: Offer): ZoneLabel[] {
+function getOfferZones(offer: Offer): ZoneLabel[] {
 	return getEffectiveZones(offer.properties?.summary?.geographicalValidity);
 }
 
-function getBundleFareZones(offers: Offer[]): ZoneLabel[] {
+function getBundleZones(offers: Offer[]): ZoneLabel[] {
 	const merged = new Map<string, ZoneLabel>();
 	for (const offer of offers) {
-		for (const zone of getOfferFareZones(offer)) merged.set(zone.id, zone);
+		for (const zone of getOfferZones(offer)) merged.set(zone.id, zone);
 	}
 	return sortFareZones([...merged.values()]);
 }
@@ -126,7 +126,7 @@ export default function BundleCard({
 
 	const bundlePartyIds = new Set(bundle.offers.flatMap(getOfferTravellerIds));
 	const coveredParties = parties.filter((p) => bundlePartyIds.has(p.id));
-	const bundleZones = getBundleFareZones(bundle.offers);
+	const bundleZones = getBundleZones(bundle.offers);
 
 	return (
 		<label
@@ -237,7 +237,7 @@ export default function BundleCard({
 												: ids.length > 0
 													? `${ids.length} traveller${ids.length !== 1 ? "s" : ""}`
 													: null;
-										const offerZones = sortFareZones(getOfferFareZones(offer));
+										const offerZones = sortFareZones(getOfferZones(offer));
 
 										return (
 											<div

@@ -119,7 +119,7 @@ function TicketDetailPage() {
 
 	const geoValidity =
 		packageItem?.offers?.[0]?.properties?.summary?.geographicalValidity;
-	const fareZones = sortFareZones(getEffectiveZones(geoValidity));
+	const zones = sortFareZones(getEffectiveZones(geoValidity));
 	const productName =
 		packageItem?.offers?.[0]?.properties?.products?.[0]?.productName;
 
@@ -220,11 +220,11 @@ function TicketDetailPage() {
 									</span>
 								</div>
 							)}
-							{fareZones.length > 0 && (
+							{zones.length > 0 && (
 								<div className="flex justify-between gap-4">
 									<span className="text-wayfare-text-secondary">Valid in</span>
 									<span className="text-right text-wayfare-text">
-										{formatZoneList(fareZones)}
+										{formatZoneList(zones)}
 									</span>
 								</div>
 							)}

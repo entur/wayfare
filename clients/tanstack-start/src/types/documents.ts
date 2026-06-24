@@ -1,4 +1,5 @@
 import type { Link } from "./common";
+import type { ZoneLabel } from "./search";
 import type { TripPattern } from "./trip-planner";
 
 export interface BinaryTicketDocument {
@@ -120,10 +121,7 @@ export interface PackageItemProperties {
 	price?: { amount: number; currencyCode?: string };
 }
 
-export interface ZoneLabel {
-	id: string;
-	label: string;
-}
+export type { ZoneLabel };
 
 export interface ZonalValidity {
 	fareZones?: ZoneLabel[];
