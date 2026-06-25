@@ -4,7 +4,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PageShell from "../../components/layout/PageShell";
 import TicketCard from "../../components/tickets/TicketCard";
-import { getPackages } from "../../lib/ticket-storage";
+import { useDevConfig } from "../../context/dev-config";
+import { isPackageNotFound } from "../../lib/omsa-error";
+import { getPackages, removePackage } from "../../lib/ticket-storage";
 import {
 	getPackageItem,
 	getTravelDocuments,
@@ -26,17 +28,24 @@ function isDocExpired(
 }
 
 function TicketsPage() {
+	const { clientFingerprint } = useDevConfig();
 	const [packages, setPackages] = useState<StoredPackage[]>([]);
 
+	// Gate the localStorage read until the active client's fingerprint is known,
+	// so we read from the correct (credential-scoped) key and re-read when the
+	// active client changes.
 	useEffect(() => {
+		if (clientFingerprint === undefined) return;
 		setPackages(getPackages());
-	}, []);
+	}, [clientFingerprint]);
 
 	const itemQueries = useQueries({
 		queries: packages.map((pkg) => ({
 			queryKey: ["package-item", pkg.packageId],
 			queryFn: () => getPackageItem({ data: pkg.packageId }),
 			staleTime: 60_000,
+			retry: (count: number, error: Error) =>
+				!isPackageNotFound(error) && count < 3,
 		})),
 	});
 
@@ -45,8 +54,25 @@ function TicketsPage() {
 			queryKey: ["travel-documents", pkg.packageId],
 			queryFn: () => getTravelDocuments({ data: pkg.packageId }),
 			staleTime: 60_000,
+			retry: (count: number, error: Error) =>
+				!isPackageNotFound(error) && count < 3,
 		})),
 	});
+
+	// Auto-prune packages the current OAuth client can no longer see (404
+	// PACKAGE_NOT_FOUND), e.g. stale tickets purchased under other credentials.
+	const notFoundKey = packages
+		.filter((_, i) => isPackageNotFound(itemQueries[i]?.error))
+		.map((pkg) => pkg.packageId)
+		.join(",");
+
+	useEffect(() => {
+		if (!notFoundKey) return;
+		for (const id of notFoundKey.split(",")) {
+			removePackage(id);
+		}
+		setPackages(getPackages());
+	}, [notFoundKey]);
 
 	const now = new Date();
 	const active: StoredPackage[] = [];

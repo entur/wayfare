@@ -58,6 +58,37 @@ export function clearDevConfigOverrides(): void {
 	syncCookie({});
 }
 
+/**
+ * Cached fingerprint of the active OAuth client, scoped by envMode. This is
+ * server-derived data (fetched via getResolvedDevConfig), kept in its own
+ * localStorage key so the synchronous ticket storage helpers can read it. It is
+ * deliberately NOT part of DevConfigOverrides / the cookie.
+ */
+export function clientFingerprintKey(envMode?: string): string {
+	return envMode ? `wayfare_client_fp_${envMode}` : "wayfare_client_fp";
+}
+
+export function getClientFingerprint(envMode?: string): string | undefined {
+	if (!isBrowser()) return undefined;
+	try {
+		return localStorage.getItem(clientFingerprintKey(envMode)) ?? undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+export function setClientFingerprint(
+	envMode: string | undefined,
+	fingerprint: string,
+): void {
+	if (!isBrowser()) return;
+	try {
+		localStorage.setItem(clientFingerprintKey(envMode), fingerprint);
+	} catch {
+		// storage may be unavailable
+	}
+}
+
 function syncCookie(overrides: DevConfigOverrides): void {
 	const value = encodeURIComponent(JSON.stringify(overrides));
 	const oneYear = 365 * 24 * 60 * 60;

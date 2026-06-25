@@ -23,9 +23,10 @@ interface ProfileContextValue {
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
-	const { overrides } = useDevConfig();
+	const { overrides, clientFingerprint } = useDevConfig();
 	const [customer, setCustomer] = useState<OmsaCustomer | null>(null);
 	const prevEnvMode = useRef(overrides.envMode);
+	const prevFingerprint = useRef(clientFingerprint);
 
 	useEffect(() => {
 		setCustomer(getStoredCustomer());
@@ -37,6 +38,18 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 		clearStoredCustomer();
 		setCustomer(null);
 	}, [overrides.envMode]);
+
+	// A customer created under the old OAuth client may be invisible to a new
+	// one, so isolate the signed-in customer per credential too. Only clear on a
+	// real switch (a defined fingerprint changing), not the first resolve.
+	useEffect(() => {
+		if (prevFingerprint.current === clientFingerprint) return;
+		const hadFingerprint = prevFingerprint.current !== undefined;
+		prevFingerprint.current = clientFingerprint;
+		if (!hadFingerprint) return;
+		clearStoredCustomer();
+		setCustomer(null);
+	}, [clientFingerprint]);
 
 	const signIn = useCallback((c: OmsaCustomer) => {
 		storeCustomer(c);

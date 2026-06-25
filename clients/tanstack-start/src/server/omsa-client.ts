@@ -161,6 +161,11 @@ async function logResponse(
 	console.log(
 		`[http][incoming] ${response.status} ${response.statusText} (${durationMs}ms)`,
 	);
+	// 404s are expected for stale tickets (packages not visible to the current
+	// OAuth caller); skip the verbose headers/body dump to avoid log spam.
+	if (response.status === 404) {
+		return;
+	}
 	const level = getRequestLogLevel();
 	if (level === "headers" || level === "body") {
 		console.log(

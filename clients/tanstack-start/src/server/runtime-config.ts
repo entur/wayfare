@@ -1,9 +1,20 @@
+import { createHash } from "node:crypto";
 import type {
 	DevConfigOverrides,
 	OmsaRuntimeMode,
 } from "../lib/dev-config-storage";
 
 export type { OmsaRuntimeMode };
+
+/**
+ * Short, non-secret fingerprint of the active OAuth client_id. Used to scope
+ * client-side data (tickets) to the caller, since OMSA only shows packages to
+ * the client that created them. Never derived from clientSecret.
+ */
+export function fingerprintClientId(clientId: string | undefined): string {
+	if (!clientId) return "none";
+	return createHash("sha256").update(clientId).digest("hex").slice(0, 8);
+}
 
 interface ModeDefaults {
 	omsaBaseUrl: string;

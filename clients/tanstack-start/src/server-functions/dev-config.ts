@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { devConfigMiddleware } from "../server/middleware";
-import { getRuntimeConfig } from "../server/runtime-config";
+import {
+	fingerprintClientId,
+	getRuntimeConfig,
+} from "../server/runtime-config";
 
 export interface ResolvedDevConfig {
 	effectiveMode: string;
@@ -8,6 +11,7 @@ export interface ResolvedDevConfig {
 	effectiveSalesBaseUrl: string;
 	effectiveJourneyPlannerUrl: string;
 	effectiveGeocoderUrl: string;
+	clientFingerprint: string;
 	envDefaults: {
 		mode: string;
 		distributionChannel: string;
@@ -27,6 +31,7 @@ export const getResolvedDevConfig = createServerFn({ method: "GET" })
 			effectiveSalesBaseUrl: config.salesBaseUrl,
 			effectiveJourneyPlannerUrl: config.journeyPlannerUrl,
 			effectiveGeocoderUrl: config.geocoderUrl,
+			clientFingerprint: fingerprintClientId(config.clientId),
 			envDefaults: {
 				mode: process.env.OMSA_ENV_MODE ?? "dev",
 				distributionChannel:

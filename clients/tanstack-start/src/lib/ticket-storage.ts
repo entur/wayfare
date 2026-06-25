@@ -1,11 +1,16 @@
 import type { StoredPackage, StoredPackageContact } from "../types/documents";
-import { getDevConfigOverrides } from "./dev-config-storage";
+import {
+	getClientFingerprint,
+	getDevConfigOverrides,
+} from "./dev-config-storage";
 
 const isClient = typeof window !== "undefined";
 
 function storageKey(): string {
 	const { envMode } = getDevConfigOverrides();
-	return envMode ? `wayfare_tickets_${envMode}` : "wayfare_tickets";
+	const base = envMode ? `wayfare_tickets_${envMode}` : "wayfare_tickets";
+	const fp = getClientFingerprint(envMode);
+	return fp ? `${base}_${fp}` : base;
 }
 
 export function savePackage(pkg: StoredPackage): void {
@@ -58,9 +63,11 @@ export function clearPackages(): void {
 
 function guestContactKey(packageId: string): string {
 	const { envMode } = getDevConfigOverrides();
-	return envMode
-		? `wayfare_guest_contact_${envMode}_${packageId}`
-		: `wayfare_guest_contact_${packageId}`;
+	const base = envMode
+		? `wayfare_guest_contact_${envMode}`
+		: "wayfare_guest_contact";
+	const fp = getClientFingerprint(envMode);
+	return fp ? `${base}_${fp}_${packageId}` : `${base}_${packageId}`;
 }
 
 export function setPendingGuestContact(

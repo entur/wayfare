@@ -11,6 +11,7 @@ import Illustration from "../../components/shared/Illustration";
 import SituationBanner from "../../components/situations/SituationBanner";
 import DocumentViewer from "../../components/tickets/DocumentViewer";
 import Button from "../../components/ui/Button";
+import { useDevConfig } from "../../context/dev-config";
 import {
 	usePackageItem,
 	useRefundOptions,
@@ -18,6 +19,7 @@ import {
 } from "../../hooks/use-documents";
 import { useJourneySituations } from "../../hooks/use-journey-situations";
 import { useCancelPackage, useClaimRefund } from "../../hooks/use-purchase";
+import { isPackageNotFound } from "../../lib/omsa-error";
 import { getPackage, removePackage } from "../../lib/ticket-storage";
 import {
 	formatZoneList,
@@ -45,13 +47,17 @@ function isDocExpired(
 function TicketDetailPage() {
 	const { packageId } = Route.useParams();
 	const navigate = useNavigate();
+	const { clientFingerprint } = useDevConfig();
 	const [pkg, setPkg] = useState<StoredPackage | undefined>(undefined);
 
+	// Gate on the active client's fingerprint so we read the correct
+	// credential-scoped storage key.
 	useEffect(() => {
+		if (clientFingerprint === undefined) return;
 		setPkg(getPackage(packageId));
-	}, [packageId]);
+	}, [packageId, clientFingerprint]);
 
-	const { data: packageItem } = usePackageItem(packageId);
+	const { data: packageItem, error: packageError } = usePackageItem(packageId);
 	const { data: docCollection, isLoading: docsLoading } =
 		useTravelDocuments(packageId);
 	const { data: refundCollection } = useRefundOptions(packageId);
@@ -92,6 +98,31 @@ function TicketDetailPage() {
 					>
 						← Back to tickets
 					</Link>
+				</div>
+			</PageShell>
+		);
+	}
+
+	if (isPackageNotFound(packageError)) {
+		return (
+			<PageShell title="Ticket unavailable">
+				<div className="mt-8 flex flex-col items-center text-center">
+					<p className="text-sm font-medium text-wayfare-text">
+						This ticket is no longer available
+					</p>
+					<p className="mt-1 text-xs text-wayfare-text-secondary">
+						It can't be found for the current credentials.
+					</p>
+					<button
+						type="button"
+						onClick={() => {
+							removePackage(packageId);
+							navigate({ to: "/tickets" });
+						}}
+						className="mt-4 inline-flex items-center rounded-xl bg-wayfare-primary px-5 py-2.5 text-sm font-semibold text-white"
+					>
+						Remove from my tickets
+					</button>
 				</div>
 			</PageShell>
 		);

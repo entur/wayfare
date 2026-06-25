@@ -15,6 +15,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import type { FC, SVGProps } from "react";
 import { usePackageItem, useTravelDocuments } from "../../hooks/use-documents";
+import { isPackageNotFound } from "../../lib/omsa-error";
 import {
 	formatZoneList,
 	getEffectiveZones,
@@ -113,9 +114,24 @@ function isDocExpired(
 }
 
 export default function TicketCard({ pkg }: TicketCardProps) {
-	const { data: item, isLoading } = usePackageItem(pkg.packageId);
+	const { data: item, isLoading, error } = usePackageItem(pkg.packageId);
 	const { data: docs } = useTravelDocuments(pkg.packageId);
 	const props = item?.properties;
+
+	// The current OAuth client can't see this package (stale ticket). The list
+	// auto-prunes these, but render a muted placeholder for the brief window.
+	if (isPackageNotFound(error)) {
+		return (
+			<div className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 opacity-60">
+				<p className="m-0 truncate font-mono text-sm font-semibold text-wayfare-text-secondary">
+					{pkg.packageId}
+				</p>
+				<p className="m-0 mt-0.5 text-xs text-wayfare-text-secondary">
+					This ticket is no longer available
+				</p>
+			</div>
+		);
+	}
 
 	if (isLoading) {
 		return (
