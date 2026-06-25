@@ -121,9 +121,10 @@ export default function DepartureRow({
 			>
 				<button
 					type="button"
+					disabled={!canSelect}
 					onClick={canSelect ? handleRowClick : undefined}
 					aria-pressed={canSelect ? isSelected : undefined}
-					className={`flex flex-1 items-center gap-3 text-left ${
+					className={`flex flex-1 items-center gap-3 text-left disabled:opacity-100 ${
 						call.cancellation ? "line-through" : ""
 					} ${canSelect ? "cursor-pointer" : "cursor-default"}`}
 				>

@@ -24,7 +24,7 @@ export const autocompletePlaces = createServerFn({ method: "GET" })
 		const url = `${config.geocoderUrl}/autocomplete?${params}`;
 		const res = await fetch(url, {
 			headers: {
-				"Entur-Client-Name":
+				"ET-Client-Name":
 					context.devConfig.clientName ??
 					process.env.ENTUR_CLIENT_NAME ??
 					"Wayfare-Web",

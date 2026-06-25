@@ -193,6 +193,13 @@ function logRequestError(
 	);
 }
 
+function resolveClientName(
+	config: RuntimeConfig,
+	devConfig?: DevConfigOverrides,
+): string {
+	return devConfig?.clientName ?? config.enturClientName ?? "Wayfare-Web";
+}
+
 function enturHeaders(
 	config: RuntimeConfig,
 	devConfig?: DevConfigOverrides,
@@ -202,8 +209,7 @@ function enturHeaders(
 			devConfig?.distributionChannel ??
 			config.enturDistributionChannel ??
 			"WAY:DistributionChannel:App",
-		"Entur-Client-Name":
-			devConfig?.clientName ?? config.enturClientName ?? "Wayfare-Web",
+		"ET-Client-Name": resolveClientName(config, devConfig),
 		"Entur-POS": devConfig?.pos ?? config.enturPos ?? "Wayfare",
 	};
 }
@@ -472,8 +478,7 @@ export function createVehiclePositionsClient(devConfig?: DevConfigOverrides) {
 			const startedAt = Date.now();
 			const headers: Record<string, string> = {
 				"Content-Type": "application/json",
-				"ET-Client-Name":
-					devConfig?.clientName ?? config.enturClientName ?? "Wayfare-Web",
+				"ET-Client-Name": resolveClientName(config, devConfig),
 			};
 			logRequest("POST", requestUrl, body, headers);
 			try {
@@ -512,7 +517,7 @@ export function createJourneyPlannerClient(devConfig?: DevConfigOverrides) {
 			const startedAt = Date.now();
 			const headers: Record<string, string> = {
 				"Content-Type": "application/json",
-				...enturHeaders(config, devConfig),
+				"ET-Client-Name": resolveClientName(config, devConfig),
 			};
 			logRequest("POST", requestUrl, body, headers);
 			try {
