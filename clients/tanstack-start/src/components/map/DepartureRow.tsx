@@ -9,12 +9,15 @@ import {
 	formatRelativeMinutes,
 } from "../../lib/departure-time";
 import { pickText, severityRank } from "../../lib/situations";
+import { getTransportColor } from "../../lib/transport-colors";
 import type { EstimatedCall } from "../../types/departures";
 import type { PtSituationElement } from "../../types/situations";
+import type { OtpTransportMode } from "../../types/trip-planner";
 import DepartureStatusDot, {
 	resolveStatus,
 	type Status,
 } from "./DepartureStatusDot";
+import { useResolvedTheme } from "./theme";
 
 interface Props {
 	call: EstimatedCall;
@@ -63,11 +66,6 @@ const TIER_BG = {
 		"border-l-4 border-l-wayfare-alert-error-border bg-wayfare-alert-error-bg text-wayfare-alert-error-text",
 } as const;
 
-function normaliseColour(raw?: string | null): string | undefined {
-	if (!raw) return undefined;
-	return raw.startsWith("#") ? raw : `#${raw}`;
-}
-
 const STATUS_TEXT_CLASS: Record<Status, string> = {
 	scheduled: "text-wayfare-text",
 	"on-time": "text-wayfare-text",
@@ -83,6 +81,7 @@ export default function DepartureRow({
 	selectedJourneyId,
 	onSelectDeparture,
 }: Props) {
+	const theme = useResolvedTheme();
 	const line = call.serviceJourney?.line;
 	const serviceJourneyId = call.serviceJourney?.id;
 	const isSelected = !!(
@@ -94,8 +93,10 @@ export default function DepartureRow({
 	const isDelayed = delay !== 0;
 	const destination = call.destinationDisplay?.frontText ?? "";
 	const bullet = line?.publicCode ?? "•";
-	const bg = normaliseColour(line?.presentation?.colour) ?? "#374151";
-	const fg = normaliseColour(line?.presentation?.textColour) ?? "#ffffff";
+	const mode = (line?.transportMode?.toLowerCase() ??
+		"bus") as OtpTransportMode;
+	const bg = getTransportColor(mode, theme);
+	const fg = "#ffffff";
 
 	const top = topSituation(call.situations);
 	const tier = top ? situationTier(top) : null;
