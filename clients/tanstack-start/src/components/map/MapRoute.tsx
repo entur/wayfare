@@ -60,6 +60,8 @@ function MapRoute({
 			},
 		});
 
+		const safeBeforeId =
+			beforeId && map.getLayer(beforeId) ? beforeId : undefined;
 		map.addLayer(
 			{
 				id: layerId,
@@ -73,7 +75,7 @@ function MapRoute({
 					...(dashArray && { "line-dasharray": dashArray }),
 				},
 			},
-			beforeId,
+			safeBeforeId,
 		);
 
 		return () => {
