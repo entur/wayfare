@@ -193,6 +193,13 @@ function logRequestError(
 	);
 }
 
+function resolveClientName(
+	config: RuntimeConfig,
+	devConfig?: DevConfigOverrides,
+): string {
+	return devConfig?.clientName ?? config.enturClientName ?? "Wayfare-Web";
+}
+
 function enturHeaders(
 	config: RuntimeConfig,
 	devConfig?: DevConfigOverrides,
@@ -202,8 +209,7 @@ function enturHeaders(
 			devConfig?.distributionChannel ??
 			config.enturDistributionChannel ??
 			"WAY:DistributionChannel:App",
-		"Entur-Client-Name":
-			devConfig?.clientName ?? config.enturClientName ?? "Wayfare-Web",
+		"ET-Client-Name": resolveClientName(config, devConfig),
 		"Entur-POS": devConfig?.pos ?? config.enturPos ?? "Wayfare",
 	};
 }
@@ -462,6 +468,45 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 	};
 }
 
+export function createVehiclePositionsClient(devConfig?: DevConfigOverrides) {
+	const config = getRuntimeConfig(devConfig);
+
+	return {
+		async query<T>(query: string, variables: unknown): Promise<T> {
+			const requestUrl = config.vehiclePositionsUrl;
+			const body = { query, variables };
+			const startedAt = Date.now();
+			const headers: Record<string, string> = {
+				"Content-Type": "application/json",
+				"ET-Client-Name": resolveClientName(config, devConfig),
+			};
+			logRequest("POST", requestUrl, body, headers);
+			try {
+				const response = await fetch(requestUrl, {
+					method: "POST",
+					headers,
+					body: JSON.stringify(body),
+				});
+				await logResponse("POST", requestUrl, response, startedAt);
+				const json = (await response.json()) as {
+					data?: T;
+					errors?: { message: string }[];
+				};
+				if (json.errors?.length) {
+					throw new Error(json.errors[0]?.message ?? "Vehicle positions error");
+				}
+				if (!json.data) {
+					throw new Error("Vehicle positions API returned no data");
+				}
+				return json.data;
+			} catch (error) {
+				logRequestError("POST", requestUrl, startedAt, error);
+				throw error;
+			}
+		},
+	};
+}
+
 export function createJourneyPlannerClient(devConfig?: DevConfigOverrides) {
 	const config = getRuntimeConfig(devConfig);
 
@@ -472,7 +517,7 @@ export function createJourneyPlannerClient(devConfig?: DevConfigOverrides) {
 			const startedAt = Date.now();
 			const headers: Record<string, string> = {
 				"Content-Type": "application/json",
-				...enturHeaders(config, devConfig),
+				"ET-Client-Name": resolveClientName(config, devConfig),
 			};
 			logRequest("POST", requestUrl, body, headers);
 			try {

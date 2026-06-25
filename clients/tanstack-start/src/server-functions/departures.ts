@@ -21,6 +21,7 @@ const STOP_DEPARTURES_QUERY = `
 				destinationDisplay { frontText }
 				quay { id publicCode name }
 				serviceJourney {
+					id
 					line {
 						publicCode
 						transportMode

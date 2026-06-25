@@ -3,19 +3,27 @@ import {
 	ValidationInfoIcon,
 	WarningIcon,
 } from "@entur/icons";
-import { useState } from "react";
-import { delayMinutes, formatRelativeMinutes } from "../../lib/departure-time";
+import {
+	delayMinutes,
+	formatClock,
+	formatRelativeMinutes,
+} from "../../lib/departure-time";
 import { pickText, severityRank } from "../../lib/situations";
+import { getTransportColor } from "../../lib/transport-colors";
 import type { EstimatedCall } from "../../types/departures";
 import type { PtSituationElement } from "../../types/situations";
+import type { OtpTransportMode } from "../../types/trip-planner";
 import DepartureStatusDot, {
 	resolveStatus,
 	type Status,
 } from "./DepartureStatusDot";
+import { useResolvedTheme } from "./theme";
 
 interface Props {
 	call: EstimatedCall;
 	now?: Date;
+	selectedJourneyId?: string | null;
+	onSelectDeparture?: (call: EstimatedCall) => void;
 }
 
 function topSituation(
@@ -58,16 +66,6 @@ const TIER_BG = {
 		"border-l-4 border-l-wayfare-alert-error-border bg-wayfare-alert-error-bg text-wayfare-alert-error-text",
 } as const;
 
-function formatClock(iso: string): string {
-	const d = new Date(iso);
-	return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function normaliseColour(raw?: string | null): string | undefined {
-	if (!raw) return undefined;
-	return raw.startsWith("#") ? raw : `#${raw}`;
-}
-
 const STATUS_TEXT_CLASS: Record<Status, string> = {
 	scheduled: "text-wayfare-text",
 	"on-time": "text-wayfare-text",
@@ -77,17 +75,28 @@ const STATUS_TEXT_CLASS: Record<Status, string> = {
 	cancelled: "text-red-600 dark:text-red-400",
 };
 
-export default function DepartureRow({ call, now }: Props) {
-	const [situationOpen, setSituationOpen] = useState(false);
+export default function DepartureRow({
+	call,
+	now,
+	selectedJourneyId,
+	onSelectDeparture,
+}: Props) {
+	const theme = useResolvedTheme();
 	const line = call.serviceJourney?.line;
+	const serviceJourneyId = call.serviceJourney?.id;
+	const isSelected = !!(
+		serviceJourneyId && serviceJourneyId === selectedJourneyId
+	);
 	const delay = delayMinutes(call);
 	const status = resolveStatus(delay, call.cancellation, call.realtime);
 	const timeColour = STATUS_TEXT_CLASS[status];
 	const isDelayed = delay !== 0;
 	const destination = call.destinationDisplay?.frontText ?? "";
 	const bullet = line?.publicCode ?? "•";
-	const bg = normaliseColour(line?.presentation?.colour) ?? "#374151";
-	const fg = normaliseColour(line?.presentation?.textColour) ?? "#ffffff";
+	const mode = (line?.transportMode?.toLowerCase() ??
+		"bus") as OtpTransportMode;
+	const bg = getTransportColor(mode, theme);
+	const fg = "#ffffff";
 
 	const top = topSituation(call.situations);
 	const tier = top ? situationTier(top) : null;
@@ -97,50 +106,63 @@ export default function DepartureRow({ call, now }: Props) {
 	const advice = top ? pickText(top.advice) : null;
 
 	const hasSituation = !!(top && tier && summary);
+	const canSelect = !!(serviceJourneyId && onSelectDeparture);
+
+	const handleRowClick = () => {
+		if (canSelect) onSelectDeparture(call);
+	};
 
 	return (
 		<li className={call.cancellation ? "opacity-60" : ""}>
-			<button
-				type="button"
-				disabled={!hasSituation}
-				onClick={hasSituation ? () => setSituationOpen((v) => !v) : undefined}
-				aria-expanded={hasSituation ? situationOpen : undefined}
-				className={`flex w-full items-center gap-3 py-2 text-left ${call.cancellation ? "line-through" : ""} ${hasSituation ? "cursor-pointer" : "cursor-default"}`}
+			<div
+				className={`flex items-center gap-1 py-2 transition-colors ${
+					isSelected ? "rounded-md bg-wayfare-bg" : ""
+				}`}
 			>
-				<span
-					className="inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 text-xs font-semibold tabular-nums"
-					style={{ backgroundColor: bg, color: fg }}
+				<button
+					type="button"
+					disabled={!canSelect}
+					onClick={canSelect ? handleRowClick : undefined}
+					aria-pressed={canSelect ? isSelected : undefined}
+					className={`flex flex-1 items-center gap-3 text-left disabled:opacity-100 ${
+						call.cancellation ? "line-through" : ""
+					} ${canSelect ? "cursor-pointer" : "cursor-default"}`}
 				>
-					{bullet}
-				</span>
-				<span className="flex-1 truncate text-sm text-wayfare-text">
-					{destination}
-				</span>
+					<span
+						className="inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 text-xs font-semibold tabular-nums"
+						style={{ backgroundColor: bg, color: fg }}
+					>
+						{bullet}
+					</span>
+					<span className="flex-1 truncate text-sm text-wayfare-text">
+						{destination}
+					</span>
+					<div className="flex flex-col items-end leading-tight">
+						<span className={`font-mono text-sm tabular-nums ${timeColour}`}>
+							{formatClock(call.expectedDepartureTime)}
+						</span>
+						{isDelayed && !call.cancellation && (
+							<span className="font-mono text-[10px] tabular-nums text-wayfare-text-secondary line-through">
+								{formatClock(call.aimedDepartureTime)}
+							</span>
+						)}
+						<span className="text-[10px] text-wayfare-text-secondary">
+							{formatRelativeMinutes(call.expectedDepartureTime, now)}
+						</span>
+					</div>
+					<DepartureStatusDot
+						delayMinutes={delay}
+						cancelled={call.cancellation}
+						realtime={call.realtime}
+					/>
+				</button>
 				{hasSituation && SituationIcon && tier && (
-					<span aria-hidden className={`shrink-0 ${TIER_COLOR[tier]}`}>
+					<span aria-hidden className={`shrink-0 px-1 ${TIER_COLOR[tier]}`}>
 						<SituationIcon className="h-4 w-4" />
 					</span>
 				)}
-				<div className="flex flex-col items-end leading-tight">
-					<span className={`font-mono text-sm tabular-nums ${timeColour}`}>
-						{formatClock(call.expectedDepartureTime)}
-					</span>
-					{isDelayed && !call.cancellation && (
-						<span className="font-mono text-[10px] tabular-nums text-wayfare-text-secondary line-through">
-							{formatClock(call.aimedDepartureTime)}
-						</span>
-					)}
-					<span className="text-[10px] text-wayfare-text-secondary">
-						{formatRelativeMinutes(call.expectedDepartureTime, now)}
-					</span>
-				</div>
-				<DepartureStatusDot
-					delayMinutes={delay}
-					cancelled={call.cancellation}
-					realtime={call.realtime}
-				/>
-			</button>
-			{situationOpen && top && tier && summary && (
+			</div>
+			{hasSituation && top && tier && summary && (
 				<div className={`mb-2 rounded-md px-3 py-2 text-xs ${TIER_BG[tier]}`}>
 					<p className="font-medium">{summary}</p>
 					{description && description !== summary && (

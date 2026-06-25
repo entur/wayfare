@@ -390,12 +390,13 @@ function MarkerLabel({
 	className,
 	position = "top",
 }: MarkerLabelProps) {
+	const { marker } = useMarkerContext();
 	const positionClasses = {
 		top: "bottom-full mb-1",
 		bottom: "top-full mt-1",
 	};
 
-	return (
+	return createPortal(
 		<div
 			className={cn(
 				"absolute left-1/2 -translate-x-1/2 whitespace-nowrap",
@@ -405,7 +406,8 @@ function MarkerLabel({
 			)}
 		>
 			{children}
-		</div>
+		</div>,
+		marker.getElement(),
 	);
 }
 

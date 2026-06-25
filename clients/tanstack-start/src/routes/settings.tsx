@@ -543,7 +543,7 @@ function DeveloperTab() {
 							htmlFor="dev-client-name"
 							className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
 						>
-							Entur-Client-Name
+							ET-Client-Name
 						</label>
 						<input
 							id="dev-client-name"

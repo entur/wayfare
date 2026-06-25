@@ -1,5 +1,8 @@
 import type { RecentStop } from "../../lib/recent-stops-storage";
 import type { PlaceReference } from "../../types/common";
+import type { EstimatedCall } from "../../types/departures";
+import type { PtSituationElement } from "../../types/situations";
+import type { OtpTransportMode } from "../../types/trip-planner";
 import SegmentedControl from "../ui/SegmentedControl";
 import StopsPanel from "./StopsPanel";
 import ZonesPanel, { type ZoneSlot } from "./ZonesPanel";
@@ -24,6 +27,16 @@ interface Props {
 	onTravelFrom: (stop: SelectedStop) => void;
 	onTravelTo: (stop: SelectedStop) => void;
 	onClose: () => void;
+	selectedJourney?: {
+		serviceJourneyId: string;
+		mode: OtpTransportMode;
+		lineName?: string;
+		destination?: string;
+		situations?: PtSituationElement[];
+	} | null;
+	selectedJourneyId?: string | null;
+	onSelectDeparture?: (call: EstimatedCall) => void;
+	onClearJourney?: () => void;
 
 	// Zones mode
 	zoneFrom: PlaceReference | null;
@@ -52,6 +65,10 @@ export default function MapSidebar({
 	onTravelFrom,
 	onTravelTo,
 	onClose,
+	selectedJourney,
+	selectedJourneyId,
+	onSelectDeparture,
+	onClearJourney,
 	zoneFrom,
 	zoneTo,
 	onZoneFromChange,
@@ -65,7 +82,7 @@ export default function MapSidebar({
 }: Props) {
 	return (
 		<div className="flex flex-col md:h-full md:overflow-y-auto">
-			<div className="sticky top-0 z-10 border-b border-wayfare-line bg-wayfare-surface-strong p-3">
+			<div className="sticky top-0 z-20 border-b border-wayfare-line bg-wayfare-surface-strong p-3">
 				<SegmentedControl
 					legend="Map mode"
 					options={MODE_OPTIONS}
@@ -81,6 +98,10 @@ export default function MapSidebar({
 					onTravelFrom={onTravelFrom}
 					onTravelTo={onTravelTo}
 					onClose={onClose}
+					selectedJourney={selectedJourney}
+					selectedJourneyId={selectedJourneyId}
+					onSelectDeparture={onSelectDeparture}
+					onClearJourney={onClearJourney}
 				/>
 			) : (
 				<ZonesPanel

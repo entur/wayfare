@@ -15,7 +15,7 @@ function getDocumentTheme(): Theme | null {
 }
 
 function getSystemTheme(): Theme {
-	if (typeof window === "undefined") return "light";
+	if (typeof window === "undefined" || !window.matchMedia) return "light";
 	return window.matchMedia("(prefers-color-scheme: dark)").matches
 		? "dark"
 		: "light";
@@ -39,6 +39,10 @@ function useResolvedTheme(themeProp?: "light" | "dark"): Theme {
 			attributes: true,
 			attributeFilter: ["data-color-mode"],
 		});
+
+		if (!window.matchMedia) {
+			return () => observer.disconnect();
+		}
 
 		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 		const handleSystemChange = (e: MediaQueryListEvent) => {
