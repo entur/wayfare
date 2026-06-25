@@ -82,7 +82,7 @@ export default function MapSidebar({
 }: Props) {
 	return (
 		<div className="flex flex-col md:h-full md:overflow-y-auto">
-			<div className="sticky top-0 z-10 border-b border-wayfare-line bg-wayfare-surface-strong p-3">
+			<div className="sticky top-0 z-20 border-b border-wayfare-line bg-wayfare-surface-strong p-3">
 				<SegmentedControl
 					legend="Map mode"
 					options={MODE_OPTIONS}
