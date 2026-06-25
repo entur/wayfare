@@ -18,13 +18,42 @@ interface Props {
 	onBack: () => void;
 }
 
-function displayTime(stop: ServiceJourneyStop): string | null {
-	const iso =
-		stop.expectedDepartureTime ??
-		stop.aimedDepartureTime ??
-		stop.expectedArrivalTime ??
-		stop.aimedArrivalTime;
-	return iso ? formatClock(iso) : null;
+interface StopTime {
+	primary: string;
+	aimed: string | null; // non-null when realtime-delayed; render struck-through
+}
+
+function getStopTime(stop: ServiceJourneyStop, now: number): StopTime | null {
+	const expectedIso = stop.expectedDepartureTime ?? stop.expectedArrivalTime;
+	const aimedIso = stop.aimedDepartureTime ?? stop.aimedArrivalTime;
+	const displayIso = expectedIso ?? aimedIso;
+	if (!displayIso) return null;
+
+	const expectedMs = expectedIso ? Date.parse(expectedIso) : null;
+	const aimedMs = aimedIso ? Date.parse(aimedIso) : null;
+
+	const isDelayed =
+		stop.realtime === true &&
+		expectedMs !== null &&
+		aimedMs !== null &&
+		Math.abs(expectedMs - aimedMs) >= 60_000;
+
+	let primary: string;
+	if (expectedMs !== null) {
+		const diffMs = expectedMs - now;
+		if (diffMs >= 0 && diffMs < 60_000) {
+			primary = "Now";
+		} else if (diffMs >= 60_000 && diffMs <= 15 * 60_000) {
+			primary = `${Math.round(diffMs / 60_000)} min`;
+		} else {
+			primary = formatClock(displayIso);
+		}
+	} else {
+		primary = formatClock(displayIso);
+	}
+
+	const aimed = isDelayed && aimedIso ? formatClock(aimedIso) : null;
+	return { primary, aimed };
 }
 
 function isPassed(stop: ServiceJourneyStop, now: number): boolean {
@@ -128,7 +157,7 @@ export default function SelectedDeparturePanel({
 						{stops.map((stop, i) => {
 							const passed = isPassed(stop, now);
 							const isCurrent = currentIndex === i;
-							const time = displayTime(stop);
+							const stopTime = getStopTime(stop, now);
 
 							return (
 								<li
@@ -170,9 +199,9 @@ export default function SelectedDeparturePanel({
 									</span>
 
 									{/* Time */}
-									{time && (
+									{stopTime && (
 										<span
-											className={`shrink-0 font-mono text-xs tabular-nums ${
+											className={`shrink-0 text-right font-mono text-xs tabular-nums ${
 												isCurrent
 													? "font-semibold text-wayfare-text"
 													: passed
@@ -180,7 +209,12 @@ export default function SelectedDeparturePanel({
 														: "text-wayfare-text-secondary"
 											}`}
 										>
-											{time}
+											{stopTime.aimed && (
+												<span className="block line-through opacity-60">
+													{stopTime.aimed}
+												</span>
+											)}
+											{stopTime.primary}
 										</span>
 									)}
 								</li>
