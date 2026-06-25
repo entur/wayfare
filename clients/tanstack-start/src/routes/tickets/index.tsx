@@ -6,6 +6,7 @@ import PageShell from "../../components/layout/PageShell";
 import TicketCard from "../../components/tickets/TicketCard";
 import { useDevConfig } from "../../context/dev-config";
 import { useProfile } from "../../context/profile";
+import { useCustomerPackages } from "../../hooks/use-documents";
 import { isPackageNotFound } from "../../lib/omsa-error";
 import { getPackages, removePackage } from "../../lib/ticket-storage";
 import {
@@ -13,6 +14,7 @@ import {
 	getTravelDocuments,
 } from "../../server-functions/documents";
 import type {
+	PackageItem,
 	StoredPackage,
 	TravelDocumentProperties,
 } from "../../types/documents";
@@ -28,11 +30,32 @@ function isDocExpired(
 	return new Date(props.endvalidity) < now;
 }
 
+// Builds the display package from a server package item, enriched with any
+// locally stored metadata (journey map / route) for the same packageId.
+function fromServerPackage(
+	item: PackageItem,
+	stored: StoredPackage | undefined,
+): StoredPackage {
+	return {
+		packageId: item.id ?? "",
+		savedAt: stored?.savedAt ?? item.properties?.purchaseDate ?? "",
+		status: item.status ?? item.properties?.status ?? stored?.status ?? "",
+		price: {
+			amount: item.price?.amount ?? stored?.price.amount ?? 0,
+			currencyCode: item.price?.currencyCode ?? stored?.price.currencyCode,
+		},
+		...(stored?.offerIds ? { offerIds: stored.offerIds } : {}),
+		...(stored?.route ? { route: stored.route } : {}),
+		...(stored?.pattern ? { pattern: stored.pattern } : {}),
+	};
+}
+
 function TicketsPage() {
 	const { clientFingerprint } = useDevConfig();
 	const { customer } = useProfile();
-	const customerKey = customer?.id ?? customer?.customerNumber ?? null;
-	const [packages, setPackages] = useState<StoredPackage[]>([]);
+	const customerId = customer?.id ?? null;
+	const customerKey = customerId ?? customer?.customerNumber ?? null;
+	const [stored, setStored] = useState<StoredPackage[]>([]);
 
 	// Gate the localStorage read until the active client's fingerprint is known,
 	// so we read from the correct (credential- and customer-scoped) key and
@@ -41,14 +64,32 @@ function TicketsPage() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: customerKey scopes getPackages() via storage key
 	useEffect(() => {
 		if (clientFingerprint === undefined) return;
-		setPackages(getPackages());
+		setStored(getPackages());
 	}, [clientFingerprint, customerKey]);
+
+	// Signed in: the server is the source of truth for which packages are the
+	// customer's. Anonymous: fall back to the locally stored packageId list.
+	const isSignedIn = !!customerId;
+	const customerPackagesQuery = useCustomerPackages(customerId);
+	const serverPackages = customerPackagesQuery.data?.packages ?? [];
+
+	const storedById = new Map(stored.map((p) => [p.packageId, p]));
+	const packages: StoredPackage[] = isSignedIn
+		? serverPackages
+				.filter((item) => !!item.id)
+				.map((item) => fromServerPackage(item, storedById.get(item.id ?? "")))
+		: stored;
+
+	// Seed the per-package item cache with the server list so TicketCard and the
+	// classification below read it without an extra fetch per package.
+	const serverItemById = new Map(serverPackages.map((p) => [p.id, p]));
 
 	const itemQueries = useQueries({
 		queries: packages.map((pkg) => ({
 			queryKey: ["package-item", pkg.packageId],
 			queryFn: () => getPackageItem({ data: pkg.packageId }),
 			staleTime: 60_000,
+			initialData: serverItemById.get(pkg.packageId),
 			retry: (count: number, error: Error) =>
 				!isPackageNotFound(error) && count < 3,
 		})),
@@ -64,8 +105,9 @@ function TicketsPage() {
 		})),
 	});
 
-	// Auto-prune packages the current OAuth client can no longer see (404
-	// PACKAGE_NOT_FOUND), e.g. stale tickets purchased under other credentials.
+	// Auto-prune locally stored packages the current OAuth client can no longer
+	// see (404 PACKAGE_NOT_FOUND), e.g. stale tickets under other credentials.
+	// Only the anonymous list lives in localStorage; the server list never 404s.
 	const notFoundKey = packages
 		.filter((_, i) => isPackageNotFound(itemQueries[i]?.error))
 		.map((pkg) => pkg.packageId)
@@ -76,7 +118,7 @@ function TicketsPage() {
 		for (const id of notFoundKey.split(",")) {
 			removePackage(id);
 		}
-		setPackages(getPackages());
+		setStored(getPackages());
 	}, [notFoundKey]);
 
 	const now = new Date();
@@ -101,6 +143,14 @@ function TicketsPage() {
 			: active
 		).push(pkg);
 	});
+
+	if (isSignedIn && customerPackagesQuery.isLoading) {
+		return (
+			<PageShell title="My tickets" subtitle="Your purchased travel tickets">
+				<p className="mt-8 text-sm text-wayfare-text-secondary">Loading…</p>
+			</PageShell>
+		);
+	}
 
 	if (packages.length === 0) {
 		return (

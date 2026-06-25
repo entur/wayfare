@@ -4,13 +4,24 @@ import {
 	getPackageItem,
 	getRefundOptions,
 	getTravelDocuments,
+	listCustomerPackages,
 } from "../server-functions/documents";
 import type {
 	ChangeOptionCollection,
+	PackageCollection,
 	PackageItem,
 	RefundOptionCollection,
 	TravelDocumentCollection,
 } from "../types/documents";
+
+export function useCustomerPackages(customerId: string | null) {
+	return useQuery<PackageCollection>({
+		queryKey: ["customer-packages", customerId],
+		queryFn: () => listCustomerPackages({ data: customerId ?? "" }),
+		enabled: !!customerId,
+		staleTime: 60_000,
+	});
+}
 
 export function usePackageItem(packageId: string | null) {
 	return useQuery<PackageItem>({

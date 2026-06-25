@@ -191,3 +191,11 @@ export interface PackageItem {
 	}[];
 	properties?: PackageItemProperties;
 }
+
+export interface PackageCollection {
+	type: string;
+	packages?: PackageItem[];
+	numberMatched?: number;
+	numberReturned?: number;
+	links?: Link[];
+}

@@ -51,7 +51,9 @@ function TicketDetailPage() {
 	const { clientFingerprint } = useDevConfig();
 	const { customer } = useProfile();
 	const customerKey = customer?.id ?? customer?.customerNumber ?? null;
-	const [pkg, setPkg] = useState<StoredPackage | undefined>(undefined);
+	const [storedPkg, setStoredPkg] = useState<StoredPackage | undefined>(
+		undefined,
+	);
 
 	// Gate on the active client's fingerprint so we read the correct credential-
 	// and customer-scoped storage key. customerKey feeds the storage key inside
@@ -59,10 +61,32 @@ function TicketDetailPage() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: customerKey scopes getPackage() via storage key
 	useEffect(() => {
 		if (clientFingerprint === undefined) return;
-		setPkg(getPackage(packageId));
+		setStoredPkg(getPackage(packageId));
 	}, [packageId, clientFingerprint, customerKey]);
 
-	const { data: packageItem, error: packageError } = usePackageItem(packageId);
+	const {
+		data: packageItem,
+		error: packageError,
+		isLoading: itemLoading,
+	} = usePackageItem(packageId);
+
+	// A package may exist on the server but not in this device's localStorage
+	// (e.g. bought while signed in on another device). Fall back to a package
+	// synthesized from the server item; the journey map only shows when local
+	// enrichment is present.
+	const pkg: StoredPackage | undefined =
+		storedPkg ??
+		(packageItem
+			? {
+					packageId,
+					savedAt: packageItem.properties?.purchaseDate ?? "",
+					status: packageItem.status ?? packageItem.properties?.status ?? "",
+					price: {
+						amount: packageItem.price?.amount ?? 0,
+						currencyCode: packageItem.price?.currencyCode,
+					},
+				}
+			: undefined);
 	const { data: docCollection, isLoading: docsLoading } =
 		useTravelDocuments(packageId);
 	const { data: refundCollection } = useRefundOptions(packageId);
@@ -93,21 +117,6 @@ function TicketDetailPage() {
 		});
 	}
 
-	if (!pkg) {
-		return (
-			<PageShell title="Ticket not found">
-				<div className="mt-8 text-center">
-					<Link
-						to="/tickets"
-						className="text-sm font-medium text-wayfare-primary"
-					>
-						← Back to tickets
-					</Link>
-				</div>
-			</PageShell>
-		);
-	}
-
 	if (isPackageNotFound(packageError)) {
 		return (
 			<PageShell title="Ticket unavailable">
@@ -128,6 +137,28 @@ function TicketDetailPage() {
 					>
 						Remove from my tickets
 					</button>
+				</div>
+			</PageShell>
+		);
+	}
+
+	if (!pkg) {
+		if (itemLoading) {
+			return (
+				<PageShell title="Ticket details">
+					<p className="mt-8 text-sm text-wayfare-text-secondary">Loading…</p>
+				</PageShell>
+			);
+		}
+		return (
+			<PageShell title="Ticket not found">
+				<div className="mt-8 text-center">
+					<Link
+						to="/tickets"
+						className="text-sm font-medium text-wayfare-primary"
+					>
+						← Back to tickets
+					</Link>
 				</div>
 			</PageShell>
 		);
@@ -162,7 +193,7 @@ function TicketDetailPage() {
 	const displayStatus =
 		isExpired && packageStatus === "CONFIRMED" ? "EXPIRED" : packageStatus;
 
-	const purchased = new Date(pkg.savedAt);
+	const purchased = pkg.savedAt ? new Date(pkg.savedAt) : null;
 
 	const geoValidity =
 		packageItem?.offers?.[0]?.properties?.summary?.geographicalValidity;
@@ -275,12 +306,14 @@ function TicketDetailPage() {
 									</span>
 								</div>
 							)}
-							<div className="flex justify-between gap-4">
-								<span className="text-wayfare-text-secondary">Purchased</span>
-								<span className="text-wayfare-text">
-									{formatDateTime(purchased)}
-								</span>
-							</div>
+							{purchased && (
+								<div className="flex justify-between gap-4">
+									<span className="text-wayfare-text-secondary">Purchased</span>
+									<span className="text-wayfare-text">
+										{formatDateTime(purchased)}
+									</span>
+								</div>
+							)}
 							{(!from || !to) && (
 								<div className="flex justify-between gap-4">
 									<span className="text-wayfare-text-secondary">

@@ -3,6 +3,7 @@ import { authMiddleware } from "../server/middleware";
 import { createOmsaClient } from "../server/omsa-client";
 import type {
 	ChangeOptionCollection,
+	PackageCollection,
 	PackageItem,
 	RefundOptionCollection,
 	TravelDocumentCollection,
@@ -16,6 +17,19 @@ export const getPackageItem = createServerFn({ method: "GET" })
 		return omsa.get<PackageItem>(
 			`/collections/packages/items/${encodeURIComponent(packageId)}`,
 		);
+	});
+
+// Lists packages owned by a specific customer (Orders createdBy). customerId is
+// required so we never fetch the whole client-wide package set by accident.
+export const listCustomerPackages = createServerFn({ method: "GET" })
+	.middleware([authMiddleware])
+	.inputValidator((customerId: string) => customerId)
+	.handler(async ({ data: customerId, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.get<PackageCollection>("/collections/packages/items", {
+			customerId,
+			limit: "1000",
+		});
 	});
 
 export const getTravelDocuments = createServerFn({ method: "GET" })
