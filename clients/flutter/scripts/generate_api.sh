@@ -4,7 +4,7 @@ set -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$DIR/.."
-API_SPEC="$PROJECT_ROOT/../../openapi/OMSA.yaml"
+API_SPEC="${OMSA_SPEC_URL:-https://beta.developer.entur.no/apis/omsa/latest/openapi.json}"
 OUTPUT_DIR="$PROJECT_ROOT/packages/omsa_api"
 
 echo "Generating Dart OMSA package from $API_SPEC..."
