@@ -21,6 +21,13 @@ interface Props {
 interface StopTime {
 	primary: string;
 	aimed: string | null; // non-null when realtime-delayed; render struck-through
+	delayClass: string | null; // Tailwind color class for the primary time when delayed
+}
+
+function delayColorClass(delayMins: number): string {
+	if (delayMins <= 2) return "text-yellow-500 dark:text-yellow-400";
+	if (delayMins <= 5) return "text-orange-500 dark:text-orange-400";
+	return "text-red-500 dark:text-red-400";
 }
 
 function getStopTime(stop: ServiceJourneyStop, now: number): StopTime | null {
@@ -32,11 +39,11 @@ function getStopTime(stop: ServiceJourneyStop, now: number): StopTime | null {
 	const expectedMs = expectedIso ? Date.parse(expectedIso) : null;
 	const aimedMs = aimedIso ? Date.parse(aimedIso) : null;
 
-	const isDelayed =
-		stop.realtime === true &&
-		expectedMs !== null &&
-		aimedMs !== null &&
-		Math.abs(expectedMs - aimedMs) >= 60_000;
+	const delayMins =
+		expectedMs !== null && aimedMs !== null
+			? Math.round((expectedMs - aimedMs) / 60_000)
+			: 0;
+	const isDelayed = stop.realtime === true && delayMins >= 1;
 
 	let primary: string;
 	if (expectedMs !== null) {
@@ -53,7 +60,8 @@ function getStopTime(stop: ServiceJourneyStop, now: number): StopTime | null {
 	}
 
 	const aimed = isDelayed && aimedIso ? formatClock(aimedIso) : null;
-	return { primary, aimed };
+	const delayClass = isDelayed ? delayColorClass(delayMins) : null;
+	return { primary, aimed, delayClass };
 }
 
 function isPassed(stop: ServiceJourneyStop, now: number): boolean {
@@ -189,32 +197,41 @@ export default function SelectedDeparturePanel({
 									<span
 										className={`flex-1 text-sm ${
 											isCurrent
-												? "font-semibold text-wayfare-text"
+												? "font-semibold"
 												: passed
 													? "opacity-40 text-wayfare-text-secondary"
 													: "text-wayfare-text"
 										}`}
+										style={isCurrent ? { color } : undefined}
 									>
 										{stop.name}
 									</span>
 
 									{/* Time */}
 									{stopTime && (
-										<span
-											className={`shrink-0 text-right font-mono text-xs tabular-nums ${
-												isCurrent
-													? "font-semibold text-wayfare-text"
-													: passed
-														? "opacity-40 text-wayfare-text-secondary"
-														: "text-wayfare-text-secondary"
-											}`}
-										>
+										<span className="shrink-0 text-right font-mono text-xs tabular-nums">
 											{stopTime.aimed && (
-												<span className="block line-through opacity-60">
+												<span className="block opacity-40 line-through text-wayfare-text-secondary">
 													{stopTime.aimed}
 												</span>
 											)}
-											{stopTime.primary}
+											<span
+												className={
+													passed
+														? "opacity-40 text-wayfare-text-secondary"
+														: isCurrent
+															? `font-semibold ${stopTime.delayClass ?? ""}`
+															: (stopTime.delayClass ??
+																"text-wayfare-text-secondary")
+												}
+												style={
+													isCurrent && !stopTime.delayClass
+														? { color }
+														: undefined
+												}
+											>
+												{stopTime.primary}
+											</span>
 										</span>
 									)}
 								</li>
