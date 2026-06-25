@@ -3,6 +3,7 @@ import {
 	getClientFingerprint,
 	getDevConfigOverrides,
 } from "./dev-config-storage";
+import { getCustomerStorageSegment } from "./profile-storage";
 
 const isClient = typeof window !== "undefined";
 
@@ -10,7 +11,11 @@ function storageKey(): string {
 	const { envMode } = getDevConfigOverrides();
 	const base = envMode ? `wayfare_tickets_${envMode}` : "wayfare_tickets";
 	const fp = getClientFingerprint(envMode);
-	return fp ? `${base}_${fp}` : base;
+	const withFp = fp ? `${base}_${fp}` : base;
+	// Anonymous keeps the un-segmented key; a signed-in customer gets its own
+	// bucket so each profile only sees its own tickets.
+	const customer = getCustomerStorageSegment();
+	return customer ? `${withFp}_${customer}` : withFp;
 }
 
 export function savePackage(pkg: StoredPackage): void {

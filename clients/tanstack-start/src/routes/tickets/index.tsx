@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import PageShell from "../../components/layout/PageShell";
 import TicketCard from "../../components/tickets/TicketCard";
 import { useDevConfig } from "../../context/dev-config";
+import { useProfile } from "../../context/profile";
 import { isPackageNotFound } from "../../lib/omsa-error";
 import { getPackages, removePackage } from "../../lib/ticket-storage";
 import {
@@ -29,15 +30,19 @@ function isDocExpired(
 
 function TicketsPage() {
 	const { clientFingerprint } = useDevConfig();
+	const { customer } = useProfile();
+	const customerKey = customer?.id ?? customer?.customerNumber ?? null;
 	const [packages, setPackages] = useState<StoredPackage[]>([]);
 
 	// Gate the localStorage read until the active client's fingerprint is known,
-	// so we read from the correct (credential-scoped) key and re-read when the
-	// active client changes.
+	// so we read from the correct (credential- and customer-scoped) key and
+	// re-read when the active client or signed-in profile changes. customerKey
+	// feeds the storage key inside getPackages(), so it must stay a dependency.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: customerKey scopes getPackages() via storage key
 	useEffect(() => {
 		if (clientFingerprint === undefined) return;
 		setPackages(getPackages());
-	}, [clientFingerprint]);
+	}, [clientFingerprint, customerKey]);
 
 	const itemQueries = useQueries({
 		queries: packages.map((pkg) => ({

@@ -32,3 +32,23 @@ export function clearStoredCustomer(): void {
 		// ignore
 	}
 }
+
+function shortHash(input: string): string {
+	let hash = 5381;
+	for (let i = 0; i < input.length; i++) {
+		hash = (hash * 33) ^ input.charCodeAt(i);
+	}
+	return (hash >>> 0).toString(36);
+}
+
+/**
+ * Storage-key segment for the signed-in customer, or undefined when anonymous.
+ * Used to scope per-customer client-side data (tickets) so a signed-in profile
+ * doesn't see anonymous purchases and vice versa. Hashed so the key carries no
+ * customer details.
+ */
+export function getCustomerStorageSegment(): string | undefined {
+	const customer = getStoredCustomer();
+	const id = customer?.id ?? customer?.customerNumber;
+	return id ? `c${shortHash(id)}` : undefined;
+}

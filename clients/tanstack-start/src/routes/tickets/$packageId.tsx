@@ -12,6 +12,7 @@ import SituationBanner from "../../components/situations/SituationBanner";
 import DocumentViewer from "../../components/tickets/DocumentViewer";
 import Button from "../../components/ui/Button";
 import { useDevConfig } from "../../context/dev-config";
+import { useProfile } from "../../context/profile";
 import {
 	usePackageItem,
 	useRefundOptions,
@@ -48,14 +49,18 @@ function TicketDetailPage() {
 	const { packageId } = Route.useParams();
 	const navigate = useNavigate();
 	const { clientFingerprint } = useDevConfig();
+	const { customer } = useProfile();
+	const customerKey = customer?.id ?? customer?.customerNumber ?? null;
 	const [pkg, setPkg] = useState<StoredPackage | undefined>(undefined);
 
-	// Gate on the active client's fingerprint so we read the correct
-	// credential-scoped storage key.
+	// Gate on the active client's fingerprint so we read the correct credential-
+	// and customer-scoped storage key. customerKey feeds the storage key inside
+	// getPackage(), so it must stay a dependency.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: customerKey scopes getPackage() via storage key
 	useEffect(() => {
 		if (clientFingerprint === undefined) return;
 		setPkg(getPackage(packageId));
-	}, [packageId, clientFingerprint]);
+	}, [packageId, clientFingerprint, customerKey]);
 
 	const { data: packageItem, error: packageError } = usePackageItem(packageId);
 	const { data: docCollection, isLoading: docsLoading } =
