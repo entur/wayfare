@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { JourneyStepper } from "../../components/layout/JourneyStepper";
 import PageShell from "../../components/layout/PageShell";
 import {
 	JourneyLegLabels,
@@ -211,7 +212,7 @@ function TicketDetailPage() {
 		});
 
 	return (
-		<PageShell title="Ticket details">
+		<PageShell title="Ticket details" stepper={<JourneyStepper />}>
 			<Link
 				to="/tickets"
 				className="mb-6 inline-block text-sm font-medium text-wayfare-text-secondary no-underline"

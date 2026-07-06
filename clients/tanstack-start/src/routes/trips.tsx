@@ -1,7 +1,9 @@
-import { BackArrowIcon, DateIcon, RouteIcon, UsersIcon } from "@entur/icons";
+import { BackArrowIcon } from "@entur/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { JourneyStepper } from "../components/layout/JourneyStepper";
+import { JourneySummary } from "../components/layout/JourneySummary";
 import PageShell from "../components/layout/PageShell";
 import FavoriteToggle from "../components/search/FavoriteToggle";
 import TripFilterPanel from "../components/search/TripFilterPanel";
@@ -80,29 +82,6 @@ function formatDateTime(dateTime: string, timeMode: TimeMode): string {
 		}) +
 		" " +
 		time
-	);
-}
-
-function SummaryChip({
-	icon: Icon,
-	children,
-	className,
-}: {
-	icon: React.ComponentType;
-	children: React.ReactNode;
-	className?: string;
-}) {
-	return (
-		<div
-			className={`flex h-full items-center justify-between gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-4 py-3 text-sm text-wayfare-text${className ? ` ${className}` : ""}`}
-		>
-			<span>{children}</span>
-			<Icon
-				aria-hidden="true"
-				// @ts-expect-error - className prop accepted at runtime
-				className="shrink-0 text-wayfare-primary"
-			/>
-		</div>
 	);
 }
 
@@ -251,7 +230,7 @@ function TripsPage() {
 		tripQuery.isSuccess && !hasTransitPatterns && !isDefaultFilters(filters);
 
 	return (
-		<PageShell>
+		<PageShell stepper={<JourneyStepper />}>
 			<Button
 				variant="secondary"
 				className="mb-6"
@@ -265,17 +244,14 @@ function TripsPage() {
 				<div className="mb-1.5 flex justify-end">
 					<FavoriteToggle from={params.from} to={params.to} variant="text" />
 				</div>
-				<div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-					<SummaryChip icon={RouteIcon} className="min-w-0">
-						{fromName} → {toName}
-					</SummaryChip>
-					<SummaryChip icon={DateIcon}>
-						{formatDateTime(params.dateTime, params.timeMode)}
-					</SummaryChip>
-					<SummaryChip icon={UsersIcon}>
-						{formatTravelers(params.travelers)}
-					</SummaryChip>
-				</div>
+				<JourneySummary
+					variant="bar"
+					from={fromName}
+					to={toName}
+					startTime={params.dateTime}
+					formattedDate={formatDateTime(params.dateTime, params.timeMode)}
+					partyLabel={formatTravelers(params.travelers)}
+				/>
 			</div>
 
 			<TripFilterPanel
