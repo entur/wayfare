@@ -21,6 +21,17 @@ function entitlementLabel(types: string[]): string | null {
 	return types.map((t) => ENTITLEMENT_LABELS[t] ?? t).join(", ");
 }
 
+export function travelPartyCount(
+	profiles?: import("../types/search").UserProfile[],
+	travellers?: import("../types/search").IndividualTraveller[],
+): number {
+	const fromProfiles = (profiles ?? []).reduce(
+		(sum, p) => sum + (p.count ?? 1),
+		0,
+	);
+	return fromProfiles + (travellers?.length ?? 0);
+}
+
 export function partyLabel(p: TravelParty): string {
 	if (p.type === "user_profile") {
 		const types =

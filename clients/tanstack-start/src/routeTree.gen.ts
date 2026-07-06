@@ -18,6 +18,7 @@ import { Route as MapRouteImport } from './routes/map'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
 import { Route as TicketsPackageIdRouteImport } from './routes/tickets/$packageId'
+import { Route as SeatsOfferIdRouteImport } from './routes/seats/$offerId'
 import { Route as CheckoutOfferIdRouteImport } from './routes/checkout/$offerId'
 
 const TripsRoute = TripsRouteImport.update({
@@ -65,6 +66,11 @@ const TicketsPackageIdRoute = TicketsPackageIdRouteImport.update({
   path: '/tickets/$packageId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SeatsOfferIdRoute = SeatsOfferIdRouteImport.update({
+  id: '/seats/$offerId',
+  path: '/seats/$offerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckoutOfferIdRoute = CheckoutOfferIdRouteImport.update({
   id: '/checkout/$offerId',
   path: '/checkout/$offerId',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
+  '/seats/$offerId': typeof SeatsOfferIdRoute
   '/tickets/$packageId': typeof TicketsPackageIdRoute
   '/tickets/': typeof TicketsIndexRoute
 }
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
+  '/seats/$offerId': typeof SeatsOfferIdRoute
   '/tickets/$packageId': typeof TicketsPackageIdRoute
   '/tickets': typeof TicketsIndexRoute
 }
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
+  '/seats/$offerId': typeof SeatsOfferIdRoute
   '/tickets/$packageId': typeof TicketsPackageIdRoute
   '/tickets/': typeof TicketsIndexRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/trips'
     | '/checkout/$offerId'
+    | '/seats/$offerId'
     | '/tickets/$packageId'
     | '/tickets/'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/trips'
     | '/checkout/$offerId'
+    | '/seats/$offerId'
     | '/tickets/$packageId'
     | '/tickets'
   id:
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/trips'
     | '/checkout/$offerId'
+    | '/seats/$offerId'
     | '/tickets/$packageId'
     | '/tickets/'
   fileRoutesById: FileRoutesById
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   TripsRoute: typeof TripsRoute
   CheckoutOfferIdRoute: typeof CheckoutOfferIdRoute
+  SeatsOfferIdRoute: typeof SeatsOfferIdRoute
   TicketsPackageIdRoute: typeof TicketsPackageIdRoute
   TicketsIndexRoute: typeof TicketsIndexRoute
 }
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TicketsPackageIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/seats/$offerId': {
+      id: '/seats/$offerId'
+      path: '/seats/$offerId'
+      fullPath: '/seats/$offerId'
+      preLoaderRoute: typeof SeatsOfferIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/checkout/$offerId': {
       id: '/checkout/$offerId'
       path: '/checkout/$offerId'
@@ -244,6 +264,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   TripsRoute: TripsRoute,
   CheckoutOfferIdRoute: CheckoutOfferIdRoute,
+  SeatsOfferIdRoute: SeatsOfferIdRoute,
   TicketsPackageIdRoute: TicketsPackageIdRoute,
   TicketsIndexRoute: TicketsIndexRoute,
 }

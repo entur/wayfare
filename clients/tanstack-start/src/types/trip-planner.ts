@@ -40,6 +40,9 @@ export interface TripLeg {
 		id: string;
 		situations?: PtSituationElement[] | null;
 	} | null;
+	datedServiceJourney?: {
+		id: string;
+	} | null;
 	line?: {
 		publicCode?: string | null;
 		name?: string | null;

@@ -5,11 +5,16 @@ import BundleCard, {
 	buildBundles,
 	type OfferBundle,
 } from "../components/checkout/BundleCard";
+import { JourneyStepper } from "../components/layout/JourneyStepper";
+import { JourneySummary } from "../components/layout/JourneySummary";
 import PageShell from "../components/layout/PageShell";
 import FavoriteToggle from "../components/search/FavoriteToggle";
 import Illustration from "../components/shared/Illustration";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
+import { useSelectOffers } from "../hooks/use-purchase";
+import { writePackageSession } from "../lib/package-session";
+import { clearPurchaseOptionsSession } from "../lib/purchase-options-session";
 import {
 	type LegInfo,
 	readSearchSession,
@@ -121,6 +126,8 @@ function OffersScreen() {
 	const [hydrated, setHydrated] = useState(false);
 	const [collection, setCollection] = useState<OfferCollection | null>(null);
 	const [context, setContext] = useState<SearchContext | null>(null);
+	const [continueError, setContinueError] = useState<string | null>(null);
+	const selectOffersMutation = useSelectOffers();
 
 	useEffect(() => {
 		const session = readSearchSession();
@@ -174,6 +181,12 @@ function OffersScreen() {
 			allSequences.every((s) => coverage.get(t)?.has(s)),
 		);
 
+	const selectedOffers = bundles
+		.filter((b) => selectedKeys.has(b.groupKey))
+		.flatMap((b) => b.offers);
+	const continueLabel = "Continue to checkout";
+
+	// Parties that still lack full coverage across all sequences.
 	const uncoveredParties = allParties.filter((p) => {
 		const partySeqs = coverage.get(p.id);
 		return allSequences.some((s) => !partySeqs?.has(s));
@@ -194,29 +207,39 @@ function OffersScreen() {
 		});
 	}
 
-	function handleContinue() {
-		const offerIds = bundles
-			.filter((b) => selectedKeys.has(b.groupKey))
-			.flatMap((b) =>
-				b.offers.map((o) => o.id).filter((id): id is string => Boolean(id)),
-			);
+	async function handleContinue() {
+		const offerIds = selectedOffers
+			.map((o) => o.id)
+			.filter((id): id is string => Boolean(id));
 		if (offerIds.length === 0) return;
-		navigate({
-			to: "/checkout/$offerId",
-			params: { offerId: offerIds.join(",") },
-			search: { pendingCardId: undefined },
-		});
+		setContinueError(null);
+		clearPurchaseOptionsSession();
+		try {
+			const selectedPackage = await selectOffersMutation.mutateAsync({
+				inputs: {
+					type: "select_offers",
+					offerIds,
+				},
+			});
+			writePackageSession({ package: selectedPackage, offerIds });
+			navigate({
+				to: "/checkout/$offerId",
+				params: { offerId: offerIds.join(",") },
+				search: { pendingCardId: undefined },
+			});
+		} catch (error) {
+			setContinueError(
+				error instanceof Error
+					? error.message
+					: "Could not prepare checkout. Please try again.",
+			);
+		}
 	}
 
-	const formattedDate = context?.travelDate
-		? new Date(context.travelDate).toLocaleString("no-NO", {
-				weekday: "short",
-				day: "numeric",
-				month: "short",
-				hour: "2-digit",
-				minute: "2-digit",
-			})
-		: null;
+	const partyStr =
+		allParties.length > 0
+			? allParties.map((p) => partyLabel(p)).join(", ")
+			: undefined;
 
 	if (!hydrated) {
 		return (
@@ -264,50 +287,30 @@ function OffersScreen() {
 		);
 	}
 
+	const rightRail = context ? (
+		<div className="flex flex-col gap-3">
+			<JourneySummary
+				variant="rail"
+				from={context.from.name ?? context.from.placeId}
+				to={context.to.name ?? context.to.placeId}
+				startTime={context.pattern?.expectedStartTime ?? context.travelDate}
+				endTime={context.pattern?.expectedEndTime}
+				durationSeconds={context.pattern?.duration}
+				partyLabel={partyStr}
+				onChangeJourney={() => navigate({ to: "/" })}
+			/>
+			<FavoriteToggle from={context.from} to={context.to} variant="text" />
+		</div>
+	) : null;
+
 	return (
 		<PageShell
 			title="Available offers"
 			subtitle={`${bundles.length} option${bundles.length !== 1 ? "s" : ""} found`}
-			contentClassName="mx-auto max-w-xl"
+			stepper={<JourneyStepper />}
+			rightRail={rightRail}
 		>
 			<div>
-				{context?.from && context.to && (
-					<div className="mb-5 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
-						<div className="flex items-center justify-between gap-2">
-							<div className="flex min-w-0 items-center gap-2">
-								<span className="truncate text-sm font-semibold text-wayfare-text">
-									{context.from.name ?? context.from.placeId}
-								</span>
-								<RightArrowIcon
-									aria-hidden="true"
-									className="shrink-0 text-wayfare-text-secondary"
-								/>
-								<span className="truncate text-sm font-semibold text-wayfare-text">
-									{context.to.name ?? context.to.placeId}
-								</span>
-							</div>
-							<FavoriteToggle from={context.from} to={context.to} />
-						</div>
-						{formattedDate && (
-							<p className="m-0 mt-1 text-xs text-wayfare-text-secondary">
-								{formattedDate}
-							</p>
-						)}
-						{allParties.length > 0 && (
-							<div className="mt-2 flex flex-wrap gap-1.5">
-								{allParties.map((p) => (
-									<span
-										key={p.id}
-										className="inline-flex items-center rounded-full border border-wayfare-line bg-wayfare-bg px-2 py-0.5 text-xs text-wayfare-text-secondary"
-									>
-										{partyLabel(p)}
-									</span>
-								))}
-							</div>
-						)}
-					</div>
-				)}
-
 				<div className="flex flex-col gap-3">
 					{showSections && fullBundles.length > 0 && (
 						<SectionLabel>Full journey</SectionLabel>
@@ -355,6 +358,11 @@ function OffersScreen() {
 								Still needed: {uncoveredParties.map(partyLabel).join(", ")}
 							</p>
 						)}
+					{continueError && (
+						<p className="text-center text-xs text-wayfare-primary">
+							{continueError}
+						</p>
+					)}
 					<div className="flex gap-3">
 						<Link
 							to="/"
@@ -366,10 +374,11 @@ function OffersScreen() {
 						<Button
 							variant="primary"
 							className="flex-1"
-							disabled={!canContinue}
+							disabled={!canContinue || selectOffersMutation.isPending}
+							loading={selectOffersMutation.isPending}
 							onClick={handleContinue}
 						>
-							Continue to checkout
+							{continueLabel}
 							<RightArrowIcon aria-hidden="true" />
 						</Button>
 					</div>

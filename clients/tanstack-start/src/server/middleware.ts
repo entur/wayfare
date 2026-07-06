@@ -22,9 +22,9 @@ function parseDevConfigCookie(): DevConfigOverrides {
 
 export const devConfigMiddleware = createMiddleware({
 	type: "function",
-}).server(async ({ next }) => {
+}).server(async ({ next, signal }) => {
 	const devConfig = parseDevConfigCookie();
-	return next({ context: { devConfig } });
+	return next({ context: { devConfig, signal } });
 });
 
 export const authMiddleware = createMiddleware({ type: "function" })

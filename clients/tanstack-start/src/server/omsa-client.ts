@@ -365,10 +365,11 @@ async function handleResponse<T>(
 
 export function createOmsaClient(
 	devConfig?: DevConfigOverrides,
-	options?: { quiet?: boolean },
+	options?: { quiet?: boolean; signal?: AbortSignal },
 ) {
 	const config = getRuntimeConfig(devConfig);
 	const quiet = options?.quiet ?? false;
+	const signal = options?.signal;
 
 	return {
 		async get<T>(path: string, params?: Record<string, string>): Promise<T> {
@@ -383,7 +384,7 @@ export function createOmsaClient(
 			const headers = await authorizedHeaders(config, devConfig);
 			logRequest("GET", requestUrl, undefined, headers, quiet);
 			try {
-				const response = await fetch(requestUrl, { headers });
+				const response = await fetch(requestUrl, { headers, signal });
 				await logResponse("GET", requestUrl, response, startedAt, quiet);
 				return handleResponse<T>(response, `GET ${path}`);
 			} catch (error) {
