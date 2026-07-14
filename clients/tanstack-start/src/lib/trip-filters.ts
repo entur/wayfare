@@ -23,7 +23,7 @@ const MODE_GROUP_TO_TRANSPORT_MODES: Record<TransportModeGroup, string[]> = {
 	rail: ["rail"],
 	bus: ["bus", "coach"],
 	metroTram: ["metro", "tram"],
-	water: ["water"],
+	water: ["water", "ferry"],
 	air: ["air"],
 };
 

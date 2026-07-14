@@ -78,3 +78,18 @@ describe("replacement bus filtering", () => {
 		);
 	});
 });
+
+describe("transport mode requests", () => {
+	it("requests both water and ferry modes for the water group", () => {
+		const waterOnly: TripFilters = {
+			...DEFAULT_FILTERS,
+			modes: ["water"],
+		};
+		const modes = buildTripVariables(
+			params,
+			waterOnly,
+		).modes?.transportModes.map(({ transportMode }) => transportMode);
+
+		expect(modes).toEqual(["water", "ferry"]);
+	});
+});
