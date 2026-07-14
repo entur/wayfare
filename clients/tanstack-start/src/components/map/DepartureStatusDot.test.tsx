@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { afterEach } from "vitest";
+
 import { cleanup, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import DepartureStatusDot from "./DepartureStatusDot";
 
 afterEach(() => {
