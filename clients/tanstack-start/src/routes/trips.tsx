@@ -1,7 +1,7 @@
 import { BackArrowIcon, DateIcon, RouteIcon, UsersIcon } from "@entur/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import FavoriteToggle from "../components/search/FavoriteToggle";
 import TripFilterPanel from "../components/search/TripFilterPanel";
@@ -26,7 +26,10 @@ import {
 	searchFromFilters,
 	type TripFilters,
 } from "../lib/trip-filters";
-import { readTripSearchParams } from "../lib/trip-session";
+import {
+	readTripSearchParams,
+	type TripSearchParams,
+} from "../lib/trip-session";
 import type { OfferCollection } from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
 
@@ -106,9 +109,9 @@ function SummaryChip({
 function TripsPage() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const params = readTripSearchParams();
+	const [params, setParams] = useState<TripSearchParams | null>(null);
 	const search = Route.useSearch();
-	const filters = filtersFromSearch(search);
+	const filters = useMemo(() => filtersFromSearch(search), [search]);
 	const tripQuery = useTripPlanner(params, filters);
 	const { overrides } = useDevConfig();
 
@@ -119,9 +122,14 @@ function TripsPage() {
 		Map<string, OfferPreview | "loading" | "empty" | "error">
 	>(new Map());
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: run once on mount with session params
+	// biome-ignore lint/correctness/useExhaustiveDependencies: session state is loaded once after hydration
 	useEffect(() => {
-		if (!params) navigate({ to: "/" });
+		const storedParams = readTripSearchParams();
+		if (!storedParams) {
+			navigate({ to: "/" });
+			return;
+		}
+		setParams(storedParams);
 	}, []);
 
 	// Prefetch offers for all transit patterns as soon as trip results arrive

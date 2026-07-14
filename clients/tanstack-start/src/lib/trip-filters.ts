@@ -1,3 +1,4 @@
+import type { OtpTransportMode, TripPattern } from "../types/trip-planner";
 import type { TripSearchParams } from "./trip-session";
 
 export type TransportModeGroup = "rail" | "bus" | "metroTram" | "water" | "air";
@@ -26,6 +27,19 @@ const MODE_GROUP_TO_TRANSPORT_MODES: Record<TransportModeGroup, string[]> = {
 	air: ["air"],
 };
 
+const TRANSPORT_MODE_TO_GROUP: Partial<
+	Record<OtpTransportMode, TransportModeGroup>
+> = {
+	rail: "rail",
+	bus: "bus",
+	coach: "bus",
+	metro: "metroTram",
+	tram: "metroTram",
+	water: "water",
+	ferry: "water",
+	air: "air",
+};
+
 export interface TripFilters {
 	modes: TransportModeGroup[];
 	fewerTransfers: boolean;
@@ -43,15 +57,6 @@ export function isDefaultFilters(filters: TripFilters): boolean {
 		filters.modes.length === ALL_MODE_GROUPS.length &&
 		!filters.fewerTransfers &&
 		!filters.lessWalking
-	);
-}
-
-export function countActiveFilters(filters: TripFilters): number {
-	const excludedModes = ALL_MODE_GROUPS.length - filters.modes.length;
-	return (
-		excludedModes +
-		(filters.fewerTransfers ? 1 : 0) +
-		(filters.lessWalking ? 1 : 0)
 	);
 }
 
@@ -103,6 +108,22 @@ export function searchFromFilters(filters: TripFilters): TripFilterSearch {
 	return search;
 }
 
+/**
+ * Match by the line's advertised mode rather than only the vehicle used for a
+ * leg. This keeps rail services operated by a temporary replacement bus under
+ * the rail filter while still excluding ordinary bus connections.
+ */
+export function patternMatchesFilters(
+	pattern: TripPattern,
+	filters: TripFilters,
+): boolean {
+	return pattern.legs.every((leg) => {
+		const mode = leg.line?.transportMode ?? leg.mode;
+		const group = TRANSPORT_MODE_TO_GROUP[mode];
+		return group == null || filters.modes.includes(group);
+	});
+}
+
 export interface TripQueryVariables {
 	from: { place: string };
 	to: { place: string };
@@ -136,12 +157,21 @@ export function buildTripVariables(
 	};
 	if (pageCursor) variables.pageCursor = pageCursor;
 	if (filters.modes.length < ALL_MODE_GROUPS.length) {
+		const transportModes = filters.modes.flatMap(
+			(group) => MODE_GROUP_TO_TRANSPORT_MODES[group],
+		);
+		// JourneyPlanner filters on the vehicle mode of every leg. Rail searches
+		// must therefore include buses so rail-replacement legs remain candidates;
+		// ordinary buses are removed client-side using line.transportMode.
+		if (filters.modes.includes("rail")) {
+			transportModes.push("bus", "coach");
+		}
 		variables.modes = {
 			accessMode: "foot",
 			egressMode: "foot",
-			transportModes: filters.modes
-				.flatMap((group) => MODE_GROUP_TO_TRANSPORT_MODES[group])
-				.map((transportMode) => ({ transportMode })),
+			transportModes: [...new Set(transportModes)].map((transportMode) => ({
+				transportMode,
+			})),
 		};
 	}
 	if (filters.fewerTransfers) {

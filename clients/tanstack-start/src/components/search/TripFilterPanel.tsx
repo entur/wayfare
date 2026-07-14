@@ -2,7 +2,6 @@ import { AdjustmentsIcon } from "@entur/icons";
 import { useState } from "react";
 import {
 	ALL_MODE_GROUPS,
-	countActiveFilters,
 	isDefaultFilters,
 	MODE_GROUP_LABELS,
 	type TransportModeGroup,
@@ -89,7 +88,9 @@ export default function TripFilterPanel({
 	onReset,
 }: TripFilterPanelProps) {
 	const [open, setOpen] = useState(false);
-	const activeCount = countActiveFilters(filters);
+	const excludedModes = ALL_MODE_GROUPS.filter(
+		(group) => !filters.modes.includes(group),
+	);
 
 	function toggleMode(group: TransportModeGroup) {
 		const active = filters.modes.includes(group);
@@ -98,6 +99,37 @@ export default function TripFilterPanel({
 			? filters.modes.filter((g) => g !== group)
 			: ALL_MODE_GROUPS.filter((g) => filters.modes.includes(g) || g === group);
 		onChange({ ...filters, modes });
+	}
+
+	function restoreMode(group: TransportModeGroup) {
+		onChange({
+			...filters,
+			modes: ALL_MODE_GROUPS.filter(
+				(candidate) => filters.modes.includes(candidate) || candidate === group,
+			),
+		});
+	}
+
+	function FilterChip({
+		label,
+		onRemove,
+	}: {
+		label: string;
+		onRemove: () => void;
+	}) {
+		return (
+			<span className="inline-flex items-center gap-1 rounded-full border border-wayfare-primary bg-wayfare-accent-soft py-1 pl-3 pr-1.5 text-sm font-medium text-wayfare-primary">
+				{label}
+				<button
+					type="button"
+					onClick={onRemove}
+					aria-label={`Remove ${label} filter`}
+					className="inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-lg leading-none hover:bg-wayfare-primary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wayfare-primary"
+				>
+					<span aria-hidden="true">×</span>
+				</button>
+			</span>
+		);
 	}
 
 	return (
@@ -114,16 +146,38 @@ export default function TripFilterPanel({
 						className="shrink-0 text-wayfare-primary"
 					/>
 					Filter journeys
-					{activeCount > 0 && (
-						<span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-wayfare-primary px-1.5 text-xs font-semibold text-white">
-							{activeCount}
-						</span>
-					)}
 				</span>
 				<span className="text-wayfare-text-secondary">
 					{open ? "Hide" : "Show"}
 				</span>
 			</button>
+
+			{!isDefaultFilters(filters) && (
+				<div className="flex flex-wrap gap-2 border-t border-wayfare-line px-4 py-3">
+					{excludedModes.map((group) => {
+						const label = `No ${MODE_GROUP_LABELS[group]}`;
+						return (
+							<FilterChip
+								key={group}
+								label={label}
+								onRemove={() => restoreMode(group)}
+							/>
+						);
+					})}
+					{filters.fewerTransfers && (
+						<FilterChip
+							label="Fewer transfers"
+							onRemove={() => onChange({ ...filters, fewerTransfers: false })}
+						/>
+					)}
+					{filters.lessWalking && (
+						<FilterChip
+							label="Less walking"
+							onRemove={() => onChange({ ...filters, lessWalking: false })}
+						/>
+					)}
+				</div>
+			)}
 
 			{open && (
 				<div className="border-t border-wayfare-line px-4 py-4">

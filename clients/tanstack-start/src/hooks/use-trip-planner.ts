@@ -1,6 +1,10 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { buildTripVariables, type TripFilters } from "../lib/trip-filters";
+import {
+	buildTripVariables,
+	patternMatchesFilters,
+	type TripFilters,
+} from "../lib/trip-filters";
 import type { TripSearchParams } from "../lib/trip-session";
 import { planTrip } from "../server-functions/trip-planner";
 import type { TripQueryResult } from "../types/trip-planner";
@@ -31,8 +35,11 @@ export function useTripPlanner(
 	});
 
 	const patterns = useMemo(
-		() => query.data?.pages.flatMap((page) => page.tripPatterns),
-		[query.data],
+		() =>
+			query.data?.pages
+				.flatMap((page) => page.tripPatterns)
+				.filter((pattern) => patternMatchesFilters(pattern, filters)),
+		[query.data, filters],
 	);
 
 	return { ...query, patterns };
