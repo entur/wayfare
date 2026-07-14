@@ -1,7 +1,7 @@
 import { RightArrowIcon } from "@entur/icons";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { JourneyStepper } from "../../components/layout/JourneyStepper";
 import { JourneySummary } from "../../components/layout/JourneySummary";
 import PageShell from "../../components/layout/PageShell";
@@ -15,6 +15,10 @@ import {
 	assetSeatNumber,
 	isSeatFeature,
 } from "../../lib/asset-features";
+import {
+	confirmedAssetIdsByLeg,
+	retainConfirmedAssetInfo,
+} from "../../lib/confirmed-assets";
 import { getOfferReservationFlow } from "../../lib/offer-reservations";
 import {
 	readPackageSession,
@@ -75,6 +79,8 @@ function SeatsPage() {
 		Record<string, PendingAssignment>
 	>({});
 	const [assignError, setAssignError] = useState<string | null>(null);
+	const confirmedAssetIdsRef = useRef<Record<string, string>>({});
+	const assigningLegsRef = useRef(new Set<string>());
 
 	useEffect(() => {
 		const pkgSession = readPackageSession();
@@ -87,8 +93,15 @@ function SeatsPage() {
 			});
 			return;
 		}
+		const confirmedAssetIds = confirmedAssetIdsByLeg(pkgSession.package);
+		confirmedAssetIdsRef.current = confirmedAssetIds;
 		setPkg(pkgSession.package);
-		setSelectedAssets(pkgSession.selectedAssetsByLegId ?? {});
+		setSelectedAssets(
+			retainConfirmedAssetInfo(
+				pkgSession.selectedAssetsByLegId ?? {},
+				confirmedAssetIds,
+			),
+		);
 		setPurchaseOptions(readPurchaseOptionsSession());
 		setSessionContext(session.context);
 
@@ -204,10 +217,11 @@ function SeatsPage() {
 		if (!isSeatFeature(feature)) return;
 		if (assetAvailability(feature) !== "AVAILABLE") return;
 		if (!pkg?.id) return;
-		if (pendingAssignments[legId]) return;
+		if (assigningLegsRef.current.has(legId)) return;
 		// Clicking already-selected seat is a no-op — OMSA has no "deselect" endpoint
-		const current = selectedAssets[legId];
-		if (current?.assetId === feature.id) return;
+		const previousInfo = selectedAssets[legId];
+		const confirmedAssetId = confirmedAssetIdsRef.current[legId];
+		if (confirmedAssetId === feature.id) return;
 		if (
 			Object.entries(selectedAssets).some(
 				([selectedLegId, asset]) =>
@@ -217,6 +231,7 @@ function SeatsPage() {
 			setAssignError("That seat is already selected for another traveller.");
 			return;
 		}
+		assigningLegsRef.current.add(legId);
 
 		const assetInfo: SelectedAssetInfo = {
 			assetId: feature.id,
@@ -233,7 +248,7 @@ function SeatsPage() {
 		setSelectedAssets((previous) => ({ ...previous, [legId]: assetInfo }));
 		setPendingAssignments((previous) => ({
 			...previous,
-			[legId]: { assetId: feature.id, previous: current },
+			[legId]: { assetId: feature.id, previous: previousInfo },
 		}));
 		if (group && nextLeg) {
 			setActiveLegByServiceJourney((previous) =>
@@ -248,20 +263,36 @@ function SeatsPage() {
 					packageId: pkg.id,
 					legId,
 					assetId: feature.id,
-					...(current ? { replaceAssetId: current.assetId } : {}),
+					...(confirmedAssetId ? { replaceAssetId: confirmedAssetId } : {}),
 				},
 			});
 
+			const resultConfirmedAssetIds = confirmedAssetIdsByLeg(result);
+			confirmedAssetIdsRef.current = resultConfirmedAssetIds;
+			const confirmedResult = resultConfirmedAssetIds[legId] === feature.id;
 			const currentSession = readPackageSession();
+			const nextSelectedAssets = confirmedResult
+				? {
+						...retainConfirmedAssetInfo(
+							currentSession.selectedAssetsByLegId ?? {},
+							resultConfirmedAssetIds,
+						),
+						[legId]: assetInfo,
+					}
+				: retainConfirmedAssetInfo(
+						currentSession.selectedAssetsByLegId ?? {},
+						resultConfirmedAssetIds,
+					);
 			writePackageSession({
 				...currentSession,
 				package: result,
-				selectedAssetsByLegId: {
-					...currentSession.selectedAssetsByLegId,
-					[legId]: assetInfo,
-				},
+				selectedAssetsByLegId: nextSelectedAssets,
 			});
 			setPkg(result);
+			setSelectedAssets(nextSelectedAssets);
+			if (!confirmedResult) {
+				setAssignError("The seat could not be confirmed. Please choose again.");
+			}
 			if (group) {
 				queryClient.invalidateQueries({
 					queryKey: ["assets", pkg.id, group.serviceJourney],
@@ -271,7 +302,7 @@ function SeatsPage() {
 			setSelectedAssets((previous) => {
 				if (previous[legId]?.assetId !== feature.id) return previous;
 				const next = { ...previous };
-				if (current) next[legId] = current;
+				if (previousInfo) next[legId] = previousInfo;
 				else delete next[legId];
 				return next;
 			});
@@ -296,6 +327,7 @@ function SeatsPage() {
 				);
 			}
 		} finally {
+			assigningLegsRef.current.delete(legId);
 			setPendingAssignments((previous) => {
 				if (previous[legId]?.assetId !== feature.id) return previous;
 				const next = { ...previous };
