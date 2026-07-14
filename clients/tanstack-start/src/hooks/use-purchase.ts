@@ -6,6 +6,7 @@ import {
 	confirmPackage,
 	listAncillaries,
 	purchaseOffers,
+	purchasePackage,
 	selectOffers,
 } from "../server-functions/purchase";
 import type {
@@ -17,6 +18,7 @@ import type {
 	ConfirmPackageRequest,
 	ListAncillariesRequest,
 	PurchaseOffersRequest,
+	PurchasePackageRequest,
 	SelectOffersRequest,
 } from "../types/purchase";
 
@@ -31,6 +33,13 @@ export function usePurchaseOffers() {
 	return useMutation<ConfirmedPackage, Error, PurchaseOffersRequest>({
 		mutationFn: (req) =>
 			purchaseOffers({ data: req }) as Promise<ConfirmedPackage>,
+	});
+}
+
+export function usePurchasePackage() {
+	return useMutation<ConfirmedPackage, Error, PurchasePackageRequest>({
+		mutationFn: (req) =>
+			purchasePackage({ data: req }) as Promise<ConfirmedPackage>,
 	});
 }
 

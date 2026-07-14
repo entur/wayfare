@@ -192,6 +192,7 @@ export interface OfferSummary {
 export interface OfferLeg {
 	id: string;
 	type?: "leg";
+	serviceJourney?: string;
 	from?: PlaceReference;
 	to?: PlaceReference;
 	sequenceNumber?: number;

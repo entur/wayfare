@@ -360,7 +360,20 @@ async function handleResponse<T>(
 		const text = await response.text();
 		throw new Error(`OMSA ${action} failed (${response.status}): ${text}`);
 	}
-	return response.json() as Promise<T>;
+	const body = (await response.json()) as T;
+	const orderVersion = response.headers.get("entur-order-version");
+	if (
+		orderVersion &&
+		typeof body === "object" &&
+		body !== null &&
+		!("orderVersion" in body)
+	) {
+		return {
+			...body,
+			orderVersion: Number(orderVersion),
+		};
+	}
+	return body;
 }
 
 export function createOmsaClient(

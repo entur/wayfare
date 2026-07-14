@@ -1,7 +1,24 @@
-import type { ConfirmedPackage } from "./purchase";
-import type { Subscriber } from "./purchase";
+import type { ConfirmedPackage, Subscriber } from "./purchase";
 
-export type AssetAvailability = "AVAILABLE" | "OCCUPIED" | "CLOSED" | "LAST_STOP";
+export type AssetAvailability =
+	| "AVAILABLE"
+	| "OCCUPIED"
+	| "CLOSED"
+	| "LAST_STOP";
+
+export interface AssetLink {
+	rel: string;
+	href: string;
+	type?: string;
+	description?: string;
+}
+
+export interface CarriageFeatureProperties {
+	type: "carriage";
+	id: string;
+	carriage: string;
+	deck?: string;
+}
 
 export interface SeatFeatureProperties {
 	type: "seat";
@@ -15,19 +32,25 @@ export interface FacilityFeatureProperties {
 	type: "facility";
 	id: string;
 	facilityType: string;
+	name?: string;
 	carriage: string;
 }
 
-export type AssetFeatureProperties = SeatFeatureProperties | FacilityFeatureProperties;
+export type AssetFeatureProperties =
+	| CarriageFeatureProperties
+	| SeatFeatureProperties
+	| FacilityFeatureProperties;
+
+export type AssetGeometry =
+	| { type?: "Polygon"; coordinates: number[][][] }
+	| { type: "Point"; coordinates: number[] };
 
 export interface AssetFeature {
 	type: "Feature";
 	id: string;
-	geometry: {
-		type: "Polygon";
-		coordinates: number[][][];
-	};
+	geometry: AssetGeometry | null;
 	properties: AssetFeatureProperties;
+	links?: AssetLink[];
 }
 
 export interface AssetFeatureCollection {

@@ -21,6 +21,7 @@ import {
 import {
 	useAssignAncillary,
 	useListAncillaries,
+	usePurchasePackage,
 } from "../../hooks/use-purchase";
 import { useAuthorizeCard } from "../../hooks/use-recurring-payments";
 import { formatPrice } from "../../lib/format-price";
@@ -45,7 +46,7 @@ import { partyLabel } from "../../lib/travel-party";
 import type { PaymentSelection } from "../../types/payment-methods";
 import type {
 	AncillaryCollection,
-	AssignAncillaryInput,
+	AncillaryReference,
 	CardPaymentTransaction,
 	ConfirmedPackage,
 	RecurringPaymentTransaction,
@@ -69,39 +70,47 @@ function CheckoutPage() {
 	);
 }
 
-function getAssignedAncillaryId(
+// Resolves a search-time ancillaryId (e.g. "PiDs4l") to the package/leg-scoped
+// AncillaryReference OMSA expects in assign-ancillary requests (e.g. { ancillaryId: "wcoryo" }).
+function resolveAncillaryReference(
 	collection: AncillaryCollection,
 	selectedAncillaryId: string,
-): string {
+): AncillaryReference {
 	const matching = collection.ancillaries?.find(
 		(item) =>
 			item.id === selectedAncillaryId ||
 			item.properties?.ancillaryId === selectedAncillaryId,
 	);
-	return (
-		matching?.properties?.ancillaryId ?? matching?.id ?? selectedAncillaryId
-	);
+	return {
+		ancillaryId:
+			matching?.properties?.ancillaryId ?? matching?.id ?? selectedAncillaryId,
+		name: matching?.properties?.name,
+	};
+}
+
+interface PendingAncillaryAssignment {
+	packageId: string;
+	legId: string;
+	offerId?: string;
+	// Search-time ancillaryId — resolved to an AncillaryReference via resolveAncillaryReference
+	// before being sent, since OMSA's assign-ancillary endpoint needs the leg-scoped one.
+	ancillaryId: string;
 }
 
 function buildAncillaryAssignments(
 	pkg: ConfirmedPackage,
 	options: PurchaseOptionsSession,
-): AssignAncillaryInput[] {
+): PendingAncillaryAssignment[] {
 	if (!pkg.id || options.ancillaries.length === 0) return [];
 
-	const assignments = new Map<string, AssignAncillaryInput>();
+	// option.offerIds/legIds come from the pre-select-offers catalog (searchOffers).
+	// select-offers mints its own offer/leg ids for the package, so those catalog ids
+	// never match pkg.offers[].id — matching must rely on pkg-native leg fields only.
+	const assignments = new Map<string, PendingAncillaryAssignment>();
 	for (const option of options.ancillaries) {
-		const offerIdSet = new Set(option.offerIds);
-		const legIdSet = new Set(option.legIds);
-
 		for (const offer of pkg.offers ?? []) {
-			if (offer.id && offerIdSet.size > 0 && !offerIdSet.has(offer.id)) {
-				continue;
-			}
-
 			for (const leg of offer.properties?.legs ?? []) {
 				const legMatches =
-					legIdSet.has(leg.id) ||
 					(leg.ancillaries ?? []).includes(option.ancillaryId) ||
 					(leg.reservationRequirement?.fulfilledByAncillaries ?? []).some(
 						(ancillary) => ancillary.ancillaryId === option.ancillaryId,
@@ -110,7 +119,6 @@ function buildAncillaryAssignments(
 
 				const key = `${pkg.id}:${offer.id ?? ""}:${leg.id}:${option.ancillaryId}`;
 				assignments.set(key, {
-					type: "ancillary",
 					packageId: pkg.id,
 					legId: leg.id,
 					...(offer.id ? { offerId: offer.id } : {}),
@@ -156,6 +164,7 @@ function CheckoutScreen() {
 
 	const listAncillariesMutation = useListAncillaries();
 	const assignAncillaryMutation = useAssignAncillary();
+	const purchasePackageMutation = usePurchasePackage();
 	const createPaymentMutation = useCreatePayment();
 	const startTerminalMutation = useStartTerminalSession();
 	const startAppClaimMutation = useStartAppClaim();
@@ -201,9 +210,7 @@ function CheckoutScreen() {
 	const searchOffers: Offer[] =
 		offerCollection?.offers?.filter((o) => o.id && offerIds.includes(o.id)) ??
 		[];
-	const selectedOffers: Offer[] =
-		selectedPackage?.offers ??
-		searchOffers;
+	const selectedOffers: Offer[] = selectedPackage?.offers ?? searchOffers;
 	const assignedAncillaryIds = new Set(
 		purchaseOptions.ancillaries.map((ancillary) => ancillary.ancillaryId),
 	);
@@ -272,19 +279,29 @@ function CheckoutScreen() {
 			const assignments = buildAncillaryAssignments(
 				updatedPackage,
 				nextOptions,
-			);
+			).filter((assignment) => assignment.ancillaryId === option.ancillaryId);
+			if (assignments.length === 0) {
+				throw new Error(
+					"Could not find a leg on this package to assign the seat reservation to.",
+				);
+			}
 			for (const assignment of assignments) {
-				if (assignment.ancillaryId !== option.ancillaryId) continue;
 				const collection = await listAncillariesMutation.mutateAsync({
 					packageId: assignment.packageId,
 					legId: assignment.legId,
 				});
-				const assignedId = getAssignedAncillaryId(
+				const ancillaryReference = resolveAncillaryReference(
 					collection,
 					assignment.ancillaryId,
 				);
 				updatedPackage = await assignAncillaryMutation.mutateAsync({
-					inputs: { ...assignment, ancillaryId: assignedId },
+					inputs: {
+						type: "ancillary",
+						packageId: assignment.packageId,
+						legId: assignment.legId,
+						...(assignment.offerId ? { offerId: assignment.offerId } : {}),
+						ancillaryId: ancillaryReference,
+					},
 				});
 			}
 
@@ -310,7 +327,20 @@ function CheckoutScreen() {
 			if (!selectedPackage || !packageId) {
 				throw new Error("No package selected for checkout");
 			}
-			const purchased = selectedPackage;
+			const purchased = await purchasePackageMutation.mutateAsync({
+				inputs: { type: "package", packageId },
+			});
+			if (purchased.id !== packageId) {
+				throw new Error(
+					`Purchased package ID ${purchased.id ?? "<missing>"} does not match selected package ${packageId}`,
+				);
+			}
+			const packageSession = readPackageSession();
+			writePackageSession({
+				...packageSession,
+				package: purchased,
+			});
+			setSelectedPackage(purchased);
 			dispatch({ type: "PURCHASE_DONE", packageId });
 
 			// Stash any guest contact details so payment-return can attach them to the saved package
@@ -418,7 +448,7 @@ function CheckoutScreen() {
 		listAncillariesMutation.isPending || assignAncillaryMutation.isPending;
 
 	const selectedAssetsByLegId = selectedPackage
-		? readPackageSession().selectedAssetsByLegId ?? {}
+		? (readPackageSession().selectedAssetsByLegId ?? {})
 		: {};
 	const selectedAssetEntries = Object.entries(selectedAssetsByLegId);
 	const seatDetailsSlot =

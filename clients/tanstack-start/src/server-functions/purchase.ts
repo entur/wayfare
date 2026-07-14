@@ -10,6 +10,7 @@ import type {
 	ConfirmPackageRequest,
 	ListAncillariesRequest,
 	PurchaseOffersRequest,
+	PurchasePackageRequest,
 	SelectOffersRequest,
 } from "../types/purchase";
 
@@ -40,6 +41,17 @@ export const purchaseOffers = createServerFn({ method: "POST" })
 		return omsa.post<ConfirmedPackage>(
 			"/processes/purchase-offers/execute",
 			body,
+		);
+	});
+
+export const purchasePackage = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.inputValidator((data: PurchasePackageRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.post<ConfirmedPackage>(
+			"/processes/purchase-package/execute",
+			data,
 		);
 	});
 

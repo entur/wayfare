@@ -10,50 +10,44 @@ import { CarriageSelector } from "../../components/seats/CarriageSelector";
 import ErrorBanner from "../../components/shared/ErrorBanner";
 import Button from "../../components/ui/Button";
 import { useAssignAsset } from "../../hooks/use-assets";
+import {
+	assetAvailability,
+	assetSeatNumber,
+	isSeatFeature,
+} from "../../lib/asset-features";
 import { getOfferReservationFlow } from "../../lib/offer-reservations";
 import {
 	readPackageSession,
 	writePackageSession,
 } from "../../lib/package-session";
 import {
-	readPurchaseOptionsSession,
 	type PurchaseOptionsSession,
+	readPurchaseOptionsSession,
 } from "../../lib/purchase-options-session";
 import {
 	readSearchSession,
 	type SearchContext,
 } from "../../lib/search-session";
+import { manualSelectionServiceJourneyGroups } from "../../lib/service-journey-groups";
 import { partyLabel } from "../../lib/travel-party";
+import { assetsCollectionQuery } from "../../server-functions/assets.queries";
 import type { AssetFeature, SelectedAssetInfo } from "../../types/assets";
 import type { ConfirmedPackage } from "../../types/purchase";
-import type { Offer, OfferLeg } from "../../types/search";
-import { assetsCollectionQuery } from "../../server-functions/assets.queries";
+import type { Offer } from "../../types/search";
 
 export const Route = createFileRoute("/seats/$offerId")({
 	loader: async () => null,
 	component: SeatsPage,
 });
 
+interface PendingAssignment {
+	assetId: string;
+	previous?: SelectedAssetInfo;
+}
+
 function isAssetNotAvailable(error: unknown): boolean {
 	const msg = error instanceof Error ? error.message : String(error ?? "");
 	return /\(409\)/.test(msg) && /Asset Not Available/i.test(msg);
-}
-
-// Collect all unique legs from a package's offers (one per leg id).
-// Package legs don't carry reservationRequirement, so eligibility is determined
-// separately from the search-session offers.
-function collectPackageLegs(offers: Offer[]): OfferLeg[] {
-	const legs: OfferLeg[] = [];
-	const seen = new Set<string>();
-	for (const offer of offers) {
-		for (const leg of offer.properties?.legs ?? []) {
-			if (!seen.has(leg.id)) {
-				legs.push(leg);
-				seen.add(leg.id);
-			}
-		}
-	}
-	return legs;
 }
 
 function SeatsPage() {
@@ -74,7 +68,12 @@ function SeatsPage() {
 	const [selectedCarriageByLeg, setSelectedCarriageByLeg] = useState<
 		Map<string, string>
 	>(new Map());
-	const [assigningLegId, setAssigningLegId] = useState<string | null>(null);
+	const [activeLegByServiceJourney, setActiveLegByServiceJourney] = useState<
+		Map<string, string>
+	>(new Map());
+	const [pendingAssignments, setPendingAssignments] = useState<
+		Record<string, PendingAssignment>
+	>({});
 	const [assignError, setAssignError] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -115,46 +114,55 @@ function SeatsPage() {
 		[searchOffers, selectedAncillaryIds],
 	);
 
-	// All package legs are potentially eligible when the flow permits seat selection.
-	// OMSA controls per-leg eligibility at the API level; legs with no assets are filtered
-	// out once the queries settle.
-	const allPackageLegs = useMemo(
-		() => collectPackageLegs(pkg?.offers ?? []),
-		[pkg],
+	const serviceJourneyGroups = useMemo(
+		() => manualSelectionServiceJourneyGroups(pkg?.offers ?? [], searchOffers),
+		[pkg, searchOffers],
 	);
 
 	const assetQueries = useQueries({
-		queries: allPackageLegs.map((leg) =>
-			assetsCollectionQuery(pkg?.id ?? "", leg.id),
+		queries: serviceJourneyGroups.map((group) =>
+			assetsCollectionQuery(pkg?.id ?? "", group.serviceJourney),
 		),
 	});
 
-	const featuresByLegId = useMemo(() => {
+	const featuresByServiceJourney = useMemo(() => {
 		const map = new Map<string, AssetFeature[]>();
-		for (let i = 0; i < allPackageLegs.length; i++) {
-			map.set(allPackageLegs[i].id, assetQueries[i]?.data?.features ?? []);
+		for (let i = 0; i < serviceJourneyGroups.length; i++) {
+			map.set(
+				serviceJourneyGroups[i].serviceJourney,
+				assetQueries[i]?.data?.features ?? [],
+			);
 		}
 		return map;
-	}, [allPackageLegs, assetQueries]);
+	}, [serviceJourneyGroups, assetQueries]);
 
-	const isLoadingByLegId = useMemo(() => {
+	const isLoadingByServiceJourney = useMemo(() => {
 		const map = new Map<string, boolean>();
-		for (let i = 0; i < allPackageLegs.length; i++) {
-			map.set(allPackageLegs[i].id, assetQueries[i]?.isPending ?? true);
+		for (let i = 0; i < serviceJourneyGroups.length; i++) {
+			map.set(
+				serviceJourneyGroups[i].serviceJourney,
+				assetQueries[i]?.isPending ?? true,
+			);
 		}
 		return map;
-	}, [allPackageLegs, assetQueries]);
+	}, [serviceJourneyGroups, assetQueries]);
 
 	const allSettled =
-		allPackageLegs.length > 0 && assetQueries.every((q) => !q.isPending);
+		serviceJourneyGroups.length > 0 && assetQueries.every((q) => !q.isPending);
 
-	// Legs that actually have seat features — used for rendering once queries settle.
-	const eligibleLegs = useMemo(() => {
-		if (!allSettled) return allPackageLegs;
-		return allPackageLegs.filter(
-			(leg) => (featuresByLegId.get(leg.id)?.length ?? 0) > 0,
+	const eligibleGroups = useMemo(() => {
+		if (!allSettled) return serviceJourneyGroups;
+		return serviceJourneyGroups.filter(
+			(group, index) =>
+				!assetQueries[index]?.isError &&
+				(featuresByServiceJourney.get(group.serviceJourney)?.length ?? 0) > 0,
 		);
-	}, [allPackageLegs, allSettled, featuresByLegId]);
+	}, [
+		serviceJourneyGroups,
+		allSettled,
+		assetQueries,
+		featuresByServiceJourney,
+	]);
 
 	// Redirect if seat selection is not applicable for this package.
 	useEffect(() => {
@@ -168,7 +176,11 @@ function SeatsPage() {
 			});
 			return;
 		}
-		if (allSettled && eligibleLegs.length === 0) {
+		if (
+			allSettled &&
+			eligibleGroups.length === 0 &&
+			assetQueries.every((query) => !query.isError)
+		) {
 			navigate({
 				to: "/checkout/$offerId",
 				params: { offerId },
@@ -180,7 +192,8 @@ function SeatsPage() {
 		searchOffers.length,
 		reservationFlow.canOpenSeatmap,
 		allSettled,
-		eligibleLegs.length,
+		eligibleGroups.length,
+		assetQueries,
 		navigate,
 		offerId,
 	]);
@@ -188,14 +201,45 @@ function SeatsPage() {
 	const assignAssetMutation = useAssignAsset();
 
 	async function handleSeatClick(legId: string, feature: AssetFeature) {
-		if (feature.properties.type !== "seat") return;
-		if (feature.properties.availability !== "AVAILABLE") return;
+		if (!isSeatFeature(feature)) return;
+		if (assetAvailability(feature) !== "AVAILABLE") return;
 		if (!pkg?.id) return;
+		if (pendingAssignments[legId]) return;
 		// Clicking already-selected seat is a no-op — OMSA has no "deselect" endpoint
 		const current = selectedAssets[legId];
 		if (current?.assetId === feature.id) return;
+		if (
+			Object.entries(selectedAssets).some(
+				([selectedLegId, asset]) =>
+					selectedLegId !== legId && asset.assetId === feature.id,
+			)
+		) {
+			setAssignError("That seat is already selected for another traveller.");
+			return;
+		}
 
-		setAssigningLegId(legId);
+		const assetInfo: SelectedAssetInfo = {
+			assetId: feature.id,
+			carriage: feature.properties.carriage,
+			seatNumber: assetSeatNumber(feature),
+		};
+		const group = serviceJourneyGroups.find((candidate) =>
+			candidate.legs.some((leg) => leg.id === legId),
+		);
+		const nextLeg = group?.legs.find(
+			(leg) => leg.id !== legId && !selectedAssets[leg.id],
+		);
+
+		setSelectedAssets((previous) => ({ ...previous, [legId]: assetInfo }));
+		setPendingAssignments((previous) => ({
+			...previous,
+			[legId]: { assetId: feature.id, previous: current },
+		}));
+		if (group && nextLeg) {
+			setActiveLegByServiceJourney((previous) =>
+				new Map(previous).set(group.serviceJourney, nextLeg.id),
+			);
+		}
 		setAssignError(null);
 		try {
 			const result = await assignAssetMutation.mutateAsync({
@@ -208,12 +252,6 @@ function SeatsPage() {
 				},
 			});
 
-			const assetInfo: SelectedAssetInfo = {
-				assetId: feature.id,
-				carriage: feature.properties.carriage,
-				seatNumber: feature.properties.seatNumber,
-			};
-
 			const currentSession = readPackageSession();
 			writePackageSession({
 				...currentSession,
@@ -224,12 +262,33 @@ function SeatsPage() {
 				},
 			});
 			setPkg(result);
-			setSelectedAssets((prev) => ({ ...prev, [legId]: assetInfo }));
-		} catch (err) {
-			if (isAssetNotAvailable(err)) {
+			if (group) {
 				queryClient.invalidateQueries({
-					queryKey: ["assets", pkg.id, legId],
+					queryKey: ["assets", pkg.id, group.serviceJourney],
 				});
+			}
+		} catch (err) {
+			setSelectedAssets((previous) => {
+				if (previous[legId]?.assetId !== feature.id) return previous;
+				const next = { ...previous };
+				if (current) next[legId] = current;
+				else delete next[legId];
+				return next;
+			});
+			if (group) {
+				setActiveLegByServiceJourney((previous) =>
+					new Map(previous).set(group.serviceJourney, legId),
+				);
+			}
+			if (isAssetNotAvailable(err)) {
+				const serviceJourney = serviceJourneyGroups.find((group) =>
+					group.legs.some((leg) => leg.id === legId),
+				)?.serviceJourney;
+				if (serviceJourney) {
+					queryClient.invalidateQueries({
+						queryKey: ["assets", pkg.id, serviceJourney],
+					});
+				}
 				setAssignError("That seat was just taken. Please choose another.");
 			} else {
 				setAssignError(
@@ -237,11 +296,17 @@ function SeatsPage() {
 				);
 			}
 		} finally {
-			setAssigningLegId(null);
+			setPendingAssignments((previous) => {
+				if (previous[legId]?.assetId !== feature.id) return previous;
+				const next = { ...previous };
+				delete next[legId];
+				return next;
+			});
 		}
 	}
 
 	function handleContinue() {
+		if (Object.keys(pendingAssignments).length > 0) return;
 		navigate({
 			to: "/checkout/$offerId",
 			params: { offerId },
@@ -257,6 +322,20 @@ function SeatsPage() {
 		...(sessionContext?.profiles ?? []),
 		...(sessionContext?.travellers ?? []),
 	];
+	const expandedPartyLabels = allParties.flatMap((party) => {
+		const label = partyLabel(party).replace(/ × \d+$/, "");
+		const count = party.type === "user_profile" ? (party.count ?? 1) : 1;
+		return Array.from({ length: count }, (_, index) =>
+			count > 1 ? `${label} ${index + 1}` : label,
+		);
+	});
+	const travellerLabel = (
+		groupLegs: (typeof serviceJourneyGroups)[number]["legs"],
+		legId: string,
+	) => {
+		const index = groupLegs.findIndex((leg) => leg.id === legId);
+		return expandedPartyLabels[index] ?? `Traveller ${index + 1}`;
+	};
 	const partyStr =
 		allParties.length > 0
 			? allParties.map((p) => partyLabel(p)).join(", ")
@@ -264,28 +343,27 @@ function SeatsPage() {
 
 	const previewTotal = pkg?.price?.amount ?? 0;
 	const previewCurrency = pkg?.price?.currencyCode ?? "NOK";
+	const hasPendingAssignments = Object.keys(pendingAssignments).length > 0;
 
 	const seatSummarySlot =
-		eligibleLegs.length > 0 ? (
+		eligibleGroups.length > 0 ? (
 			<div className="flex flex-col gap-1 border-t border-wayfare-line pt-3">
 				<p className="mb-1 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 					Seats
 				</p>
-				{eligibleLegs.map((leg) => {
-					const info = selectedAssets[leg.id];
-					return (
-						<p key={leg.id} className="text-xs text-wayfare-text-secondary">
-							{info ? (
-								<>
-									Seat {info.seatNumber ?? info.assetId} · Carriage{" "}
-									{info.carriage}
-								</>
-							) : (
-								<span className="italic">No seat selected</span>
-							)}
-						</p>
-					);
-				})}
+				{eligibleGroups.flatMap((group) =>
+					group.legs.map((leg) => {
+						const info = selectedAssets[leg.id];
+						return (
+							<p key={leg.id} className="text-xs text-wayfare-text-secondary">
+								{travellerLabel(group.legs, leg.id)}:{" "}
+								{info
+									? `Seat ${info.seatNumber ?? info.assetId} · Carriage ${info.carriage}`
+									: "No seat selected"}
+							</p>
+						);
+					}),
+				)}
 			</div>
 		) : null;
 
@@ -326,14 +404,19 @@ function SeatsPage() {
 					onDismiss={() => setAssignError(null)}
 				/>
 			)}
-			<Button variant="primary" onClick={handleContinue}>
+			<Button
+				variant="primary"
+				onClick={handleContinue}
+				disabled={hasPendingAssignments}
+			>
 				Continue to checkout
 				<RightArrowIcon aria-hidden="true" />
 			</Button>
 		</div>
 	) : null;
 
-	const legsToRender = allSettled ? eligibleLegs : allPackageLegs;
+	const groupsToRender = allSettled ? eligibleGroups : serviceJourneyGroups;
+	const assetLoadError = assetQueries.find((query) => query.isError)?.error;
 
 	return (
 		<PageShell
@@ -343,10 +426,24 @@ function SeatsPage() {
 			rightRail={rightRail}
 		>
 			<div className="flex flex-col gap-8">
-				{legsToRender.map((leg, legIdx) => {
-					const legId = leg.id;
-					const features = featuresByLegId.get(legId) ?? [];
-					const isLoading = isLoadingByLegId.get(legId) ?? true;
+				{assetLoadError && (
+					<ErrorBanner
+						message={
+							assetLoadError instanceof Error
+								? assetLoadError.message
+								: "Could not load the seatmap."
+						}
+					/>
+				)}
+				{groupsToRender.map((group, groupIdx) => {
+					const { serviceJourney, legs } = group;
+					const activeLegId =
+						activeLegByServiceJourney.get(serviceJourney) ??
+						legs.find((leg) => !selectedAssets[leg.id])?.id ??
+						legs[0]?.id;
+					const features = featuresByServiceJourney.get(serviceJourney) ?? [];
+					const isLoading =
+						isLoadingByServiceJourney.get(serviceJourney) ?? true;
 
 					const carriages = [
 						...new Set(features.map((f) => f.properties.carriage)),
@@ -358,34 +455,65 @@ function SeatsPage() {
 					});
 
 					const selectedCarriage =
-						selectedCarriageByLeg.get(legId) ?? carriages[0] ?? "";
+						selectedCarriageByLeg.get(serviceJourney) ?? carriages[0] ?? "";
 
 					const carriageFeatures = features.filter(
 						(f) => f.properties.carriage === selectedCarriage,
 					);
 
-					const selectedInfo = selectedAssets[legId];
-					const isAssigning = assigningLegId === legId;
+					const selectedInfo = activeLegId
+						? selectedAssets[activeLegId]
+						: undefined;
+					const selectedAssetIds = legs.flatMap((leg) =>
+						selectedAssets[leg.id]?.assetId
+							? [selectedAssets[leg.id].assetId]
+							: [],
+					);
+					const isAssigning =
+						!!activeLegId && !!pendingAssignments[activeLegId];
 					const hasAvailable = carriageFeatures.some(
-						(f) =>
-							f.properties.type === "seat" &&
-							f.properties.availability === "AVAILABLE",
+						(f) => isSeatFeature(f) && assetAvailability(f) === "AVAILABLE",
 					);
 
+					const representativeLeg = legs[0];
 					const legLabel =
-						leg.from && leg.to
-							? `${leg.from.name ?? leg.from.placeId} → ${leg.to.name ?? leg.to.placeId}`
-							: `Leg ${legIdx + 1}`;
+						representativeLeg?.from && representativeLeg.to
+							? `${representativeLeg.from.name ?? representativeLeg.from.placeId} → ${representativeLeg.to.name ?? representativeLeg.to.placeId}`
+							: `Departure ${groupIdx + 1}`;
 
 					return (
-						<div key={legId} className="flex flex-col gap-3">
+						<div key={serviceJourney} className="flex flex-col gap-3">
 							<div className="overflow-hidden rounded-xl border border-wayfare-line bg-wayfare-surface-strong">
 								{/* Leg header + carriage selector */}
 								<div className="border-b border-wayfare-line px-3 py-2">
-									{legsToRender.length > 1 && (
+									{groupsToRender.length > 1 && (
 										<p className="mb-1 text-xs font-semibold text-wayfare-text-secondary">
 											{legLabel}
 										</p>
+									)}
+									{legs.length > 1 && (
+										<div className="mb-2 flex flex-wrap gap-2">
+											{legs.map((leg) => (
+												<Button
+													key={leg.id}
+													variant={
+														leg.id === activeLegId ? "primary" : "secondary"
+													}
+													onClick={() =>
+														setActiveLegByServiceJourney((previous) =>
+															new Map(previous).set(serviceJourney, leg.id),
+														)
+													}
+												>
+													{travellerLabel(legs, leg.id)}
+													{pendingAssignments[leg.id]
+														? " …"
+														: selectedAssets[leg.id]
+															? " ✓"
+															: ""}
+												</Button>
+											))}
+										</div>
 									)}
 									{carriages.length > 1 && (
 										<CarriageSelector
@@ -397,8 +525,8 @@ function SeatsPage() {
 											selectedIdx={carriages.indexOf(selectedCarriage)}
 											travelDirection={null}
 											onSelect={(idx) =>
-												setSelectedCarriageByLeg(
-													(prev) => new Map(prev).set(legId, carriages[idx]),
+												setSelectedCarriageByLeg((prev) =>
+													new Map(prev).set(serviceJourney, carriages[idx]),
 												)
 											}
 										/>
@@ -436,12 +564,11 @@ function SeatsPage() {
 									) : carriageFeatures.length > 0 ? (
 										<AssetSeatmapView
 											features={carriageFeatures}
-											selectedAssetId={selectedInfo?.assetId}
-											loading={isAssigning}
+											selectedAssetIds={selectedAssetIds}
 											onSeatClick={
-												isAssigning
-													? undefined
-													: (f) => handleSeatClick(legId, f)
+												activeLegId && !pendingAssignments[activeLegId]
+													? (f) => handleSeatClick(activeLegId, f)
+													: undefined
 											}
 										/>
 									) : (
@@ -453,7 +580,7 @@ function SeatsPage() {
 							</div>
 
 							{/* Mobile continue button — only on last leg */}
-							{legIdx === legsToRender.length - 1 && (
+							{groupIdx === groupsToRender.length - 1 && (
 								<div className="lg:hidden">
 									{assignError && (
 										<ErrorBanner
@@ -465,6 +592,7 @@ function SeatsPage() {
 										variant="primary"
 										fluid
 										onClick={handleContinue}
+										disabled={hasPendingAssignments}
 									>
 										Continue to checkout
 										<RightArrowIcon aria-hidden="true" />

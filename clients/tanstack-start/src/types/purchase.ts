@@ -59,14 +59,19 @@ export interface AncillaryCollection {
 	links?: Link[];
 }
 
+export interface AncillaryReference {
+	ancillaryId: string;
+	name?: string;
+}
+
 export interface AssignAncillaryInput {
 	type: "ancillary";
 	packageId: string;
 	legId: string;
 	offerId?: string;
 	location?: { placeId: string; name?: string };
-	ancillaryId: string;
-	replaceAncillaryId?: string;
+	ancillaryId: AncillaryReference;
+	replaceAncillaryId?: AncillaryReference;
 }
 
 export interface AssignAncillaryRequest {
@@ -75,6 +80,10 @@ export interface AssignAncillaryRequest {
 }
 
 export interface ConfirmPackageRequest {
+	inputs: PackageInput;
+}
+
+export interface PurchasePackageRequest {
 	inputs: PackageInput;
 }
 
@@ -95,6 +104,7 @@ export interface ClaimRefundRequest {
 
 export type PackageStatus =
 	| "OFFER"
+	| "PENDING"
 	| "CONFIRMED"
 	| "CANCEL_PENDING"
 	| "CANCELLED"
