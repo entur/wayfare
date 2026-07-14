@@ -4,6 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import FavoriteToggle from "../components/search/FavoriteToggle";
+import TripFilterPanel from "../components/search/TripFilterPanel";
 import TripResults from "../components/search/TripResults";
 import Button from "../components/ui/Button";
 import Spinner from "../components/ui/Spinner";
@@ -18,11 +19,21 @@ import {
 	offerQueryKey,
 } from "../lib/offer-query";
 import { writeSearchSession } from "../lib/search-session";
+import {
+	filtersFromSearch,
+	isDefaultFilters,
+	parseTripFilterSearch,
+	searchFromFilters,
+	type TripFilters,
+} from "../lib/trip-filters";
 import { readTripSearchParams } from "../lib/trip-session";
 import type { OfferCollection } from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
 
-export const Route = createFileRoute("/trips")({ component: TripsPage });
+export const Route = createFileRoute("/trips")({
+	validateSearch: parseTripFilterSearch,
+	component: TripsPage,
+});
 
 const AGE_GROUP_LABELS: Record<TravelerGroup["ageGroup"], [string, string]> = {
 	ADULT: ["adult", "adults"],
@@ -96,7 +107,9 @@ function TripsPage() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const params = readTripSearchParams();
-	const planTrip = useTripPlanner();
+	const search = Route.useSearch();
+	const filters = filtersFromSearch(search);
+	const tripQuery = useTripPlanner(params, filters);
 	const { overrides } = useDevConfig();
 
 	const [selectingPatternKey, setSelectingPatternKey] = useState<string | null>(
@@ -108,22 +121,14 @@ function TripsPage() {
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: run once on mount with session params
 	useEffect(() => {
-		if (!params) {
-			navigate({ to: "/" });
-			return;
-		}
-		planTrip.mutate({
-			from: params.from,
-			to: params.to,
-			dateTime: params.dateTime,
-		});
+		if (!params) navigate({ to: "/" });
 	}, []);
 
 	// Prefetch offers for all transit patterns as soon as trip results arrive
 	// biome-ignore lint/correctness/useExhaustiveDependencies: params and queryClient are stable for the session
 	useEffect(() => {
-		if (!planTrip.data || !params) return;
-		const transitPatterns = planTrip.data.filter((p) =>
+		if (!tripQuery.patterns || !params) return;
+		const transitPatterns = tripQuery.patterns.filter((p) =>
 			p.legs.some((l) => l.serviceJourney != null),
 		);
 
@@ -161,9 +166,17 @@ function TripsPage() {
 					});
 				});
 		}
-	}, [planTrip.data]);
+	}, [tripQuery.patterns]);
 
 	if (!params) return null;
+
+	function setFilters(next: TripFilters) {
+		navigate({
+			to: "/trips",
+			search: searchFromFilters(next),
+			replace: true,
+		});
+	}
 
 	async function handleSelectTrip(pattern: TripPattern) {
 		if (!params) return;
@@ -222,6 +235,13 @@ function TripsPage() {
 	const fromName = params.from.name ?? params.from.placeId;
 	const toName = params.to.name ?? params.to.placeId;
 
+	const patterns = tripQuery.patterns ?? [];
+	const hasTransitPatterns = patterns.some((p) =>
+		p.legs.some((l) => l.serviceJourney != null),
+	);
+	const showFilteredEmptyState =
+		tripQuery.isSuccess && !hasTransitPatterns && !isDefaultFilters(filters);
+
 	return (
 		<PageShell>
 			<Button
@@ -250,28 +270,63 @@ function TripsPage() {
 				</div>
 			</div>
 
-			{planTrip.isPending && (
+			<TripFilterPanel
+				filters={filters}
+				onChange={setFilters}
+				onReset={() => navigate({ to: "/trips", search: {}, replace: true })}
+			/>
+
+			{tripQuery.isPending && (
 				<div className="flex items-center gap-2 text-sm text-wayfare-text-secondary">
 					<Spinner />
 					Finding journeys…
 				</div>
 			)}
 
-			{planTrip.error && (
+			{tripQuery.error && (
 				<p className="rounded-lg bg-wayfare-accent-soft px-3 py-2 text-sm text-wayfare-primary">
-					{planTrip.error.message}
+					{tripQuery.error.message}
 				</p>
 			)}
 
-			{planTrip.data != null && (
-				<TripResults
-					patterns={planTrip.data}
-					onSelect={handleSelectTrip}
-					getPreview={getPatternPreview}
-					isSelecting={isPatternSelecting}
-					anySelecting={selectingPatternKey != null}
-					travelers={params.travelers}
-				/>
+			{tripQuery.isSuccess && showFilteredEmptyState && (
+				<div className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-4 py-6 text-center">
+					<p className="mb-3 text-sm text-wayfare-text-secondary">
+						No journeys match your filters.
+					</p>
+					<Button
+						variant="secondary"
+						onClick={() =>
+							navigate({ to: "/trips", search: {}, replace: true })
+						}
+					>
+						Reset filters
+					</Button>
+				</div>
+			)}
+
+			{tripQuery.isSuccess && !showFilteredEmptyState && (
+				<>
+					<TripResults
+						patterns={patterns}
+						onSelect={handleSelectTrip}
+						getPreview={getPatternPreview}
+						isSelecting={isPatternSelecting}
+						anySelecting={selectingPatternKey != null}
+						travelers={params.travelers}
+					/>
+					{tripQuery.hasNextPage && (
+						<div className="mt-4 flex justify-center">
+							<Button
+								variant="secondary"
+								loading={tripQuery.isFetchingNextPage}
+								onClick={() => tripQuery.fetchNextPage()}
+							>
+								Later departures
+							</Button>
+						</div>
+					)}
+				</>
 			)}
 		</PageShell>
 	);

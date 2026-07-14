@@ -1,17 +1,37 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { TripQueryVariables } from "../lib/trip-filters";
 import { devConfigMiddleware } from "../server/middleware";
 import { createJourneyPlannerClient } from "../server/omsa-client";
-import type { TripPattern } from "../types/trip-planner";
+import type { TripQueryResult } from "../types/trip-planner";
 import { SITUATION_FRAGMENT } from "./graphql-fragments";
 
 const TRIP_QUERY = `
-  query TripSearch($from: Location!, $to: Location!, $dateTime: DateTime) {
+  query TripSearch(
+    $from: Location!
+    $to: Location!
+    $dateTime: DateTime
+    $arriveBy: Boolean
+    $numTripPatterns: Int
+    $pageCursor: String
+    $modes: Modes
+    $walkReluctance: Float
+    $transferPenalty: Int
+    $transferSlack: Int
+  ) {
     trip(
       from: $from
       to: $to
       dateTime: $dateTime
-      numTripPatterns: 6
+      arriveBy: $arriveBy
+      numTripPatterns: $numTripPatterns
+      pageCursor: $pageCursor
+      modes: $modes
+      walkReluctance: $walkReluctance
+      transferPenalty: $transferPenalty
+      transferSlack: $transferSlack
     ) {
+      nextPageCursor
+      previousPageCursor
       tripPatterns {
         expectedStartTime
         expectedEndTime
@@ -60,14 +80,8 @@ const TRIP_QUERY = `
   }
 `;
 
-interface TripQueryVariables {
-	from: { place: string };
-	to: { place: string };
-	dateTime: string;
-}
-
 interface TripQueryData {
-	trip: { tripPatterns: TripPattern[] };
+	trip: TripQueryResult;
 }
 
 export const planTrip = createServerFn({ method: "POST" })
@@ -76,5 +90,5 @@ export const planTrip = createServerFn({ method: "POST" })
 	.handler(async ({ data, context }) => {
 		const journeyPlanner = createJourneyPlannerClient(context.devConfig);
 		const result = await journeyPlanner.query<TripQueryData>(TRIP_QUERY, data);
-		return result.trip.tripPatterns;
+		return result.trip;
 	});
