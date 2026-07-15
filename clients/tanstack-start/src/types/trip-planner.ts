@@ -55,3 +55,9 @@ export interface TripPattern {
 	duration: number; // seconds
 	legs: TripLeg[];
 }
+
+export interface TripQueryResult {
+	tripPatterns: TripPattern[];
+	nextPageCursor: string | null;
+	previousPageCursor: string | null;
+}
