@@ -40,7 +40,9 @@ export function CarriageSelector({
 									isSelected ? "bg-wayfare-primary" : "bg-transparent"
 								}`}
 							/>
-							<span className="text-xs font-semibold">{carriageIdentifier}</span>
+							<span className="text-xs font-semibold">
+								{carriageIdentifier}
+							</span>
 						</button>
 					);
 				})}

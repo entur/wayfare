@@ -28,7 +28,10 @@ export function JourneyStepper() {
 					const isDone = activeIdx > idx;
 					const isActive = activeIdx === idx;
 					return (
-						<div key={label} className="relative flex flex-col items-center gap-1.5">
+						<div
+							key={label}
+							className="relative flex flex-col items-center gap-1.5"
+						>
 							<div
 								className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
 									isDone || isActive
