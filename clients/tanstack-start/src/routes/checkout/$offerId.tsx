@@ -239,12 +239,52 @@ function CheckoutScreen() {
 			? allParties.map((p) => partyLabel(p)).join(", ")
 			: undefined;
 
+	// OMSA folds an assigned ancillary's price into the offer it's attached to, so the
+	// offer price alone can't be shown as the "ticket" line without double-counting the
+	// add-on total shown separately below. Re-derive per-offer ancillary charges from the
+	// same offer/leg matching assign-ancillary uses, and subtract them back out.
+	const ancillaryAssignments = selectedPackage
+		? buildAncillaryAssignments(selectedPackage, purchaseOptions)
+		: [];
+	const ancillaryChargeByOfferId = new Map<string, number>();
+	const ancillaryQuantityById = new Map<string, number>();
+	for (const ancillary of purchaseOptions.ancillaries) {
+		const matches = ancillaryAssignments.filter(
+			(assignment) => assignment.ancillaryId === ancillary.ancillaryId,
+		);
+		const quantity = matches.length || 1;
+		ancillaryQuantityById.set(ancillary.ancillaryId, quantity);
+		const unitAmount = ancillary.price?.amount ?? 0;
+		for (const match of matches) {
+			if (!match.offerId) continue;
+			ancillaryChargeByOfferId.set(
+				match.offerId,
+				(ancillaryChargeByOfferId.get(match.offerId) ?? 0) + unitAmount,
+			);
+		}
+	}
+
+	const addOnRows = purchaseOptions.ancillaries.map((ancillary) => {
+		const quantity = ancillaryQuantityById.get(ancillary.ancillaryId) ?? 1;
+		return {
+			name: ancillary.name,
+			quantity,
+			price: {
+				amount: (ancillary.price?.amount ?? 0) * quantity,
+				currencyCode: ancillary.price?.currencyCode,
+			},
+		};
+	});
+
 	const ticketRows = selectedOffers.map((offer) => {
 		const product = offer.properties?.products?.[0];
 		const price = offer.properties?.price;
 		const legs = offer.properties?.legs ?? [];
 		const travellerCount = new Set(legs.map((l) => l.traveller).filter(Boolean))
 			.size;
+		const ancillaryCharge = offer.id
+			? (ancillaryChargeByOfferId.get(offer.id) ?? 0)
+			: 0;
 		return {
 			name:
 				offer.properties?.summary?.name ??
@@ -252,7 +292,7 @@ function CheckoutScreen() {
 				"Travel Offer",
 			quantity: travellerCount || 1,
 			price: {
-				amount: price?.amount ?? 0,
+				amount: (price?.amount ?? 0) - ancillaryCharge,
 				currencyCode: price?.currencyCode,
 			},
 		};
@@ -467,38 +507,6 @@ function CheckoutScreen() {
 				</p>
 			</div>
 		) : null;
-	const ancillaryDetailsSlot =
-		purchaseOptions.ancillaries.length > 0 ? (
-			<div className="flex flex-col gap-1 border-t border-wayfare-line pt-3">
-				<p className="mb-1 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
-					Add-ons
-				</p>
-				{purchaseOptions.ancillaries.map((ancillary) => (
-					<p
-						key={ancillary.ancillaryId}
-						className="flex items-center justify-between gap-2 text-xs text-wayfare-text-secondary"
-					>
-						<span>{ancillary.name}</span>
-						{ancillary.price && (
-							<span className="shrink-0">
-								{formatPrice(
-									ancillary.price.amount,
-									ancillary.price.currencyCode ?? "NOK",
-								)}
-							</span>
-						)}
-					</p>
-				))}
-			</div>
-		) : null;
-	const detailsSlot =
-		seatDetailsSlot || ancillaryDetailsSlot ? (
-			<>
-				{seatDetailsSlot}
-				{ancillaryDetailsSlot}
-			</>
-		) : null;
-
 	const rightRail = checkoutContext ? (
 		<JourneySummary
 			variant="rail"
@@ -511,12 +519,13 @@ function CheckoutScreen() {
 			durationSeconds={checkoutContext.pattern?.duration}
 			partyLabel={checkoutPartyStr}
 			ticketRows={ticketRows.length > 0 ? ticketRows : undefined}
+			addOnRows={addOnRows.length > 0 ? addOnRows : undefined}
 			total={
 				previewTotal > 0
 					? { amount: previewTotal, currencyCode: currency }
 					: undefined
 			}
-			detailsSlot={detailsSlot}
+			detailsSlot={seatDetailsSlot}
 			onChangeJourney={() => {
 				clearPackageSession();
 				clearPurchaseOptionsSession();

@@ -16,6 +16,12 @@ interface TicketRow {
 	price: { amount: number; currencyCode?: string | null };
 }
 
+interface AddOnRow {
+	name: string;
+	quantity: number;
+	price: { amount: number; currencyCode?: string | null };
+}
+
 interface JourneySummaryProps {
 	from: string;
 	to: string;
@@ -24,6 +30,7 @@ interface JourneySummaryProps {
 	durationSeconds?: number;
 	partyLabel?: string;
 	ticketRows?: TicketRow[];
+	addOnRows?: AddOnRow[];
 	total?: { amount: number; currencyCode?: string | null };
 	onChangeJourney?: () => void;
 	detailsSlot?: React.ReactNode;
@@ -55,6 +62,7 @@ export function JourneySummary({
 	durationSeconds,
 	partyLabel,
 	ticketRows,
+	addOnRows,
 	total,
 	onChangeJourney,
 	detailsSlot,
@@ -70,7 +78,9 @@ export function JourneySummary({
 					<span className="flex items-center gap-1.5 font-semibold text-wayfare-text">
 						<MapPinIcon aria-hidden="true" />
 						{from}
-						<span className="mx-0.5 font-normal text-wayfare-text-secondary">→</span>
+						<span className="mx-0.5 font-normal text-wayfare-text-secondary">
+							→
+						</span>
 						<DestinationIcon aria-hidden="true" />
 						{to}
 					</span>
@@ -114,7 +124,10 @@ export function JourneySummary({
 			</div>
 
 			<div className="flex items-center gap-2">
-				<MapPinIcon className="shrink-0 text-wayfare-text-secondary" aria-hidden="true" />
+				<MapPinIcon
+					className="shrink-0 text-wayfare-text-secondary"
+					aria-hidden="true"
+				/>
 				<span className="min-w-[2.75rem] font-mono text-sm font-bold tabular-nums text-wayfare-text">
 					{formatTime(startTime)}
 				</span>
@@ -123,7 +136,10 @@ export function JourneySummary({
 
 			{endTime && (
 				<div className="mt-1 flex items-center gap-2">
-					<DestinationIcon className="shrink-0 text-wayfare-text-secondary" aria-hidden="true" />
+					<DestinationIcon
+						className="shrink-0 text-wayfare-text-secondary"
+						aria-hidden="true"
+					/>
 					<span className="min-w-[2.75rem] font-mono text-sm font-bold tabular-nums text-wayfare-text">
 						{formatTime(endTime)}
 					</span>
@@ -151,6 +167,31 @@ export function JourneySummary({
 			</div>
 
 			{detailsSlot && <div className="mt-3">{detailsSlot}</div>}
+
+			{addOnRows && addOnRows.length > 0 && (
+				<div className="mt-3 flex flex-col gap-1 border-t border-wayfare-line pt-3">
+					<p className="mb-1 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
+						Add-ons
+					</p>
+					{addOnRows.map((row, i) => (
+						<div
+							// biome-ignore lint/suspicious/noArrayIndexKey: add-on rows are stable
+							key={i}
+							className="flex items-center justify-between gap-2 text-xs text-wayfare-text-secondary"
+						>
+							<span>
+								{row.name}
+								{row.quantity > 1 && (
+									<span className="ml-1">× {row.quantity}</span>
+								)}
+							</span>
+							<span className="shrink-0">
+								{formatPrice(row.price.amount, row.price.currencyCode ?? "NOK")}
+							</span>
+						</div>
+					))}
+				</div>
+			)}
 
 			{ticketRows && ticketRows.length > 0 && (
 				<>
