@@ -5,3 +5,21 @@ minimumReleaseAge: 1440
 blockExoticSubdeps: true
 strictDepBuilds: true
 savePrefix: ""
+
+allowBuilds:
+  esbuild: true
+  lightningcss: true
+
+overrides:
+  "@tanstack/router-core": 1.171.2
+  "@babel/core": ">=7.29.6"
+  esbuild: ">=0.28.1"
+  js-yaml: ">=4.2.0"
+  launch-editor: ">=2.14.1"
+  shell-quote: ">=1.8.4"
+  undici: ">=7.28.0 <8"
+  ws: ">=8.21.0"
+
+auditConfig:
+  ignoreGhsas:
+    - GHSA-rmmr-r34h-pfm5
