@@ -4,6 +4,13 @@ import { getAccessToken } from "./auth";
 import { getRuntimeConfig, type RuntimeConfig } from "./runtime-config";
 
 type RequestLogLevel = "meta" | "headers" | "body";
+type RequestLogFormat = "pretty" | "json";
+
+function getRequestLogFormat(): RequestLogFormat {
+	const envValue =
+		process.env.REQUEST_RESPONSE_LOG_FORMAT?.trim().toLowerCase();
+	return envValue === "json" ? "json" : "pretty";
+}
 
 function shouldEnableRequestLogging(): boolean {
 	const envValue = process.env.ENABLE_REQUEST_RESPONSE_LOGGING;
@@ -98,6 +105,30 @@ function formatForLog(value: unknown): string {
 	});
 }
 
+// Mirrors formatForLog's depth truncation but keeps the result valid JSON, so
+// REQUEST_RESPONSE_LOG_FORMAT=json output stays parseable line-by-line (e.g. with jq).
+function truncateAtDepth(
+	value: unknown,
+	depth: number | null,
+	currentDepth = 0,
+): unknown {
+	if (depth === null || value === null || typeof value !== "object") {
+		return value;
+	}
+	if (currentDepth >= depth) {
+		return Array.isArray(value) ? "[Array]" : "[Object]";
+	}
+	if (Array.isArray(value)) {
+		return value.map((item) => truncateAtDepth(item, depth, currentDepth + 1));
+	}
+	return Object.fromEntries(
+		Object.entries(value).map(([key, val]) => [
+			key,
+			truncateAtDepth(val, depth, currentDepth + 1),
+		]),
+	);
+}
+
 async function readResponseBody(response: Response): Promise<unknown> {
 	const contentType = response.headers.get("content-type") ?? "";
 	if (contentType.includes("json")) {
@@ -116,24 +147,38 @@ function logRequest(
 	headers?: Record<string, string>,
 	quiet = false,
 ) {
-	if (!shouldEnableRequestLogging()) {
+	if (!shouldEnableRequestLogging() || quiet) {
 		return;
 	}
-	if (quiet) {
+
+	const level = getRequestLogLevel();
+	const includeHeaders = (level === "headers" || level === "body") && !!headers;
+	const includeBody = level === "body" && typeof body !== "undefined";
+	const redactedHeaders = includeHeaders
+		? redactHeaders(headers as Record<string, string>)
+		: undefined;
+
+	if (getRequestLogFormat() === "json") {
+		console.log(
+			JSON.stringify({
+				ts: new Date().toISOString(),
+				type: "request",
+				method: method.toUpperCase(),
+				url,
+				...(redactedHeaders ? { headers: redactedHeaders } : {}),
+				...(includeBody
+					? { body: truncateAtDepth(body, getRequestLogDepth()) }
+					: {}),
+			}),
+		);
 		return;
 	}
 
 	console.log(`[http][outgoing] ${method.toUpperCase()} ${url}`);
-	const level = getRequestLogLevel();
-	if (level === "headers" || level === "body") {
-		if (headers) {
-			console.log(
-				"[http][outgoing] headers",
-				formatForLog(redactHeaders(headers)),
-			);
-		}
+	if (redactedHeaders) {
+		console.log("[http][outgoing] headers", formatForLog(redactedHeaders));
 	}
-	if (level === "body" && typeof body !== "undefined") {
+	if (includeBody) {
 		console.log("[http][outgoing] body", formatForLog(body));
 	}
 }
@@ -150,10 +195,56 @@ async function logResponse(
 	}
 
 	const durationMs = Date.now() - startedAt;
+	const format = getRequestLogFormat();
 
 	if (quiet) {
+		if (format === "json") {
+			console.log(
+				JSON.stringify({
+					ts: new Date().toISOString(),
+					type: "response",
+					prefetch: true,
+					method: method.toUpperCase(),
+					url,
+					status: response.status,
+					durationMs,
+				}),
+			);
+			return;
+		}
 		console.log(
 			`[http][prefetch] ${method.toUpperCase()} ${url} ${response.status} (${durationMs}ms)`,
+		);
+		return;
+	}
+
+	// GET 404s are expected for stale/invisible tickets — skip headers/body to avoid log spam.
+	// For other methods a 404 is unexpected and the body contains the actual error.
+	const skipDetails = response.status === 404 && method.toUpperCase() === "GET";
+	const level = getRequestLogLevel();
+	const includeHeaders =
+		!skipDetails && (level === "headers" || level === "body");
+	const includeBody = !skipDetails && level === "body";
+	const redactedHeaders = includeHeaders
+		? redactHeaders(Object.fromEntries(response.headers.entries()))
+		: undefined;
+	const body = includeBody ? await readResponseBody(response) : undefined;
+
+	if (format === "json") {
+		console.log(
+			JSON.stringify({
+				ts: new Date().toISOString(),
+				type: "response",
+				method: method.toUpperCase(),
+				url,
+				status: response.status,
+				statusText: response.statusText,
+				durationMs,
+				...(redactedHeaders ? { headers: redactedHeaders } : {}),
+				...(includeBody
+					? { body: truncateAtDepth(body, getRequestLogDepth()) }
+					: {}),
+			}),
 		);
 		return;
 	}
@@ -161,22 +252,13 @@ async function logResponse(
 	console.log(
 		`[http][incoming] ${response.status} ${response.statusText} (${durationMs}ms)`,
 	);
-	// 404s are expected for stale tickets (packages not visible to the current
-	// OAuth caller); skip the verbose headers/body dump to avoid log spam.
-	if (response.status === 404) {
+	if (skipDetails) {
 		return;
 	}
-	const level = getRequestLogLevel();
-	if (level === "headers" || level === "body") {
-		console.log(
-			"[http][incoming] headers",
-			formatForLog(
-				redactHeaders(Object.fromEntries(response.headers.entries())),
-			),
-		);
+	if (redactedHeaders) {
+		console.log("[http][incoming] headers", formatForLog(redactedHeaders));
 	}
-	if (level === "body") {
-		const body = await readResponseBody(response);
+	if (includeBody) {
 		console.log("[http][incoming] body", formatForLog(body));
 	}
 }
@@ -192,6 +274,21 @@ function logRequestError(
 	}
 
 	const durationMs = Date.now() - startedAt;
+
+	if (getRequestLogFormat() === "json") {
+		console.error(
+			JSON.stringify({
+				ts: new Date().toISOString(),
+				type: "error",
+				method: method.toUpperCase(),
+				url,
+				durationMs,
+				error: error instanceof Error ? error.message : String(error),
+			}),
+		);
+		return;
+	}
+
 	console.error(
 		`[http][error] ${method.toUpperCase()} ${url} (${durationMs}ms)`,
 		error,
