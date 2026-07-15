@@ -42,7 +42,11 @@ import {
 	type SearchContext,
 } from "../../lib/search-session";
 import { setPendingGuestContact } from "../../lib/ticket-storage";
-import { partyLabel } from "../../lib/travel-party";
+import {
+	categoryNoun,
+	partyLabel,
+	travelPartyCategoryKey,
+} from "../../lib/travel-party";
 import type { PaymentSelection } from "../../types/payment-methods";
 import type {
 	AncillaryCollection,
@@ -51,7 +55,7 @@ import type {
 	ConfirmedPackage,
 	RecurringPaymentTransaction,
 } from "../../types/purchase";
-import type { Offer, OfferCollection } from "../../types/search";
+import type { Offer, OfferCollection, OfferProduct } from "../../types/search";
 
 export const Route = createFileRoute("/checkout/$offerId")({
 	validateSearch: (search: Record<string, unknown>) => ({
@@ -276,27 +280,121 @@ function CheckoutScreen() {
 		};
 	});
 
-	const ticketRows = selectedOffers.map((offer) => {
-		const product = offer.properties?.products?.[0];
-		const price = offer.properties?.price;
+	// OMSA returns one offer per (traveller × physical leg): a party of 3 adults on a
+	// 2-leg journey yields 6 offers, with the group's whole price attributed to a single
+	// "representative" offer and 0 on the rest. Group them back into one row per
+	// product+leg so the summary reads as "Lowfare × 3" rather than six rows, three at 0 kr.
+	// Different fare categories (adult/child/student, say) can share the same product and
+	// leg but charge different amounts per traveller, so the offer's own per-leg fare
+	// (not the possibly-zeroed offer total) is part of the grouping key too.
+	const transitPatternLegs = (checkoutContext?.pattern?.legs ?? []).filter(
+		(leg) => leg.datedServiceJourney?.id,
+	);
+
+	function productKeyPart(product: OfferProduct): string {
+		if (typeof product.productId === "string") return product.productId;
+		return product.productId?.productId ?? product.productName ?? "";
+	}
+
+	function segmentLabelForOffer(offer: Offer): string | undefined {
 		const legs = offer.properties?.legs ?? [];
-		const travellerCount = new Set(legs.map((l) => l.traveller).filter(Boolean))
-			.size;
+		const labels = legs
+			.map((leg) => {
+				const match = transitPatternLegs.find(
+					(patternLeg) =>
+						patternLeg.datedServiceJourney?.id === leg.serviceJourney,
+				);
+				return match
+					? `${match.fromPlace.name} → ${match.toPlace.name}`
+					: undefined;
+			})
+			.filter((label): label is string => Boolean(label));
+		return labels.length > 0 ? [...new Set(labels)].join(" + ") : undefined;
+	}
+
+	function categoryKeyForTraveller(travellerId: string): string | undefined {
+		const party =
+			checkoutContext?.profiles?.find((p) => p.id === travellerId) ??
+			checkoutContext?.travellers?.find((t) => t.id === travellerId);
+		return party ? travelPartyCategoryKey(party) : undefined;
+	}
+
+	interface TicketGroup {
+		name: string;
+		quantity: number;
+		amount: number;
+		currencyCode?: string;
+		segment?: string;
+		categoryKey?: string;
+		order: number;
+	}
+
+	const ticketGroups = new Map<string, TicketGroup>();
+	for (const offer of selectedOffers) {
+		const legs = offer.properties?.legs ?? [];
+		const product = offer.properties?.products?.[0];
+		const legKey = legs
+			.map((leg) => leg.serviceJourney ?? leg.id)
+			.sort()
+			.join(",");
+		const productKey = (offer.properties?.products ?? [])
+			.map(productKeyPart)
+			.sort()
+			.join(",");
+		const fareKey = legs.reduce(
+			(sum, leg) => sum + (leg.price?.amount ?? 0),
+			0,
+		);
+		const key = `${productKey}|${legKey}|${fareKey}`;
 		const ancillaryCharge = offer.id
 			? (ancillaryChargeByOfferId.get(offer.id) ?? 0)
 			: 0;
-		return {
+		const amount = (offer.properties?.price?.amount ?? 0) - ancillaryCharge;
+		const travellerIds = legs
+			.map((leg) => leg.traveller)
+			.filter((id): id is string => Boolean(id));
+		const travellerCount = new Set(travellerIds).size || 1;
+		const categoryKey = travellerIds
+			.map(categoryKeyForTraveller)
+			.find((label): label is string => Boolean(label));
+		const order = Math.min(
+			...legs.map((leg) => leg.sequenceNumber ?? Number.POSITIVE_INFINITY),
+			Number.POSITIVE_INFINITY,
+		);
+
+		const existing = ticketGroups.get(key);
+		if (existing) {
+			existing.quantity += travellerCount;
+			existing.amount += amount;
+			existing.categoryKey ??= categoryKey;
+			continue;
+		}
+		ticketGroups.set(key, {
 			name:
 				offer.properties?.summary?.name ??
 				product?.productName ??
 				"Travel Offer",
-			quantity: travellerCount || 1,
+			quantity: travellerCount,
+			amount,
+			currencyCode: offer.properties?.price?.currencyCode,
+			segment: segmentLabelForOffer(offer),
+			categoryKey,
+			order,
+		});
+	}
+
+	const ticketRows = [...ticketGroups.values()]
+		.sort((a, b) => a.order - b.order)
+		.map((group) => ({
+			name: group.name,
+			quantity: group.quantity,
+			category: categoryNoun(group.categoryKey, group.quantity),
+			segment: group.segment,
 			price: {
-				amount: (price?.amount ?? 0) - ancillaryCharge,
-				currencyCode: price?.currencyCode,
+				amount: group.amount,
+				currencyCode: group.currencyCode,
 			},
-		};
-	});
+		}));
 
 	async function handleAssignAncillary(ancillaryId: string) {
 		const option = reservationFlow.ancillaryOptions.find(

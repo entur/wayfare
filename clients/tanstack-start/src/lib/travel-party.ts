@@ -16,6 +16,36 @@ const ENTITLEMENT_LABELS: Record<string, string> = {
 	MILITARY: "Military",
 };
 
+const CATEGORY_NOUNS: Record<string, [singular: string, plural: string]> = {
+	ADULT: ["adult", "adults"],
+	CHILD: ["child", "children"],
+	YOUTH: ["youth", "youths"],
+	SENIOR: ["senior", "seniors"],
+	INFANT: ["infant", "infants"],
+	ANYONE: ["traveller", "travellers"],
+	STUDENT: ["student", "students"],
+	MILITARY: ["military", "military"],
+};
+
+// Entitlements (STUDENT, MILITARY) are more specific than ageGroup, matching partyLabel's priority.
+export function travelPartyCategoryKey(p: TravelParty): string | undefined {
+	const entitlementType =
+		p.entitlements?.entitlementsGiven?.[0]?.entitlementType;
+	if (entitlementType) return entitlementType;
+	return p.type === "user_profile" ? p.ageGroup : undefined;
+}
+
+// Bare singular/plural noun for a resolved category key (e.g. "ADULT" + 3 -> "adults"),
+// for contexts that already show their own count and don't want partyLabel's "Adult × 3" form.
+export function categoryNoun(
+	categoryKey: string | undefined,
+	quantity: number,
+): string | undefined {
+	const forms = categoryKey ? CATEGORY_NOUNS[categoryKey] : undefined;
+	if (!forms) return undefined;
+	return quantity === 1 ? forms[0] : forms[1];
+}
+
 function entitlementLabel(types: string[]): string | null {
 	if (types.length === 0) return null;
 	return types.map((t) => ENTITLEMENT_LABELS[t] ?? t).join(", ");

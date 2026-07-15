@@ -13,6 +13,8 @@ import { formatPrice } from "../../lib/format-price";
 interface TicketRow {
 	name: string;
 	quantity: number;
+	category?: string;
+	segment?: string;
 	price: { amount: number; currencyCode?: string | null };
 }
 
@@ -211,7 +213,9 @@ export function JourneySummary({
 									{row.quantity > 0 && (
 										<p className="m-0 text-xs text-wayfare-text-secondary">
 											{row.quantity}{" "}
-											{row.quantity === 1 ? "traveller" : "travellers"}
+											{row.category ??
+												(row.quantity === 1 ? "traveller" : "travellers")}
+											{row.segment ? ` · ${row.segment}` : ""}
 										</p>
 									)}
 								</div>
