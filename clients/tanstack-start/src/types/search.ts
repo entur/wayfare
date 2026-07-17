@@ -45,8 +45,12 @@ export type EnturRecommendationType =
 
 export interface EnturRecommendationControl {
 	enabled: boolean;
-	enturRecommendationType?: EnturRecommendationType[];
+	types?: EnturRecommendationType[];
 	stripDuplicates?: boolean;
+}
+
+export interface EnturSearchOfferInput {
+	recommendationControl?: EnturRecommendationControl;
 }
 
 export interface SearchOfferInputs {
@@ -55,8 +59,7 @@ export interface SearchOfferInputs {
 	profiles?: UserProfile[];
 	specification?: SearchSpecification;
 	pattern?: TripPatternLeg[];
-	timestamp?: string;
-	enturRecommendationControl?: EnturRecommendationControl;
+	entur?: EnturSearchOfferInput;
 }
 
 export interface SearchOfferRequest {

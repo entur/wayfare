@@ -171,14 +171,16 @@ function SearchScreen() {
 				specification: { from, to, ...timeField },
 				...(recControl !== undefined
 					? {
-							enturRecommendationControl: {
-								enabled: recControl.enabled,
-								...(recControl.types && recControl.types.length > 0
-									? { enturRecommendationType: recControl.types }
-									: {}),
-								...(recControl.stripDuplicates !== undefined
-									? { stripDuplicates: recControl.stripDuplicates }
-									: {}),
+							entur: {
+								recommendationControl: {
+									enabled: recControl.enabled,
+									...(recControl.types && recControl.types.length > 0
+										? { types: recControl.types }
+										: {}),
+									...(recControl.stripDuplicates !== undefined
+										? { stripDuplicates: recControl.stripDuplicates }
+										: {}),
+								},
 							},
 						}
 					: {}),

@@ -47,7 +47,7 @@ function toRecommendationControlInput(
 ): EnturRecommendationControl {
 	const control: EnturRecommendationControl = { enabled: override.enabled };
 	if (override.types && override.types.length > 0)
-		control.enturRecommendationType = override.types;
+		control.types = override.types;
 	if (override.stripDuplicates !== undefined)
 		control.stripDuplicates = override.stripDuplicates;
 	return control;
@@ -95,7 +95,7 @@ export function buildOfferQuery(
 						...(travellers.length > 0 ? { travellers } : {}),
 						pattern: omsaLegs,
 						...(recControl !== undefined
-							? { enturRecommendationControl: recControl }
+							? { entur: { recommendationControl: recControl } }
 							: {}),
 					},
 				},
