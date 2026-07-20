@@ -105,6 +105,29 @@ function formatForLog(value: unknown): string {
 	});
 }
 
+export function stringifyJsonLog(value: unknown): string {
+	const ancestors: object[] = [];
+
+	return JSON.stringify(value, function (this: object, _key, currentValue) {
+		if (typeof currentValue === "bigint") {
+			return currentValue.toString();
+		}
+		if (currentValue === null || typeof currentValue !== "object") {
+			return currentValue;
+		}
+
+		while (ancestors.length > 0 && ancestors.at(-1) !== this) {
+			ancestors.pop();
+		}
+		if (ancestors.includes(currentValue)) {
+			return "[Circular]";
+		}
+
+		ancestors.push(currentValue);
+		return currentValue;
+	});
+}
+
 // Mirrors formatForLog's depth truncation but keeps the result valid JSON, so
 // REQUEST_RESPONSE_LOG_FORMAT=json output stays parseable line-by-line (e.g. with jq).
 function truncateAtDepth(
@@ -160,7 +183,7 @@ function logRequest(
 
 	if (getRequestLogFormat() === "json") {
 		console.log(
-			JSON.stringify({
+			stringifyJsonLog({
 				ts: new Date().toISOString(),
 				type: "request",
 				method: method.toUpperCase(),
@@ -200,7 +223,7 @@ async function logResponse(
 	if (quiet) {
 		if (format === "json") {
 			console.log(
-				JSON.stringify({
+				stringifyJsonLog({
 					ts: new Date().toISOString(),
 					type: "response",
 					prefetch: true,
@@ -232,7 +255,7 @@ async function logResponse(
 
 	if (format === "json") {
 		console.log(
-			JSON.stringify({
+			stringifyJsonLog({
 				ts: new Date().toISOString(),
 				type: "response",
 				method: method.toUpperCase(),
@@ -277,7 +300,7 @@ function logRequestError(
 
 	if (getRequestLogFormat() === "json") {
 		console.error(
-			JSON.stringify({
+			stringifyJsonLog({
 				ts: new Date().toISOString(),
 				type: "error",
 				method: method.toUpperCase(),
