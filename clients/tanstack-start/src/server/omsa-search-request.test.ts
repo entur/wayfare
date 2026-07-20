@@ -105,6 +105,20 @@ describe("mapSearchOfferRequest", () => {
 		});
 	});
 
+	it("omits empty traveller and profile arrays", () => {
+		const request: SearchOfferRequest = {
+			inputs: {
+				type: "search_offer",
+				travellers: [],
+				profiles: [],
+			},
+		};
+
+		expect(mapSearchOfferRequest(request)).toEqual({
+			inputs: { type: "search_offer" },
+		});
+	});
+
 	it("omits unsupported and absent optional fields", () => {
 		const request = {
 			_prefetch: true,

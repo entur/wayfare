@@ -52,10 +52,12 @@ export function mapSearchOfferRequest(
 	return {
 		inputs: {
 			type: inputs.type,
-			...(inputs.travellers !== undefined
+			...(inputs.travellers !== undefined && inputs.travellers.length > 0
 				? { travellers: inputs.travellers }
 				: {}),
-			...(inputs.profiles !== undefined ? { profiles: inputs.profiles } : {}),
+			...(inputs.profiles !== undefined && inputs.profiles.length > 0
+				? { profiles: inputs.profiles }
+				: {}),
 			...(inputs.specification !== undefined
 				? {
 						specification: {
