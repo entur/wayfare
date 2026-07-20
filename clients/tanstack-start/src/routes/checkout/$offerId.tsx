@@ -19,6 +19,7 @@ import {
 import { usePurchaseOffers } from "../../hooks/use-purchase";
 import { useAuthorizeCard } from "../../hooks/use-recurring-payments";
 import { formatPrice } from "../../lib/format-price";
+import { buildPurchaseOffersRequest } from "../../lib/purchase-request";
 import { readSearchSession } from "../../lib/search-session";
 import { setPendingGuestContact } from "../../lib/ticket-storage";
 import type { OmsaCustomer } from "../../types/customer";
@@ -127,13 +128,9 @@ function CheckoutScreen() {
 		dispatch({ type: "START_PURCHASE" });
 		try {
 			// Step 1: OMSA purchase-offers
-			const purchased = await purchaseMutation.mutateAsync({
-				inputs: {
-					type: "purchase_offers",
-					offerIds,
-					...(activeCustomer ? { customer: activeCustomer } : {}),
-				},
-			});
+			const purchased = await purchaseMutation.mutateAsync(
+				buildPurchaseOffersRequest(offerIds, activeCustomer),
+			);
 			const packageId = purchased.id ?? "";
 			dispatch({ type: "PURCHASE_DONE", packageId });
 
