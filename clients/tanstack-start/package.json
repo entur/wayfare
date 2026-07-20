@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "vite dev --port 3000",
+    "dev:log": "mkdir -p logs && REQUEST_RESPONSE_LOG_FORMAT=json vite dev --port 3000 2>&1 | tee logs/dev.log",
     "build": "vite build",
     "preprocess-stops": "node scripts/preprocess-stops.mjs",
     "preview": "vite preview",
