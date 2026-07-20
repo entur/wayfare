@@ -12,7 +12,7 @@
     "preprocess-stops": "node scripts/preprocess-stops.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "NODE_OPTIONS=--no-experimental-webstorage vitest run --passWithNoTests",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check"
