@@ -4,6 +4,7 @@ import { searchOffers } from "../server-functions/search";
 import type {
 	EnturRecommendationControl,
 	OfferCollection,
+	SearchOfferRequest,
 	TripPatternLeg,
 } from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
@@ -69,41 +70,53 @@ function buildOmsaLegs(pattern: TripPattern): TripPatternLeg[] {
 	});
 }
 
-export function buildOfferQuery(
+export function buildOfferSearchRequest(
 	pattern: TripPattern,
 	travelers: TravelerGroup[],
 	recommendationControl?: RecommendationControlOverride,
 	prefetch = false,
-) {
+): SearchOfferRequest {
 	const { profiles, travellers } = buildRequest(travelers);
-	const omsaLegs = buildOmsaLegs(pattern);
-	const legCount = omsaLegs.length;
 	const recControl =
 		recommendationControl !== undefined
 			? toRecommendationControlInput(recommendationControl)
 			: undefined;
 
 	return {
+		...(prefetch ? { _prefetch: true } : {}),
+		inputs: {
+			type: "search_offer",
+			...(profiles.length > 0 ? { profiles } : {}),
+			...(travellers.length > 0 ? { travellers } : {}),
+			pattern: buildOmsaLegs(pattern),
+			...(recControl !== undefined
+				? { entur: { recommendationControl: recControl } }
+				: {}),
+		},
+	};
+}
+
+export function buildOfferQuery(
+	pattern: TripPattern,
+	travelers: TravelerGroup[],
+	recommendationControl?: RecommendationControlOverride,
+	prefetch = false,
+) {
+	const request = buildOfferSearchRequest(
+		pattern,
+		travelers,
+		recommendationControl,
+		prefetch,
+	);
+
+	return {
 		queryKey: offerQueryKey(pattern, travelers, recommendationControl),
 		queryFn: (): Promise<OfferCollection> =>
-			searchOffers({
-				data: {
-					...(prefetch ? { _prefetch: true } : {}),
-					inputs: {
-						type: "search_offer",
-						...(profiles.length > 0 ? { profiles } : {}),
-						...(travellers.length > 0 ? { travellers } : {}),
-						pattern: omsaLegs,
-						...(recControl !== undefined
-							? { entur: { recommendationControl: recControl } }
-							: {}),
-					},
-				},
-			}) as Promise<OfferCollection>,
+			searchOffers({ data: request }) as Promise<OfferCollection>,
 		staleTime: 5 * 60 * 1000,
 		gcTime: 10 * 60 * 1000,
 		retry: false,
-		_legCount: legCount,
+		_legCount: request.inputs.pattern?.length ?? 0,
 	} as const;
 }
 
