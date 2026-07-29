@@ -23,7 +23,7 @@ function isRecentStop(value: unknown): value is RecentStop {
 function read(): RecentStop[] {
 	if (typeof window === "undefined") return [];
 	try {
-		const raw = localStorage.getItem(KEY);
+		const raw = window.localStorage.getItem(KEY);
 		if (!raw) return [];
 		const parsed = JSON.parse(raw);
 		if (!Array.isArray(parsed)) return [];
@@ -36,7 +36,7 @@ function read(): RecentStop[] {
 function write(list: RecentStop[]): void {
 	if (typeof window === "undefined") return;
 	try {
-		localStorage.setItem(KEY, JSON.stringify(list));
+		window.localStorage.setItem(KEY, JSON.stringify(list));
 	} catch {
 		// quota or disabled — ignore
 	}

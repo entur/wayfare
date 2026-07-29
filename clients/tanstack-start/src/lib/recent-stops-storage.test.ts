@@ -19,7 +19,7 @@ const STOP_B: RecentStop = {
 };
 
 beforeEach(() => {
-	localStorage.clear();
+	window.localStorage.clear();
 });
 
 describe("recent-stops-storage", () => {
@@ -49,7 +49,7 @@ describe("recent-stops-storage", () => {
 	});
 
 	it("recovers from corrupt JSON", () => {
-		localStorage.setItem("wayfare:recent-stops", "not-json");
+		window.localStorage.setItem("wayfare:recent-stops", "not-json");
 		expect(getRecentStops()).toEqual([]);
 	});
 });
