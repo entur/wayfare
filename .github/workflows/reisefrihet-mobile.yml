@@ -1,0 +1,68 @@
+name: reisefrihet mobile
+
+on:
+  pull_request:
+    paths:
+      - "bffs/reisefrihet-fastify/**"
+      - "clients/react-native/**"
+      - ".github/workflows/reisefrihet-mobile.yml"
+  push:
+    branches: [main]
+    paths:
+      - "bffs/reisefrihet-fastify/**"
+      - "clients/react-native/**"
+      - ".github/workflows/reisefrihet-mobile.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/dependency-review-action@v4
+
+  bff:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bffs/reisefrihet-fastify
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+          cache-dependency-path: bffs/reisefrihet-fastify/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm contract:generate
+      - run: git diff --exit-code -- src/generated/reisefrihet.ts
+      - run: pnpm check
+      - run: pnpm openapi:generate
+      - run: git diff --exit-code -- contract/mobile.openapi.json
+
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients/react-native
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+          cache-dependency-path: clients/react-native/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm api:generate
+      - run: git diff --exit-code -- src/api/schema.ts
+      - run: pnpm run doctor
+      - run: pnpm check

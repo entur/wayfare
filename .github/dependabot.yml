@@ -30,6 +30,26 @@ updates:
         patterns:
           - "*"
 
+  - package-ecosystem: npm
+    directory: /clients/react-native
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      react-native-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    directory: /bffs/reisefrihet-fastify
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      reisefrihet-bff-dependencies:
+        patterns:
+          - "*"
+
   - package-ecosystem: uv
     directory: /bffs/python-fastapi
     schedule:
