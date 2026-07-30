@@ -1,0 +1,12 @@
+appId: no.entur.wayfare.reisefrihet
+name: Active journey restart recovery
+---
+- launchApp
+- tapOn: "Travel tab"
+- assertVisible: "Who is travelling?"
+- tapOn: "Check in"
+- assertVisible: "You are checked in"
+- stopApp
+- launchApp
+- assertVisible: "You are checked in"
+- assertVisible: "Check out"

@@ -1,0 +1,7 @@
+.expo
+android
+coverage
+ios
+node_modules
+src/api/schema.ts
+pnpm-lock.yaml

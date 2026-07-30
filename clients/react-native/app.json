@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Wayfare",
+    "slug": "wayfare-reisefrihet",
+    "scheme": "wayfare",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "icon": "../flutter/assets/wayfare_launcher_icon_512x512.png",
+    "splash": {
+      "image": "../flutter/assets/wayfare_icon_logo_1152x1152.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF",
+      "dark": {
+        "backgroundColor": "#111319"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "no.entur.wayfare.reisefrihet",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "no.entur.wayfare.reisefrihet",
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

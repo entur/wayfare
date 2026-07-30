@@ -1,0 +1,20 @@
+appId: no.entur.wayfare.reisefrihet
+name: Failed payment recovery and dark mode
+---
+- launchApp
+- tapOn: "Settings tab"
+- tapOn: "Dark theme"
+- tapOn: "Save settings"
+- tapOn: "Travel tab"
+- assertVisible:
+    text: "Payment needs attention"
+    optional: true
+- tapOn:
+    text: "Retry payment"
+    optional: true
+- assertVisible:
+    text: "Retry failed payments?"
+    optional: true
+- tapOn:
+    text: "Retry payments"
+    optional: true

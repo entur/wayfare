@@ -1,0 +1,24 @@
+appId: no.entur.wayfare.reisefrihet
+name: First run, check-in, checkout, and history
+---
+- launchApp:
+    clearState: true
+- assertVisible: "Set up a test rider"
+- tapOn: "Settings tab"
+- tapOn: "Customer number"
+- inputText: "123456"
+- tapOn: "Save settings"
+- assertVisible: "Settings saved"
+- tapOn: "Travel tab"
+- assertVisible: "Who is travelling?"
+- tapOn: "Check in"
+- assertVisible: "You are checked in"
+- tapOn: "Check out"
+- assertVisible: "Check out now?"
+- tapOn: "Check out"
+- assertVisible: "Trip complete"
+- tapOn: "History tab"
+- swipe:
+    start: 50%, 25%
+    end: 50%, 75%
+- assertVisible: "Journey history"

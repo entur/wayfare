@@ -1,0 +1,8 @@
+appId: no.entur.wayfare.reisefrihet
+name: Offline rider state
+---
+- launchApp
+- setAirplaneMode: enabled
+- assertVisible: "You are offline"
+- assertNotVisible: "Check in, in progress"
+- setAirplaneMode: disabled
