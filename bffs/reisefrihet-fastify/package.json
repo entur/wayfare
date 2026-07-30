@@ -1,0 +1,43 @@
+{
+  "name": "@wayfare/reisefrihet-bff",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "contract:generate": "bash scripts/generate-reisefrihet-types.sh",
+    "dev": "tsx watch src/index.ts",
+    "dev:staging": "bash scripts/start-staging.sh",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "openapi:generate": "tsx scripts/write-mobile-openapi.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/swagger": "^9.6.1",
+    "@fastify/type-provider-typebox": "^6.1.0",
+    "@sinclair/typebox": "^0.34.41",
+    "fastify": "^5.7.4",
+    "openapi-fetch": "^0.15.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^24.10.13",
+    "eslint": "^9.39.5",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "^3.9.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.54.0",
+    "vitest": "^4.1.0"
+  },
+  "packageManager": "pnpm@10.34.1"
+}
