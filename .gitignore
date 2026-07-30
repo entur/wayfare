@@ -49,3 +49,10 @@ app.*.map.json
 **/.env
 .venv/
 *.egg-info/
+
+# Node and Expo
+**/node_modules/
+**/.expo/
+**/dist/
+**/coverage/
+.pnpm-store/
