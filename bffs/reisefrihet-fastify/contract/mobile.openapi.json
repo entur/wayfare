@@ -10,7 +10,9 @@
   "paths": {
     "/health": {
       "get": {
-        "tags": ["system"],
+        "tags": [
+          "system"
+        ],
         "responses": {
           "200": {
             "description": "Default Response",
@@ -18,11 +20,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["status"],
+                  "required": [
+                    "status"
+                  ],
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": ["ok"]
+                      "enum": [
+                        "ok"
+                      ]
                     }
                   }
                 }
@@ -34,7 +40,9 @@
     },
     "/ready": {
       "get": {
-        "tags": ["system"],
+        "tags": [
+          "system"
+        ],
         "responses": {
           "200": {
             "description": "Default Response",
@@ -42,11 +50,15 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["status"],
+                  "required": [
+                    "status"
+                  ],
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": ["ready"]
+                      "enum": [
+                        "ready"
+                      ]
                     }
                   }
                 }
@@ -59,7 +71,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -83,7 +99,9 @@
     },
     "/v1/travel-options": {
       "get": {
-        "tags": ["travel"],
+        "tags": [
+          "travel"
+        ],
         "parameters": [
           {
             "schema": {
@@ -102,13 +120,21 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["passengerProfiles", "luggage"],
+                  "required": [
+                    "passengerProfiles",
+                    "luggage"
+                  ],
                   "properties": {
                     "passengerProfiles": {
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["id", "label", "category", "required"],
+                        "required": [
+                          "id",
+                          "label",
+                          "category",
+                          "required"
+                        ],
                         "properties": {
                           "id": {
                             "type": "string"
@@ -123,11 +149,15 @@
                             "anyOf": [
                               {
                                 "type": "string",
-                                "enum": ["passenger"]
+                                "enum": [
+                                  "passenger"
+                                ]
                               },
                               {
                                 "type": "string",
-                                "enum": ["luggage"]
+                                "enum": [
+                                  "luggage"
+                                ]
                               }
                             ]
                           },
@@ -141,7 +171,12 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["id", "label", "category", "required"],
+                        "required": [
+                          "id",
+                          "label",
+                          "category",
+                          "required"
+                        ],
                         "properties": {
                           "id": {
                             "type": "string"
@@ -156,11 +191,15 @@
                             "anyOf": [
                               {
                                 "type": "string",
-                                "enum": ["passenger"]
+                                "enum": [
+                                  "passenger"
+                                ]
                               },
                               {
                                 "type": "string",
-                                "enum": ["luggage"]
+                                "enum": [
+                                  "luggage"
+                                ]
                               }
                             ]
                           },
@@ -181,7 +220,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -206,7 +249,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -231,7 +278,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -255,14 +306,20 @@
     },
     "/v1/journeys/check-in": {
       "post": {
-        "tags": ["journeys"],
+        "tags": [
+          "journeys"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["customerNumber", "userProfileIds", "luggageIds"],
+                "required": [
+                  "customerNumber",
+                  "userProfileIds",
+                  "luggageIds"
+                ],
                 "properties": {
                   "customerNumber": {
                     "pattern": "^[0-9]+$",
@@ -296,7 +353,10 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["journeyId", "startTime"],
+                  "required": [
+                    "journeyId",
+                    "startTime"
+                  ],
                   "properties": {
                     "journeyId": {
                       "format": "uuid",
@@ -317,7 +377,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -342,7 +406,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -367,7 +435,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -392,7 +464,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -416,14 +492,19 @@
     },
     "/v1/journeys/{journeyId}/check-out": {
       "post": {
-        "tags": ["journeys"],
+        "tags": [
+          "journeys"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["customerNumber", "startTime"],
+                "required": [
+                  "customerNumber",
+                  "startTime"
+                ],
                 "properties": {
                   "customerNumber": {
                     "pattern": "^[0-9]+$",
@@ -499,7 +580,10 @@
                       "type": "array",
                       "items": {
                         "type": "object",
-                        "required": ["profile", "label"],
+                        "required": [
+                          "profile",
+                          "label"
+                        ],
                         "properties": {
                           "profile": {
                             "type": "string"
@@ -576,7 +660,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -601,7 +689,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -626,7 +718,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -651,7 +747,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -676,7 +776,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -700,7 +804,9 @@
     },
     "/v1/customers/{customerNumber}/journeys": {
       "get": {
-        "tags": ["journeys"],
+        "tags": [
+          "journeys"
+        ],
         "parameters": [
           {
             "schema": {
@@ -817,7 +923,10 @@
                             "type": "array",
                             "items": {
                               "type": "object",
-                              "required": ["profile", "label"],
+                              "required": [
+                                "profile",
+                                "label"
+                              ],
                               "properties": {
                                 "profile": {
                                   "type": "string"
@@ -897,7 +1006,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -922,7 +1035,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -947,7 +1064,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -971,7 +1092,9 @@
     },
     "/v1/customers/{customerNumber}/payment-status": {
       "get": {
-        "tags": ["payments"],
+        "tags": [
+          "payments"
+        ],
         "parameters": [
           {
             "schema": {
@@ -993,7 +1116,9 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["hasFailedTransactions"],
+                  "required": [
+                    "hasFailedTransactions"
+                  ],
                   "properties": {
                     "hasFailedTransactions": {
                       "type": "boolean"
@@ -1015,7 +1140,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -1040,7 +1169,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -1065,7 +1198,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -1089,7 +1226,9 @@
     },
     "/v1/customers/{customerNumber}/payments/retry": {
       "post": {
-        "tags": ["payments"],
+        "tags": [
+          "payments"
+        ],
         "parameters": [
           {
             "schema": {
@@ -1111,7 +1250,12 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["total", "paid", "retried", "failed"],
+                  "required": [
+                    "total",
+                    "paid",
+                    "retried",
+                    "failed"
+                  ],
                   "properties": {
                     "total": {
                       "minimum": 0,
@@ -1140,7 +1284,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -1165,7 +1313,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
@@ -1190,7 +1342,11 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["code", "message", "retryable"],
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
                   "properties": {
                     "code": {
                       "type": "string"
