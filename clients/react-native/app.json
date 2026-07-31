@@ -7,14 +7,6 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "../flutter/assets/wayfare_launcher_icon_512x512.png",
-    "splash": {
-      "image": "../flutter/assets/wayfare_icon_logo_1152x1152.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF",
-      "dark": {
-        "backgroundColor": "#111319"
-      }
-    },
     "ios": {
       "bundleIdentifier": "no.entur.wayfare.reisefrihet",
       "supportsTablet": false
@@ -26,7 +18,20 @@
     "web": {
       "output": "static"
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "../flutter/assets/wayfare_icon_logo_1152x1152.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "backgroundColor": "#111319"
+          }
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
