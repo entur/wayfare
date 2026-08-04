@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
+import { accentFor, accentTint } from "../../lib/operator-accent";
 import { findOperator } from "../../lib/operators";
 import { getPreferredOperator } from "../../lib/preferences-storage";
 import OperatorIcon from "../shared/OperatorIcon";
@@ -14,6 +15,8 @@ export default function QuickActionsRow() {
 	const operator = findOperator(operatorCode);
 	if (!operator?.authorityRef) return null;
 
+	const accent = accentFor(operator.code);
+
 	return (
 		<section>
 			<h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
@@ -21,7 +24,15 @@ export default function QuickActionsRow() {
 			</h2>
 			<Link
 				to="/products"
-				className="flex items-center gap-3 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4 no-underline transition-colors"
+				className={`flex items-center gap-3 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4 pl-5 no-underline transition-colors ${accent ? "brand-rail" : ""}`}
+				style={
+					accent
+						? ({
+								"--brand-rail-color": accent,
+								background: accentTint(accent, 0.08),
+							} as CSSProperties)
+						: undefined
+				}
 			>
 				<OperatorIcon operator={operator} />
 				<span className="min-w-0 flex-1">

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import Illustration from "../components/shared/Illustration";
 import OperatorIcon from "../components/shared/OperatorIcon";
@@ -8,6 +8,7 @@ import Button from "../components/ui/Button";
 import type { TravelerGroup } from "../context/search-form";
 import { formatPrice } from "../lib/format-price";
 import { buildAuthorityOfferQuery } from "../lib/offer-query";
+import { accentFor, accentTint } from "../lib/operator-accent";
 import { findOperator, type Operator } from "../lib/operators";
 import { getPreferredOperator } from "../lib/preferences-storage";
 import { writeSearchSession } from "../lib/search-session";
@@ -90,6 +91,7 @@ function ProductList({ operator }: { operator: Operator }) {
 	const navigate = useNavigate();
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 
+	const accent = accentFor(operator.code);
 	const authorityRef = operator.authorityRef as string;
 	const { data, isPending, error } = useQuery(
 		buildAuthorityOfferQuery(authorityRef, operator.name, DEFAULT_TRAVELERS),
@@ -117,10 +119,27 @@ function ProductList({ operator }: { operator: Operator }) {
 			subtitle={`Sold directly by ${operator.name}`}
 			contentClassName="mx-auto max-w-xl"
 		>
-			<div className="mb-5 flex items-center gap-3 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
+			{/* Brand colour carries the accent; text stays on the page surface so
+			    contrast holds in both themes without per-operator ink logic. */}
+			<div
+				className={`mb-5 flex items-center gap-3 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4 pl-5 ${accent ? "brand-rail" : ""}`}
+				style={
+					accent
+						? ({
+								"--brand-rail-color": accent,
+								background: accentTint(accent, 0.08),
+							} as CSSProperties)
+						: undefined
+				}
+			>
 				<OperatorIcon operator={operator} />
-				<span className="min-w-0 flex-1 truncate text-sm font-semibold text-wayfare-text">
-					{operator.name}
+				<span className="min-w-0 flex-1">
+					<span className="block truncate text-sm font-semibold text-wayfare-text">
+						{operator.name}
+					</span>
+					<span className="block text-xs text-wayfare-text-secondary">
+						Sold without zone validity
+					</span>
 				</span>
 				<Link
 					to="/settings"
@@ -173,6 +192,14 @@ function ProductList({ operator }: { operator: Operator }) {
 								<label
 									key={id}
 									className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-all ${selected ? "border-wayfare-primary bg-wayfare-accent-soft" : "border-wayfare-line bg-wayfare-surface-strong"}`}
+									style={
+										selected && accent
+											? {
+													borderColor: accent,
+													background: accentTint(accent, 0.1),
+												}
+											: undefined
+									}
 								>
 									<input
 										type="radio"
@@ -183,9 +210,15 @@ function ProductList({ operator }: { operator: Operator }) {
 									/>
 									<span
 										className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${selected ? "border-wayfare-primary" : "border-wayfare-text-secondary"}`}
+										style={
+											selected && accent ? { borderColor: accent } : undefined
+										}
 									>
 										{selected && (
-											<span className="h-2 w-2 rounded-full bg-wayfare-primary" />
+											<span
+												className="h-2 w-2 rounded-full bg-wayfare-primary"
+												style={accent ? { background: accent } : undefined}
+											/>
 										)}
 									</span>
 									<span className="min-w-0 flex-1">
@@ -194,7 +227,10 @@ function ProductList({ operator }: { operator: Operator }) {
 												{offerName(offer)}
 											</span>
 											{price && (
-												<span className="shrink-0 text-sm font-bold text-wayfare-primary">
+												<span
+													className="shrink-0 text-sm font-bold text-wayfare-primary"
+													style={accent ? { color: accent } : undefined}
+												>
 													{formatPrice(
 														price.amount,
 														price.currencyCode ?? "NOK",

@@ -107,6 +107,22 @@ a:not([class]):hover {
 	margin-inline: auto;
 }
 
+/* Brand accent rail. A one-sided thick border gets mitred against the corner
+   radius and tapers into a wedge, so the rail is a clipped inner bar instead:
+   it keeps a constant width and the parent's overflow trims it to the curve. */
+.brand-rail {
+	position: relative;
+	overflow: hidden;
+}
+
+.brand-rail::before {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 4px;
+	background: var(--brand-rail-color);
+}
+
 /* Operator brand marks. The light/dark swap lives here rather than in JS so
    only the active variant is fetched and there is no hydration mismatch. */
 .operator-logo {
