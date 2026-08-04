@@ -18,9 +18,22 @@ describe("operator accents", () => {
 		}
 	});
 
-	it("converts to rgba with the requested alpha", () => {
+	it("converts a mid-tone to rgba at the requested alpha", () => {
 		expect(accentTint("#E60000", 0.1)).toBe("rgba(230, 0, 0, 0.1)");
-		expect(accentTint("#003F24", 0.08)).toBe("rgba(0, 63, 36, 0.08)");
+		expect(accentTint("#FCDE3D", 0.06)).toBe("rgba(252, 222, 61, 0.06)");
+	});
+
+	it("halves the alpha for dark accents so the wash does not go muddy", () => {
+		// Kolumbus' dark slate at full alpha rendered as grey rather than as a
+		// tint of the brand.
+		expect(accentTint("#003F24", 0.08)).toBe("rgba(0, 63, 36, 0.04)");
+		expect(accentTint("#2E364A", 0.06)).toBe("rgba(46, 54, 74, 0.03)");
+	});
+
+	it("keeps Kolumbus on its green mark rather than its dark surface", () => {
+		// #333F48 is the surface the logo sits on, not the brand hue, and it
+		// washed out to grey.
+		expect(accentFor("KOL")).toBe("#3EC652");
 	});
 
 	it("produces no NaN channels for any registered accent", () => {

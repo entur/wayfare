@@ -29,7 +29,7 @@ export default function QuickActionsRow() {
 					accent
 						? ({
 								"--brand-rail-color": accent,
-								background: accentTint(accent, 0.08),
+								background: accentTint(accent, 0.06),
 							} as CSSProperties)
 						: undefined
 				}

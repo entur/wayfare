@@ -4,7 +4,7 @@ export const OPERATOR_ACCENTS: Record<string, string> = {
 	BRA: "#FCDE3D",
 	FIN: "#FAD213",
 	INN: "#025750",
-	KOL: "#333F48",
+	KOL: "#3EC652",
 	MOR: "#007AB5",
 	NOR: "#0384A6",
 	OST: "#ED1C24",
@@ -23,7 +23,7 @@ export function accentFor(code: string | null | undefined): string | undefined {
 	return OPERATOR_ACCENTS[code];
 }
 
-export function accentTint(hex: string, alpha: number): string {
+function channels(hex: string): [number, number, number] {
 	const raw = hex.replace("#", "");
 	const full =
 		raw.length === 3
@@ -32,8 +32,27 @@ export function accentTint(hex: string, alpha: number): string {
 					.map((c) => c + c)
 					.join("")
 			: raw;
-	const r = Number.parseInt(full.slice(0, 2), 16);
-	const g = Number.parseInt(full.slice(2, 4), 16);
-	const b = Number.parseInt(full.slice(4, 6), 16);
-	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+	return [
+		Number.parseInt(full.slice(0, 2), 16),
+		Number.parseInt(full.slice(2, 4), 16),
+		Number.parseInt(full.slice(4, 6), 16),
+	];
+}
+
+function relativeLuminance(hex: string): number {
+	const linear = channels(hex).map((value) => {
+		const c = value / 255;
+		return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+	});
+	return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+const DARK_LUMINANCE = 0.15;
+
+// Dark accents use less alpha to avoid muddy washes.
+export function accentTint(hex: string, alpha: number): string {
+	const [r, g, b] = channels(hex);
+	const effective =
+		relativeLuminance(hex) < DARK_LUMINANCE ? alpha * 0.5 : alpha;
+	return `rgba(${r}, ${g}, ${b}, ${effective})`;
 }

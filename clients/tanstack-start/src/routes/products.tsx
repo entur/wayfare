@@ -127,7 +127,7 @@ function ProductList({ operator }: { operator: Operator }) {
 					accent
 						? ({
 								"--brand-rail-color": accent,
-								background: accentTint(accent, 0.08),
+								background: accentTint(accent, 0.06),
 							} as CSSProperties)
 						: undefined
 				}
@@ -186,7 +186,14 @@ function ProductList({ operator }: { operator: Operator }) {
 							const id = offer.id as string;
 							const selected = selectedId === id;
 							const price = offer.properties?.price;
-							const description = offer.properties?.summary?.description;
+							const name = offerName(offer);
+							// OMSA often sets description to the product name verbatim.
+							const rawDescription =
+								offer.properties?.summary?.description?.trim();
+							const description =
+								rawDescription && rawDescription !== name
+									? rawDescription
+									: undefined;
 
 							return (
 								<label
@@ -194,10 +201,7 @@ function ProductList({ operator }: { operator: Operator }) {
 									className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition-all ${selected ? "border-wayfare-primary bg-wayfare-accent-soft" : "border-wayfare-line bg-wayfare-surface-strong"}`}
 									style={
 										selected && accent
-											? {
-													borderColor: accent,
-													background: accentTint(accent, 0.1),
-												}
+											? { background: accentTint(accent, 0.08) }
 											: undefined
 									}
 								>
@@ -210,27 +214,18 @@ function ProductList({ operator }: { operator: Operator }) {
 									/>
 									<span
 										className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${selected ? "border-wayfare-primary" : "border-wayfare-text-secondary"}`}
-										style={
-											selected && accent ? { borderColor: accent } : undefined
-										}
 									>
 										{selected && (
-											<span
-												className="h-2 w-2 rounded-full bg-wayfare-primary"
-												style={accent ? { background: accent } : undefined}
-											/>
+											<span className="h-2 w-2 rounded-full bg-wayfare-primary" />
 										)}
 									</span>
 									<span className="min-w-0 flex-1">
 										<span className="flex items-start justify-between gap-3">
 											<span className="text-sm font-semibold text-wayfare-text">
-												{offerName(offer)}
+												{name}
 											</span>
 											{price && (
-												<span
-													className="shrink-0 text-sm font-bold text-wayfare-primary"
-													style={accent ? { color: accent } : undefined}
-												>
+												<span className="shrink-0 text-sm font-bold text-wayfare-primary">
 													{formatPrice(
 														price.amount,
 														price.currencyCode ?? "NOK",
