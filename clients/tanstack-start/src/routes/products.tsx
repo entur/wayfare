@@ -11,6 +11,7 @@ import { buildAuthorityOfferQuery } from "../lib/offer-query";
 import {
 	accentFor,
 	accentTint,
+	bannerColors,
 	brandButtonColors,
 } from "../lib/operator-accent";
 import { findOperator, type Operator } from "../lib/operators";
@@ -123,7 +124,7 @@ function ProductList({ operator }: { operator: Operator }) {
 			title="Products"
 			subtitle={`Sold directly by ${operator.name}`}
 			contentClassName="mx-auto max-w-xl"
-			wash={accent ? accentTint(accent, 0.07) : undefined}
+			banner={accent ? bannerColors(accent) : undefined}
 		>
 			{/* Brand colour carries the accent; text stays on the page surface so
 			    contrast holds in both themes without per-operator ink logic. */}

@@ -127,15 +127,6 @@ export interface BrandButton {
 	ink: string;
 }
 
-/**
- * Saturation is pushed to full as lightness drops, so a darkened colour stays
- * as vivid as its hue allows instead of drifting toward grey.
- *
- * This helps most hues a lot and yellow barely at all: #FCDE3D already sits at
- * ~97% saturation, and every yellow dark enough to hold white text reads as gold
- * or olive regardless of saturation. That is a property of the hue, not a bug
- * here — see the note on brandButtonColors.
- */
 function deepen(hsl: Hsl, l: number): string {
 	return hslToHex({ h: hsl.h, s: Math.min(1, Math.max(hsl.s, 0.85)), l });
 }
@@ -143,16 +134,46 @@ function deepen(hsl: Hsl, l: number): string {
 function withHover(background: string, ink: string): BrandButton {
 	const hsl = hexToHsl(background);
 
-	// Move away from the ink, never toward it. Moving away from the midpoint
-	// instead looked reasonable but dropped hover below AA for mid-tones —
-	// lightening #007AB5 under white ink fell to 3.4:1. Going away from the ink
-	// can only raise contrast, so the hover state is readable by construction.
+	// Move the hover shade away from the text colour to preserve contrast.
 	const towardDark = relativeLuminance(ink) > 0.5;
 	const hoverL = towardDark
 		? Math.max(0.06, hsl.l - 0.07)
 		: Math.min(0.94, hsl.l + 0.07);
 
 	return { background, hover: hslToHex({ ...hsl, l: hoverL }), ink };
+}
+
+const LIGHT_SURFACE = "#F5F6F7";
+const DARK_SURFACE = "#12151A";
+
+// Decorative banners need less contrast than text.
+const BANNER_MIN_CONTRAST = 2;
+
+function shiftUntilVisible(
+	accent: string,
+	surface: string,
+	step: number,
+): string {
+	const hsl = hexToHsl(accent);
+	let { l } = hsl;
+	let candidate = accent;
+	while (
+		contrastBetween(candidate, surface) < BANNER_MIN_CONTRAST &&
+		l > 0.06 &&
+		l < 0.94
+	) {
+		l = Math.min(0.94, Math.max(0.06, l + step));
+		candidate = deepen(hsl, l);
+	}
+	return candidate;
+}
+
+// Adjust the accent separately for light and dark surfaces.
+export function bannerColors(accent: string): { light: string; dark: string } {
+	return {
+		light: shiftUntilVisible(accent, LIGHT_SURFACE, -0.02),
+		dark: shiftUntilVisible(accent, DARK_SURFACE, 0.02),
+	};
 }
 
 function shiftUntilReadable(accent: string, ink: string, step: number): string {
@@ -170,23 +191,7 @@ function shiftUntilReadable(accent: string, ink: string, step: number): string {
 	return candidate;
 }
 
-/**
- * A solid brand fill for a button, with a label colour that suits it and a hover
- * shade.
- *
- * The ink adapts so the brand colour doesn't have to. Forcing white text is what
- * ruins light brand colours: Brakar's #FCDE3D has to darken to about #806A00 to
- * hold white, which is olive rather than yellow, and no amount of saturation
- * rescues it — yellow carries its chroma at high lightness, and every yellow dark
- * enough for white text reads gold then brown. With dark ink that same yellow
- * clears roughly 11:1 completely untouched, and stays as intense as the brand
- * intends.
- *
- * So the fill is left alone whenever either ink clears AA. Only a mid-tone that
- * fails both — AKT's #009F6F manages 3.4:1 with white and 4.4:1 with dark — gets
- * moved, in whichever direction needs the smaller shift, with saturation pushed
- * up so it deepens instead of greying.
- */
+// Choose an ink and shade that meet AA contrast for the brand colour.
 export function brandButtonColors(accent: string): BrandButton {
 	if (contrastBetween(accent, BUTTON_LIGHT_INK) >= TEXT_CONTRAST_TARGET) {
 		return withHover(accent, BUTTON_LIGHT_INK);

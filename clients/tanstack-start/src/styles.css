@@ -120,35 +120,53 @@ button.brand-button:hover:not(:disabled) {
 	background: var(--brand-button-hover);
 }
 
-/* Two soft washes: one falling away from the top-left, one rising from the
-   bottom-right third. Wide radii and low alpha, so they read as ambient depth
-   rather than as shapes.
+/* Diagonal brand banners in the top-left and bottom-right of the content area.
 
-   Viewport-anchored rather than sized to <main>, because a short page — the
-   products list is only a few cards — would otherwise pull the bottom-right
-   wash up near the header. Being fixed also keeps it out of layout, so it can't
-   add scroll height.
+   Anchored to <main> rather than the viewport, so they frame the content block
+   instead of the window — which also means they cannot bleed into the footer.
 
-   No z-index on purpose, and it matters in three directions. Positioned with
-   auto z-index, it paints above body's opaque background-color (an earlier
-   attempt used z-index: -1 and vanished underneath it), below the sticky header
-   at z-50 and the tab bar at z-30, and below the content wrapper, which is
-   positioned and later in DOM order. */
-.page-wash {
-	position: fixed;
-	inset: 0;
+   No z-index. Both are positioned with auto z-index and come before the content
+   wrapper in DOM order, so the content paints over them. Colour swaps by theme
+   because one brand colour cannot read on both surfaces; see bannerColors. */
+/* Spans the full main area: viewport-wide rather than confined to the centred
+   1080px column, and top-to-bottom of <main>, which min-h-full stretches to fill
+   the space between header and footer. Absolute positioning resolves against the
+   padding box, so the banners sit at main's true corners and ignore its padding.
+   overflow: hidden keeps the 100vw layer from adding horizontal scroll. */
+.page-banners {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	width: 100vw;
+	transform: translateX(-50%);
+	overflow: hidden;
 	pointer-events: none;
-	background:
-		radial-gradient(
-			150% 130% at 0% 0%,
-			var(--page-wash-color) 0%,
-			transparent 55%
-		),
-		radial-gradient(
-			120% 100% at 100% 72%,
-			var(--page-wash-color) 0%,
-			transparent 58%
-		);
+}
+
+.page-banner {
+	position: absolute;
+	width: clamp(110px, 17vw, 210px);
+	height: clamp(110px, 17vw, 210px);
+	pointer-events: none;
+	color: var(--page-banner-light);
+	fill: currentColor;
+}
+
+:root[data-color-mode="dark"] .page-banner {
+	color: var(--page-banner-dark);
+}
+
+.page-banner--start {
+	top: 0;
+	left: 0;
+}
+
+/* Rotating the same artwork is what makes the pair read as mirrored. */
+.page-banner--end {
+	right: 0;
+	bottom: 0;
+	transform: rotate(180deg);
 }
 
 /* Brand accent rail. A one-sided thick border gets mitred against the corner
