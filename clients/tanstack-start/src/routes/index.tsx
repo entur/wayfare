@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import DateTimePicker from "../components/search/DateTimePicker";
 import PlaceSearch from "../components/search/PlaceSearch";
+import QuickActionsRow from "../components/search/QuickActionsRow";
 import QuickRouteSection, {
 	type QuickRoute,
 	toQuickRoute,
@@ -364,6 +365,8 @@ function SearchScreen() {
 						)}
 					</div>
 				</form>
+
+				<QuickActionsRow />
 
 				<QuickRouteSection
 					title="Favorites"

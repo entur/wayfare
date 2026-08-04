@@ -1,6 +1,6 @@
 import { UserIcon } from "@entur/icons";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import PaymentMethodsTab from "../components/settings/PaymentMethodsTab";
@@ -335,9 +335,14 @@ function PreferredOperatorSection() {
 			{selected && (
 				<div className="mt-3 flex items-center justify-between gap-3">
 					<p className="m-0 text-xs text-wayfare-text-secondary">
-						{selected.authorityRef
-							? `${selected.name} products can be browsed.`
-							: `${selected.name} has no browsable products yet.`}
+						{selected.authorityRef ? (
+							<>
+								<Link to="/products">Browse {selected.name} products</Link> from
+								the home page or here.
+							</>
+						) : (
+							`${selected.name} has no products to browse.`
+						)}
 					</p>
 					<Button variant="secondary" onClick={() => choose(selected.code)}>
 						Clear

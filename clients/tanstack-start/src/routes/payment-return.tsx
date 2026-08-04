@@ -71,7 +71,7 @@ function PaymentReturnPage() {
 						currencyCode: confirmed.price?.currencyCode,
 					},
 					...(guestContact ? { guestContact } : {}),
-					...(searchContext
+					...(searchContext?.from && searchContext.to
 						? {
 								route: {
 									from: {

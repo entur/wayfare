@@ -66,8 +66,6 @@ function Divider({ label }: { label: string }) {
 	);
 }
 
-// Returns the groupKeys of currently-selected bundles that overlap on any
-// (traveller, sequenceNumber) pair with the given bundle.
 function getConflictingKeys(
 	bundle: OfferBundle,
 	keys: Set<string | number>,
@@ -96,7 +94,6 @@ function getConflictingKeys(
 		.map((b) => b.groupKey);
 }
 
-// Returns a map of travellerId → set of sequenceNumbers covered by selected bundles.
 function computeCoverage(
 	keys: Set<string | number>,
 	allBundles: OfferBundle[],
@@ -158,7 +155,7 @@ function OffersScreen() {
 
 	const showSections = isMultiLeg && perSeqMap.size > 0;
 
-	// Traveller IDs derived from the offer collection — ground truth for coverage checks.
+	// Use the offer collection as the source of truth for coverage.
 	const allTravellerIds = [
 		...new Set(
 			(collection?.offers ?? []).flatMap(
@@ -177,7 +174,6 @@ function OffersScreen() {
 			allSequences.every((s) => coverage.get(t)?.has(s)),
 		);
 
-	// Parties that still lack full coverage across all sequences.
 	const uncoveredParties = allParties.filter((p) => {
 		const partySeqs = coverage.get(p.id);
 		return allSequences.some((s) => !partySeqs?.has(s));
@@ -275,7 +271,7 @@ function OffersScreen() {
 			contentClassName="mx-auto max-w-xl"
 		>
 			<div>
-				{context && (
+				{context?.from && context.to && (
 					<div className="mb-5 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
 						<div className="flex items-center justify-between gap-2">
 							<div className="flex min-w-0 items-center gap-2">
