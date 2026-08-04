@@ -44,28 +44,53 @@ async function getFareZones(): Promise<FareZone[]> {
 	return cachedFareZones;
 }
 
-function searchFareZones(fareZones: FareZone[], query: string): FareZone[] {
+export interface FareZoneQuery {
+	query: string;
+	/** Operator codespace whose zones sort first. Ordering only — no filtering. */
+	preferredOperator?: string;
+}
+
+export function searchFareZones(
+	fareZones: FareZone[],
+	query: string,
+	preferredOperator?: string,
+): FareZone[] {
 	const normalizedQuery = query.trim().toLowerCase();
 	if (!normalizedQuery) {
 		return [];
 	}
 
-	return fareZones
-		.filter((zone) => {
-			const displayName = formatZoneName(zone.name, zone.operatorName);
-			return (
-				displayName.toLowerCase().includes(normalizedQuery) ||
-				zone.id.toLowerCase().includes(normalizedQuery)
-			);
-		})
-		.slice(0, 12);
+	const matches = fareZones.filter((zone) => {
+		const displayName = formatZoneName(zone.name, zone.operatorName);
+		return (
+			displayName.toLowerCase().includes(normalizedQuery) ||
+			zone.id.toLowerCase().includes(normalizedQuery)
+		);
+	});
+
+	// Sort before slicing, otherwise a preferred-operator zone ranked 13th or
+	// lower would be cut before it ever gets promoted. Sort is stable, so
+	// relative order within each group survives.
+	if (preferredOperator) {
+		matches.sort(
+			(a, b) =>
+				Number(b.operator === preferredOperator) -
+				Number(a.operator === preferredOperator),
+		);
+	}
+
+	return matches.slice(0, 12);
 }
 
 export const getFareZoneSuggestions = createServerFn({ method: "GET" })
-	.inputValidator((query: string) => query)
-	.handler(async ({ data: query }) => {
+	.inputValidator((input: FareZoneQuery) => input)
+	.handler(async ({ data }) => {
 		const fareZones = await getFareZones();
-		const matches = searchFareZones(fareZones, query);
+		const matches = searchFareZones(
+			fareZones,
+			data.query,
+			data.preferredOperator,
+		);
 		return matches.map(
 			(zone): PlaceReference => ({
 				placeId: zone.id,
