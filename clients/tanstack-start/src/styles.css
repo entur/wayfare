@@ -107,6 +107,19 @@ a:not([class]):hover {
 	margin-inline: auto;
 }
 
+/* Operator brand marks. The light/dark swap lives here rather than in JS so
+   only the active variant is fetched and there is no hydration mismatch. */
+.operator-logo {
+	background-image: var(--operator-logo-light);
+	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+:root[data-color-mode="dark"] .operator-logo {
+	background-image: var(--operator-logo-dark);
+}
+
 .rise-in {
 	animation: rise-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

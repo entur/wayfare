@@ -1,21 +1,13 @@
 import type { GeographicalValidity, ZoneLabel } from "../types/search";
+import { OPERATORS } from "./operators";
 
-export const OPERATOR_NAMES: Record<string, string> = {
-	AKT: "Agder",
-	ATB: "AtB (Trondheim)",
-	BRA: "Brakar",
-	FIN: "Finnmark",
-	INN: "Innlandstrafikk",
-	KOL: "Kolumbus",
-	MOR: "More og Romsdal",
-	NOR: "Nordland",
-	OST: "Ostfold",
-	RUT: "Ruter",
-	SKY: "Skyss",
-	TEL: "Telemark",
-	TRO: "Troms",
-	VKT: "Vestfold Telemark",
-};
+/** Display names for operators with fare zones. */
+export const OPERATOR_NAMES: Record<string, string> = Object.fromEntries(
+	OPERATORS.filter((operator) => operator.hasFareZones).map((operator) => [
+		operator.code,
+		operator.name,
+	]),
+);
 
 export function formatZoneName(name: string, operatorName: string): string {
 	const isCode = name.length <= 4 && /^[A-Za-z0-9]+$/.test(name);
@@ -24,9 +16,7 @@ export function formatZoneName(name: string, operatorName: string): string {
 		: `${name} (${operatorName})`;
 }
 
-// Returns the zones to display for an offer's geographical validity.
-// Prefers `groups` when present (they represent a named override, e.g. "Alle Soner"),
-// otherwise falls back to the individual `fareZones`.
+// Prefer named groups over individual fare zones when available.
 export function getEffectiveZones(
 	validity: GeographicalValidity | undefined,
 ): ZoneLabel[] {
