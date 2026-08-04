@@ -3,6 +3,7 @@ import type {
 	EnturRecommendationControl,
 	IndividualTraveller,
 	SearchOfferRequest,
+	SearchOffersRequirements,
 	UserProfile,
 } from "../types/search";
 
@@ -32,6 +33,7 @@ export interface OmsaSearchOfferRequest {
 		profiles?: UserProfile[];
 		specification?: OmsaSearchSpecification;
 		pattern?: OmsaTripPatternLeg[];
+		requirements?: SearchOffersRequirements;
 		entur?: { recommendationControl: EnturRecommendationControl };
 	};
 }
@@ -47,7 +49,19 @@ export function mapSearchOfferRequest(
 	request: SearchOfferRequest,
 ): OmsaSearchOfferRequest {
 	const { inputs } = request;
-	const recommendationControl = inputs.entur?.recommendationControl;
+
+	// A standalone authority search carries an organisational requirement and no
+	// route. OMSA rejects those with recommendation control attached
+	// ("Recommendation control is not supported for standalone authority
+	// searches"), so drop the global dev override rather than fail the request.
+	const isStandaloneAuthoritySearch =
+		(inputs.requirements?.organisational?.length ?? 0) > 0 &&
+		inputs.specification === undefined &&
+		inputs.pattern === undefined;
+
+	const recommendationControl = isStandaloneAuthoritySearch
+		? undefined
+		: inputs.entur?.recommendationControl;
 
 	return {
 		inputs: {
@@ -88,6 +102,24 @@ export function mapSearchOfferRequest(
 								? { to: mapPlaceReference(leg.to) }
 								: {}),
 						})),
+					}
+				: {}),
+			...(inputs.requirements?.organisational !== undefined &&
+			inputs.requirements.organisational.length > 0
+				? {
+						requirements: {
+							// OMSA accepts at most one organisational parameter.
+							organisational: inputs.requirements.organisational
+								.slice(0, 1)
+								.map((org) => ({
+									type: org.type,
+									id: org.id,
+									...(org.name !== undefined ? { name: org.name } : {}),
+									...(org.legalName !== undefined
+										? { legalName: org.legalName }
+										: {}),
+								})),
+						},
 					}
 				: {}),
 			...(recommendationControl !== undefined
