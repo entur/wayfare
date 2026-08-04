@@ -8,7 +8,11 @@ import Button from "../components/ui/Button";
 import type { TravelerGroup } from "../context/search-form";
 import { formatPrice } from "../lib/format-price";
 import { buildAuthorityOfferQuery } from "../lib/offer-query";
-import { accentFor, accentTint } from "../lib/operator-accent";
+import {
+	accentFor,
+	accentTint,
+	brandButtonColors,
+} from "../lib/operator-accent";
 import { findOperator, type Operator } from "../lib/operators";
 import { getPreferredOperator } from "../lib/preferences-storage";
 import { writeSearchSession } from "../lib/search-session";
@@ -92,6 +96,7 @@ function ProductList({ operator }: { operator: Operator }) {
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 
 	const accent = accentFor(operator.code);
+	const brandButton = accent ? brandButtonColors(accent) : undefined;
 	const authorityRef = operator.authorityRef as string;
 	const { data, isPending, error } = useQuery(
 		buildAuthorityOfferQuery(authorityRef, operator.name, DEFAULT_TRAVELERS),
@@ -119,6 +124,16 @@ function ProductList({ operator }: { operator: Operator }) {
 			subtitle={`Sold directly by ${operator.name}`}
 			contentClassName="mx-auto max-w-xl"
 		>
+			{accent && (
+				<div
+					aria-hidden="true"
+					className="brand-wash"
+					style={
+						{ "--brand-wash-color": accentTint(accent, 0.16) } as CSSProperties
+					}
+				/>
+			)}
+
 			{/* Brand colour carries the accent; text stays on the page surface so
 			    contrast holds in both themes without per-operator ink logic. */}
 			<div
@@ -250,6 +265,16 @@ function ProductList({ operator }: { operator: Operator }) {
 							fluid
 							disabled={!selectedId}
 							onClick={handleContinue}
+							className={brandButton ? "brand-button" : ""}
+							style={
+								brandButton
+									? ({
+											"--brand-button-color": brandButton.background,
+											"--brand-button-hover": brandButton.hover,
+											"--brand-button-ink": brandButton.ink,
+										} as CSSProperties)
+									: undefined
+							}
 						>
 							Continue to checkout
 						</Button>

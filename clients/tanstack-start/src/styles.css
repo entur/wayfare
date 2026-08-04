@@ -107,6 +107,34 @@ a:not([class]):hover {
 	margin-inline: auto;
 }
 
+/* Brand-coloured primary button. The element selector beats Tailwind's
+   single-class utilities deterministically, and a custom property is used rather
+   than an inline style so :hover still works — an inline background would win
+   over the hover class and leave the button feeling dead. */
+button.brand-button {
+	background: var(--brand-button-color);
+	color: var(--brand-button-ink);
+}
+
+button.brand-button:hover:not(:disabled) {
+	background: var(--brand-button-hover);
+}
+
+/* Soft brand wash falling away from the top-left of the page. Fixed and behind
+   the content so it never tints text, and pointer-events none so it can't
+   swallow clicks. */
+.brand-wash {
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background: radial-gradient(
+		90% 90% at 0% 0%,
+		var(--brand-wash-color) 0%,
+		transparent 60%
+	);
+}
+
 /* Brand accent rail. A one-sided thick border gets mitred against the corner
    radius and tapers into a wedge, so the rail is a clipped inner bar instead:
    it keeps a constant width and the parent's overflow trims it to the curve. */
