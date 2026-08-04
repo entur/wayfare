@@ -120,29 +120,35 @@ button.brand-button:hover:not(:disabled) {
 	background: var(--brand-button-hover);
 }
 
-/* Soft wash falling away from the top-left of the main content area.
+/* Two soft washes: one falling away from the top-left, one rising from the
+   bottom-right third. Wide radii and low alpha, so they read as ambient depth
+   rather than as shapes.
 
-   Full-bleed rather than confined to .page-wrap: the column is centred and
-   max-width 1080px, so painting the gradient on it directly leaves a visible
-   vertical seam at the column edge on wide viewports.
+   Viewport-anchored rather than sized to <main>, because a short page — the
+   products list is only a few cards — would otherwise pull the bottom-right
+   wash up near the header. Being fixed also keeps it out of layout, so it can't
+   add scroll height.
 
-   No z-index on purpose. It is the first positioned child of <main> and the
-   content wrapper is the second, so DOM order alone puts the content on top. An
-   earlier attempt used position: fixed with z-index: -1, which painted the
-   gradient below body's opaque background-color and made it invisible. */
+   No z-index on purpose, and it matters in three directions. Positioned with
+   auto z-index, it paints above body's opaque background-color (an earlier
+   attempt used z-index: -1 and vanished underneath it), below the sticky header
+   at z-50 and the tab bar at z-30, and below the content wrapper, which is
+   positioned and later in DOM order. */
 .page-wash {
-	position: absolute;
-	top: 0;
-	left: 50%;
-	width: 100vw;
-	height: 100%;
-	transform: translateX(-50%);
+	position: fixed;
+	inset: 0;
 	pointer-events: none;
-	background: radial-gradient(
-		70% 70% at 0% 0%,
-		var(--page-wash-color) 0%,
-		transparent 65%
-	);
+	background:
+		radial-gradient(
+			150% 130% at 0% 0%,
+			var(--page-wash-color) 0%,
+			transparent 55%
+		),
+		radial-gradient(
+			120% 100% at 100% 72%,
+			var(--page-wash-color) 0%,
+			transparent 58%
+		);
 }
 
 /* Brand accent rail. A one-sided thick border gets mitred against the corner

@@ -6,9 +6,9 @@ interface PageShellProps {
 	subtitle?: string;
 	contentClassName?: string;
 	/**
-	 * Colour for a soft wash falling away from the top-left of the content area.
-	 * Pass an rgba with low alpha — it sits under the content, not behind the
-	 * whole page.
+	 * Colour for the ambient page washes, top-left and bottom-right. Pass an rgba
+	 * with low alpha; the gradients spread wide, so a value that looks right as a
+	 * solid will be far too strong here.
 	 */
 	wash?: string;
 }
@@ -23,7 +23,7 @@ export default function PageShell({
 	return (
 		<main className="page-wrap relative px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 			{/* First in DOM order and positioned, so the content below paints over
-			    it without needing z-index. */}
+			    it without needing z-index. See .page-wash in styles.css. */}
 			{wash && (
 				<div
 					aria-hidden="true"
