@@ -43,7 +43,7 @@ export function offerQueryKey(
 	return ["offers", patternKey(pattern), travelerKey(travelers), recKey];
 }
 
-function toRecommendationControlInput(
+export function toRecommendationControlInput(
 	override: RecommendationControlOverride,
 ): EnturRecommendationControl {
 	const control: EnturRecommendationControl = { enabled: override.enabled };

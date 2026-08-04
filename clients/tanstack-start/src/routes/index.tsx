@@ -21,6 +21,7 @@ import { useSearchForm } from "../context/search-form";
 import { useSearchOffers } from "../hooks/use-search-offers";
 import { buildRequest } from "../lib/build-request";
 import { getFavorites, removeFavorite } from "../lib/favorites-storage";
+import { toRecommendationControlInput } from "../lib/offer-query";
 import {
 	addRecentSearch,
 	getRecentSearches,
@@ -134,6 +135,16 @@ function SearchScreen() {
 		}
 	}, [customer, dispatch]);
 
+	const recControl = overrides.recommendationControl;
+	const enturInput =
+		recControl !== undefined
+			? {
+					entur: {
+						recommendationControl: toRecommendationControlInput(recControl),
+					},
+				}
+			: {};
+
 	async function runSearch(params: SearchParams) {
 		const { from, to, timeMode, travelDate, travelers } = params;
 		const travelDateTime =
@@ -162,28 +173,13 @@ function SearchScreen() {
 				? { endTime: travelDateTime }
 				: { startTime: travelDateTime };
 
-		const recControl = overrides.recommendationControl;
 		const result = await mutateAsync({
 			inputs: {
 				type: "search_offer",
 				...(profiles.length > 0 ? { profiles } : {}),
 				...(travellers.length > 0 ? { travellers } : {}),
 				specification: { from, to, ...timeField },
-				...(recControl !== undefined
-					? {
-							entur: {
-								recommendationControl: {
-									enabled: recControl.enabled,
-									...(recControl.types && recControl.types.length > 0
-										? { types: recControl.types }
-										: {}),
-									...(recControl.stripDuplicates !== undefined
-										? { stripDuplicates: recControl.stripDuplicates }
-										: {}),
-								},
-							},
-						}
-					: {}),
+				...enturInput,
 			},
 		});
 
