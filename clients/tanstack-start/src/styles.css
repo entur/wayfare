@@ -120,18 +120,28 @@ button.brand-button:hover:not(:disabled) {
 	background: var(--brand-button-hover);
 }
 
-/* Soft brand wash falling away from the top-left of the page. Fixed and behind
-   the content so it never tints text, and pointer-events none so it can't
-   swallow clicks. */
-.brand-wash {
-	position: fixed;
-	inset: 0;
-	z-index: -1;
+/* Soft wash falling away from the top-left of the main content area.
+
+   Full-bleed rather than confined to .page-wrap: the column is centred and
+   max-width 1080px, so painting the gradient on it directly leaves a visible
+   vertical seam at the column edge on wide viewports.
+
+   No z-index on purpose. It is the first positioned child of <main> and the
+   content wrapper is the second, so DOM order alone puts the content on top. An
+   earlier attempt used position: fixed with z-index: -1, which painted the
+   gradient below body's opaque background-color and made it invisible. */
+.page-wash {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 100vw;
+	height: 100%;
+	transform: translateX(-50%);
 	pointer-events: none;
 	background: radial-gradient(
-		90% 90% at 0% 0%,
-		var(--brand-wash-color) 0%,
-		transparent 60%
+		70% 70% at 0% 0%,
+		var(--page-wash-color) 0%,
+		transparent 65%
 	);
 }
 

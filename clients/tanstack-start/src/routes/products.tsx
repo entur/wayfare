@@ -123,17 +123,8 @@ function ProductList({ operator }: { operator: Operator }) {
 			title="Products"
 			subtitle={`Sold directly by ${operator.name}`}
 			contentClassName="mx-auto max-w-xl"
+			wash={accent ? accentTint(accent, 0.22) : undefined}
 		>
-			{accent && (
-				<div
-					aria-hidden="true"
-					className="brand-wash"
-					style={
-						{ "--brand-wash-color": accentTint(accent, 0.16) } as CSSProperties
-					}
-				/>
-			)}
-
 			{/* Brand colour carries the accent; text stays on the page surface so
 			    contrast holds in both themes without per-operator ink logic. */}
 			<div
