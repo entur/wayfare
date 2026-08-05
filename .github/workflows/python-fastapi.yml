@@ -1,0 +1,37 @@
+name: Python FastAPI
+
+on:
+  pull_request:
+    paths:
+      - "bffs/python-fastapi/**"
+      - ".github/workflows/python-fastapi.yml"
+  push:
+    branches: [main]
+    paths:
+      - "bffs/python-fastapi/**"
+      - ".github/workflows/python-fastapi.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/dependency-review-action@v4
+
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bffs/python-fastapi
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: bffs/python-fastapi/uv.lock
+      - run: uv sync --locked
+      - run: uv run pytest
