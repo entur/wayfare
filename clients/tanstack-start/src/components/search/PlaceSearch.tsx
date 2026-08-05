@@ -7,6 +7,7 @@ import {
 	TramIcon,
 	ZoneIcon,
 } from "@entur/icons";
+import { getPreferredOperator } from "../../lib/preferences-storage";
 import { getFareZoneSuggestions } from "../../server-functions/fare-zones";
 import { autocompletePlaces } from "../../server-functions/geocoder";
 import type { PlaceReference } from "../../types/common";
@@ -36,7 +37,9 @@ async function fetchPlaceItems(
 			data: { text: input, size: 7, lang: "no", layers: "venue" },
 			signal,
 		}),
-		getFareZoneSuggestions({ data: input }),
+		getFareZoneSuggestions({
+			data: { query: input, preferredOperator: getPreferredOperator() },
+		}),
 	]);
 
 	if (signal.aborted) return [];

@@ -303,18 +303,18 @@ export default function TravelerPicker({
 				aria-haspopup="dialog"
 				aria-expanded={open}
 			>
-				<span className="flex items-center gap-2">
+				<span className="flex min-w-0 items-center gap-2">
 					{customerIncluded && customerInitials ? (
-						<span className="flex h-5 w-5 items-center justify-center rounded-full bg-wayfare-primary text-xs font-bold text-white">
+						<span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-wayfare-primary text-xs font-bold text-white">
 							{customerInitials}
 						</span>
 					) : (
 						<UsersIcon
 							aria-hidden="true"
-							className="text-wayfare-text-secondary"
+							className="shrink-0 text-wayfare-text-secondary"
 						/>
 					)}
-					{summary}
+					<span className="truncate">{summary}</span>
 				</span>
 				<DownArrowIcon
 					aria-hidden="true"

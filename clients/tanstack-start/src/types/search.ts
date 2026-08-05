@@ -53,12 +53,31 @@ export interface EnturSearchOfferInput {
 	recommendationControl?: EnturRecommendationControl;
 }
 
+export interface OrganisationalParameter {
+	type: "organisational";
+	/** NeTEx authority ref, e.g. "KOL:Authority:8" */
+	id: string;
+	name?: string;
+	legalName?: string;
+}
+
+/**
+ * Search-level requirements. Supplying `organisational` without a
+ * specification or pattern switches OMSA to an authority catalogue search,
+ * returning every product belonging to that organisation.
+ */
+export interface SearchOffersRequirements {
+	/** OMSA accepts at most one entry. */
+	organisational?: OrganisationalParameter[];
+}
+
 export interface SearchOfferInputs {
 	type: "search_offer";
 	travellers?: IndividualTraveller[];
 	profiles?: UserProfile[];
 	specification?: SearchSpecification;
 	pattern?: TripPatternLeg[];
+	requirements?: SearchOffersRequirements;
 	entur?: EnturSearchOfferInput;
 }
 

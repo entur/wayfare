@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TripsRouteImport } from './routes/trips'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PaymentReturnRouteImport } from './routes/payment-return'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as MapRouteImport } from './routes/map'
@@ -27,6 +28,11 @@ const TripsRoute = TripsRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaymentReturnRoute = PaymentReturnRouteImport.update({
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/map': typeof MapRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
+  '/products': typeof ProductsRoute
   '/settings': typeof SettingsRoute
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/map': typeof MapRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
+  '/products': typeof ProductsRoute
   '/settings': typeof SettingsRoute
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/map': typeof MapRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
+  '/products': typeof ProductsRoute
   '/settings': typeof SettingsRoute
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/map'
     | '/offers'
     | '/payment-return'
+    | '/products'
     | '/settings'
     | '/trips'
     | '/checkout/$offerId'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/map'
     | '/offers'
     | '/payment-return'
+    | '/products'
     | '/settings'
     | '/trips'
     | '/checkout/$offerId'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/map'
     | '/offers'
     | '/payment-return'
+    | '/products'
     | '/settings'
     | '/trips'
     | '/checkout/$offerId'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   MapRoute: typeof MapRoute
   OffersRoute: typeof OffersRoute
   PaymentReturnRoute: typeof PaymentReturnRoute
+  ProductsRoute: typeof ProductsRoute
   SettingsRoute: typeof SettingsRoute
   TripsRoute: typeof TripsRoute
   CheckoutOfferIdRoute: typeof CheckoutOfferIdRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payment-return': {
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   MapRoute: MapRoute,
   OffersRoute: OffersRoute,
   PaymentReturnRoute: PaymentReturnRoute,
+  ProductsRoute: ProductsRoute,
   SettingsRoute: SettingsRoute,
   TripsRoute: TripsRoute,
   CheckoutOfferIdRoute: CheckoutOfferIdRoute,

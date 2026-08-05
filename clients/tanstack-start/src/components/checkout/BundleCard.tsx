@@ -26,9 +26,17 @@ interface BundleCardProps {
 
 const RECOMMENDATION_LABELS: Record<string, string> = {
 	CHEAPEST: "Best price",
-	FASTEST: "Fastest",
-	BEST: "Best match",
+	FLEXIBLE: "Fully flexible",
+	SEMI_FLEXIBLE: "Semi-flexible",
+	NON_FLEXIBLE: "Non-flexible",
 };
+
+function getOfferName(offer: Offer | undefined): string {
+	const name =
+		offer?.properties?.summary?.name?.trim() ||
+		offer?.properties?.products?.[0]?.productName?.trim();
+	return name || "Travel offer";
+}
 
 function getOfferTravellerIds(offer: Offer): string[] {
 	return [
@@ -122,6 +130,8 @@ export default function BundleCard({
 			bundle.recommendationType)
 		: null;
 
+	const bundleName = getOfferName(bundle.offers[0]);
+
 	const offerCount = bundle.offers.length;
 
 	const bundlePartyIds = new Set(bundle.offers.flatMap(getOfferTravellerIds));
@@ -159,23 +169,20 @@ export default function BundleCard({
 				</div>
 
 				<div className="min-w-0 flex-1">
-					<div className="flex items-center justify-between gap-3">
-						<div className="flex items-center gap-2">
-							{typeLabel ? (
+					<div className="flex items-start justify-between gap-3">
+						<div className="flex min-w-0 flex-wrap items-center gap-2">
+							<span className="text-sm font-semibold text-wayfare-text">
+								{bundleName}
+							</span>
+							{typeLabel && (
 								<span
-									className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+									className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold"
 									style={{
 										background: "rgba(22,163,74,0.10)",
 										color: "rgb(22,163,74)",
 									}}
 								>
 									{typeLabel}
-								</span>
-							) : (
-								<span className="text-sm font-semibold text-wayfare-text">
-									{bundle.offers[0]?.properties?.summary?.name ??
-										bundle.offers[0]?.properties?.products?.[0]?.productName ??
-										"Travel offer"}
 								</span>
 							)}
 						</div>
@@ -221,10 +228,7 @@ export default function BundleCard({
 							{expanded && (
 								<div className="mt-3 flex flex-col gap-2.5 border-t border-wayfare-line pt-3">
 									{bundle.offers.map((offer) => {
-										const name =
-											offer.properties?.summary?.name ??
-											offer.properties?.products?.[0]?.productName ??
-											"Travel offer";
+										const name = getOfferName(offer);
 										const price = offer.properties?.price;
 										const ids = getOfferTravellerIds(offer);
 										const offerParties = parties.filter((p) =>

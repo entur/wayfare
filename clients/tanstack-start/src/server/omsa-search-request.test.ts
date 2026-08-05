@@ -119,6 +119,112 @@ describe("mapSearchOfferRequest", () => {
 		});
 	});
 
+	it("maps an authority catalogue search without route or time", () => {
+		const request: SearchOfferRequest = {
+			inputs: {
+				type: "search_offer",
+				profiles: [
+					{ id: "adult", type: "user_profile", count: 1, ageGroup: "ADULT" },
+				],
+				requirements: {
+					organisational: [
+						{
+							type: "organisational",
+							id: "KOL:Authority:8",
+							name: "Kolumbus",
+						},
+					],
+				},
+			},
+		};
+
+		expect(mapSearchOfferRequest(request)).toEqual({
+			inputs: {
+				type: "search_offer",
+				profiles: request.inputs.profiles,
+				requirements: {
+					organisational: [
+						{
+							type: "organisational",
+							id: "KOL:Authority:8",
+							name: "Kolumbus",
+						},
+					],
+				},
+			},
+		});
+	});
+
+	it("keeps only the first organisational parameter and drops empty arrays", () => {
+		const withExtras: SearchOfferRequest = {
+			inputs: {
+				type: "search_offer",
+				travellers: [{ id: "t1", type: "individual_traveller" }],
+				requirements: {
+					organisational: [
+						{ type: "organisational", id: "VYG:Authority:VY" },
+						{ type: "organisational", id: "RUT:Authority:RUT" },
+					],
+				},
+			},
+		};
+
+		expect(mapSearchOfferRequest(withExtras).inputs.requirements).toEqual({
+			organisational: [{ type: "organisational", id: "VYG:Authority:VY" }],
+		});
+
+		const empty: SearchOfferRequest = {
+			inputs: {
+				type: "search_offer",
+				travellers: [{ id: "t1", type: "individual_traveller" }],
+				requirements: { organisational: [] },
+			},
+		};
+
+		expect(mapSearchOfferRequest(empty).inputs.requirements).toBeUndefined();
+	});
+
+	it("drops recommendation control on a standalone authority search", () => {
+		const request: SearchOfferRequest = {
+			inputs: {
+				type: "search_offer",
+				travellers: [{ id: "t1", type: "individual_traveller" }],
+				requirements: {
+					organisational: [{ type: "organisational", id: "RUT:Authority:RUT" }],
+				},
+				entur: {
+					recommendationControl: { enabled: true, stripDuplicates: true },
+				},
+			},
+		};
+
+		const mapped = mapSearchOfferRequest(request);
+		expect(mapped.inputs.entur).toBeUndefined();
+		expect(mapped.inputs.requirements).toEqual({
+			organisational: [{ type: "organisational", id: "RUT:Authority:RUT" }],
+		});
+	});
+
+	it("keeps recommendation control when an authority search has a pattern", () => {
+		const request: SearchOfferRequest = {
+			inputs: {
+				type: "search_offer",
+				travellers: [{ id: "t1", type: "individual_traveller" }],
+				pattern: [
+					{ serviceJourney: "KOL:ServiceJourney:1", date: "2026-08-03" },
+				],
+				requirements: {
+					organisational: [{ type: "organisational", id: "RUT:Authority:RUT" }],
+				},
+				entur: { recommendationControl: { enabled: true } },
+			},
+		};
+
+		expect(mapSearchOfferRequest(request).inputs.entur).toEqual({
+			recommendationControl: { enabled: true },
+		});
+	});
+
 	it("omits unsupported and absent optional fields", () => {
 		const request = {
 			_prefetch: true,

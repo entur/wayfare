@@ -1,10 +1,11 @@
 import { UserIcon } from "@entur/icons";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import PageShell from "../components/layout/PageShell";
 import PaymentMethodsTab from "../components/settings/PaymentMethodsTab";
 import Illustration from "../components/shared/Illustration";
+import OperatorIcon from "../components/shared/OperatorIcon";
 import Button from "../components/ui/Button";
 import SegmentedControl from "../components/ui/SegmentedControl";
 import { useDevConfig } from "../context/dev-config";
@@ -19,6 +20,11 @@ import {
 	getFavorites,
 	removeFavorite,
 } from "../lib/favorites-storage";
+import { findOperator, OPERATORS } from "../lib/operators";
+import {
+	getPreferredOperator,
+	setPreferredOperator,
+} from "../lib/preferences-storage";
 import { clearPackages, getPackages } from "../lib/ticket-storage";
 import type { OmsaRuntimeMode } from "../server/runtime-config";
 import { getResolvedDevConfig } from "../server-functions/dev-config";
@@ -261,6 +267,92 @@ function ProfileTab() {
 	);
 }
 
+function PreferredOperatorSection() {
+	// Read after mount so the first client render matches SSR.
+	const [preferred, setPreferred] = useState<string | undefined>(undefined);
+
+	useEffect(() => {
+		setPreferred(getPreferredOperator());
+	}, []);
+
+	function choose(code: string) {
+		const next = preferred === code ? null : code;
+		setPreferredOperator(next);
+		setPreferred(next ?? undefined);
+	}
+
+	const selected = findOperator(preferred);
+
+	return (
+		<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+			<h2 className="mb-1 text-sm font-semibold text-wayfare-text">
+				Preferred operator
+			</h2>
+			<p className="m-0 mb-4 text-xs text-wayfare-text-secondary">
+				Surfaces your operator's zones and products first. It never limits which
+				offers you can buy. Leave it unset and nothing operator-specific is
+				shown.
+			</p>
+
+			{/* A list, not a grid: the brand plates vary in width because the
+			    operator marks run from 0.76:1 to 5.6:1. */}
+			<div className="flex flex-col gap-1.5">
+				{OPERATORS.map((operator) => {
+					const isActive = preferred === operator.code;
+					return (
+						<button
+							key={operator.code}
+							type="button"
+							onClick={() => choose(operator.code)}
+							aria-pressed={isActive}
+							className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${isActive ? "border-wayfare-primary bg-wayfare-accent-soft" : "border-wayfare-line bg-transparent"}`}
+						>
+							<OperatorIcon operator={operator} />
+							<span
+								className={`min-w-0 flex-1 truncate text-sm font-medium ${isActive ? "text-wayfare-primary" : "text-wayfare-text"}`}
+							>
+								{operator.name}
+							</span>
+							{isActive && (
+								<svg
+									viewBox="0 0 10 8"
+									className="h-2.5 w-2.5 shrink-0 text-wayfare-primary"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="1.5"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									aria-hidden="true"
+								>
+									<path d="M1 4l3 3 5-6" />
+								</svg>
+							)}
+						</button>
+					);
+				})}
+			</div>
+
+			{selected && (
+				<div className="mt-3 flex items-center justify-between gap-3">
+					<p className="m-0 text-xs text-wayfare-text-secondary">
+						{selected.authorityRef ? (
+							<>
+								<Link to="/products">Browse {selected.name} products</Link> from
+								the home page or here.
+							</>
+						) : (
+							`${selected.name} has no products to browse.`
+						)}
+					</p>
+					<Button variant="secondary" onClick={() => choose(selected.code)}>
+						Clear
+					</Button>
+				</div>
+			)}
+		</section>
+	);
+}
+
 function AppTab() {
 	const [cleared, setCleared] = useState(false);
 	const [count, setCount] = useState(0);
@@ -278,6 +370,8 @@ function AppTab() {
 
 	return (
 		<div className="space-y-4">
+			<PreferredOperatorSection />
+
 			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
 				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">
 					Ticket wallet

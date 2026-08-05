@@ -1,3 +1,4 @@
+import { getPreferredOperator } from "../../lib/preferences-storage";
 import { getFareZoneSuggestions } from "../../server-functions/fare-zones";
 import type { PlaceReference } from "../../types/common";
 import Combobox, { type ComboboxOption } from "../ui/Combobox";
@@ -7,7 +8,9 @@ async function fetchZoneItems(
 	signal: AbortSignal,
 ): Promise<ComboboxOption<PlaceReference>[]> {
 	if (!input.trim() || signal.aborted) return [];
-	const zones = await getFareZoneSuggestions({ data: input });
+	const zones = await getFareZoneSuggestions({
+		data: { query: input, preferredOperator: getPreferredOperator() },
+	});
 	if (signal.aborted) return [];
 	return zones.map((zone) => ({
 		value: zone,

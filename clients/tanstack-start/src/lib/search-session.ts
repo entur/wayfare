@@ -15,9 +15,12 @@ export interface LegInfo {
 }
 
 export interface SearchContext {
-	from: PlaceReference;
-	to: PlaceReference;
+	/** Absent for authority product searches, which have no route. */
+	from?: PlaceReference;
+	to?: PlaceReference;
 	travelDate: string;
+	/** Operator codespace when the collection came from a product search. */
+	authority?: string;
 	profiles?: UserProfile[];
 	travellers?: IndividualTraveller[];
 	legs?: LegInfo[];

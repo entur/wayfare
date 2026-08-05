@@ -43,7 +43,7 @@ export function offerQueryKey(
 	return ["offers", patternKey(pattern), travelerKey(travelers), recKey];
 }
 
-function toRecommendationControlInput(
+export function toRecommendationControlInput(
 	override: RecommendationControlOverride,
 ): EnturRecommendationControl {
 	const control: EnturRecommendationControl = { enabled: override.enabled };
@@ -52,6 +52,60 @@ function toRecommendationControlInput(
 	if (override.stripDuplicates !== undefined)
 		control.stripDuplicates = override.stripDuplicates;
 	return control;
+}
+
+export function authorityOfferQueryKey(
+	authorityRef: string,
+	travelers: TravelerGroup[],
+): string[] {
+	return ["authority-offers", authorityRef, travelerKey(travelers)];
+}
+
+// Authority product searches have no pattern, and OMSA rejects recommendation control here.
+export function buildAuthorityOfferSearchRequest(
+	authorityRef: string,
+	operatorName: string | undefined,
+	travelers: TravelerGroup[],
+): SearchOfferRequest {
+	const { profiles, travellers } = buildRequest(travelers);
+
+	return {
+		inputs: {
+			type: "search_offer",
+			...(profiles.length > 0 ? { profiles } : {}),
+			...(travellers.length > 0 ? { travellers } : {}),
+			requirements: {
+				organisational: [
+					{
+						type: "organisational",
+						id: authorityRef,
+						...(operatorName ? { name: operatorName } : {}),
+					},
+				],
+			},
+		},
+	};
+}
+
+export function buildAuthorityOfferQuery(
+	authorityRef: string,
+	operatorName: string | undefined,
+	travelers: TravelerGroup[],
+) {
+	const request = buildAuthorityOfferSearchRequest(
+		authorityRef,
+		operatorName,
+		travelers,
+	);
+
+	return {
+		queryKey: authorityOfferQueryKey(authorityRef, travelers),
+		queryFn: (): Promise<OfferCollection> =>
+			searchOffers({ data: request }) as Promise<OfferCollection>,
+		staleTime: 5 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
+		retry: false,
+	} as const;
 }
 
 function buildOmsaLegs(pattern: TripPattern): TripPatternLeg[] {

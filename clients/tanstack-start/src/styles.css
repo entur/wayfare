@@ -107,6 +107,97 @@ a:not([class]):hover {
 	margin-inline: auto;
 }
 
+/* Brand-coloured primary button. The element selector beats Tailwind's
+   single-class utilities deterministically, and a custom property is used rather
+   than an inline style so :hover still works — an inline background would win
+   over the hover class and leave the button feeling dead. */
+button.brand-button {
+	background: var(--brand-button-color);
+	color: var(--brand-button-ink);
+}
+
+button.brand-button:hover:not(:disabled) {
+	background: var(--brand-button-hover);
+}
+
+/* Diagonal brand banners in the top-left and bottom-right of the content area.
+
+   Anchored to <main> rather than the viewport, so they frame the content block
+   instead of the window — which also means they cannot bleed into the footer.
+
+   No z-index. Both are positioned with auto z-index and come before the content
+   wrapper in DOM order, so the content paints over them. Colour swaps by theme
+   because one brand colour cannot read on both surfaces; see bannerColors. */
+/* Spans the full main area: viewport-wide rather than confined to the centred
+   1080px column, and top-to-bottom of <main>, which min-h-full stretches to fill
+   the space between header and footer. Absolute positioning resolves against the
+   padding box, so the banners sit at main's true corners and ignore its padding.
+   overflow: hidden keeps the 100vw layer from adding horizontal scroll. */
+.page-banners {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	width: 100vw;
+	transform: translateX(-50%);
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.page-banner {
+	position: absolute;
+	width: clamp(110px, 17vw, 210px);
+	height: clamp(110px, 17vw, 210px);
+	pointer-events: none;
+	color: var(--page-banner-light);
+	fill: currentColor;
+}
+
+:root[data-color-mode="dark"] .page-banner {
+	color: var(--page-banner-dark);
+}
+
+.page-banner--start {
+	top: 0;
+	left: 0;
+}
+
+/* Rotating the same artwork is what makes the pair read as mirrored. */
+.page-banner--end {
+	right: 0;
+	bottom: 0;
+	transform: rotate(180deg);
+}
+
+/* Brand accent rail. A one-sided thick border gets mitred against the corner
+   radius and tapers into a wedge, so the rail is a clipped inner bar instead:
+   it keeps a constant width and the parent's overflow trims it to the curve. */
+.brand-rail {
+	position: relative;
+	overflow: hidden;
+}
+
+.brand-rail::before {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 4px;
+	background: var(--brand-rail-color);
+}
+
+/* Operator brand marks. The light/dark swap lives here rather than in JS so
+   only the active variant is fetched and there is no hydration mismatch. */
+.operator-logo {
+	background-image: var(--operator-logo-light);
+	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+
+:root[data-color-mode="dark"] .operator-logo {
+	background-image: var(--operator-logo-dark);
+}
+
 .rise-in {
 	animation: rise-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

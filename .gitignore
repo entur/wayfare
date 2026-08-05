@@ -56,3 +56,6 @@ app.*.map.json
 **/dist/
 **/coverage/
 .pnpm-store/
+
+# Local-only tooling (may reference non-public Entur repos)
+**/scripts/local/
