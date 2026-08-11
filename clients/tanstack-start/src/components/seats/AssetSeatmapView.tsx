@@ -209,12 +209,6 @@ export default function AssetSeatmapView({
 			? { minX: 0, minY: 0, width: imageWidth, height: imageHeight }
 			: computeViewBox(seatAndFacilityFeatures);
 	const { minX, minY, width, height } = viewBox;
-	// Keep the complete carriage visible at 100%. Fitting only by width makes a
-	// narrow portrait carriage several screens tall.
-	const fitScale =
-		width > 0 && height > 0 ? Math.min(640 / width, 640 / height) : 1;
-	const svgWidth = Math.round(width * fitScale * scale);
-	const svgHeight = Math.round(height * fitScale * scale);
 
 	const isImageLoading = !!previewHref && imageQuery.isPending;
 	const overlayFeatures = seatAndFacilityFeatures;
@@ -222,19 +216,22 @@ export default function AssetSeatmapView({
 	return (
 		<div>
 			<div className="relative">
-				<div className="max-h-[640px] overflow-auto rounded">
+				{/* Sized off the available width rather than fitting the whole carriage into
+				a fixed box — a portrait carriage reads far larger this way, and scrolling
+				down the page to see the rest of it beats a tiny, hard-to-tap seatmap. */}
+				<div className="overflow-x-auto rounded">
 					{loading || isImageLoading ? (
-						<div
-							className="flex items-center justify-center"
-							style={{ width: svgWidth || 300, height: svgHeight || 120 }}
-						>
+						<div className="flex h-40 w-full items-center justify-center">
 							<div className="h-5 w-5 animate-spin rounded-full border-2 border-wayfare-line border-t-wayfare-primary" />
 						</div>
 					) : (
 						<svg
-							width={svgWidth}
-							height={svgHeight}
 							viewBox={`${minX} ${minY} ${width} ${height}`}
+							style={{
+								width: `${Math.round(scale * 45)}%`,
+								height: "auto",
+								display: "block",
+							}}
 							role="img"
 							aria-label="Seat map"
 						>
