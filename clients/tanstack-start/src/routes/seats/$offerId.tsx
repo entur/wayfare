@@ -145,7 +145,10 @@ function SeatsPage() {
 	// select-offers) before the user has picked anything in this browser session,
 	// so the local session has no carriage/seat-number for it yet. Once the seatmap
 	// features load, backfill that info by matching the leg's confirmed asset id
-	// against the loaded features.
+	// against the loaded features. Only fills in legs with no local info at all —
+	// it must never overwrite a leg the user has already picked a seat for, even
+	// one that intentionally differs from what's currently confirmed on the
+	// package (that's the whole point of picking a different seat).
 	useEffect(() => {
 		if (!pkg) return;
 		setSelectedAssets((previous) => {
@@ -154,7 +157,7 @@ function SeatsPage() {
 			for (const [legId, assetId] of Object.entries(
 				confirmedAssetIdsRef.current,
 			)) {
-				if (next[legId]?.assetId === assetId) continue;
+				if (next[legId]) continue;
 				const group = serviceJourneyGroups.find((candidate) =>
 					candidate.legs.some((leg) => leg.id === legId),
 				);
