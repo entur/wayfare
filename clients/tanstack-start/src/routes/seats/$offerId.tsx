@@ -33,7 +33,7 @@ import {
 	type SearchContext,
 } from "../../lib/search-session";
 import { manualSelectionServiceJourneyGroups } from "../../lib/service-journey-groups";
-import { partyLabel } from "../../lib/travel-party";
+import { expandTravellerLabels, partyLabel } from "../../lib/travel-party";
 import { assetsCollectionQuery } from "../../server-functions/assets.queries";
 import type { AssetFeature, SelectedAssetInfo } from "../../types/assets";
 import type { ConfirmedPackage } from "../../types/purchase";
@@ -387,13 +387,7 @@ function SeatsPage() {
 		...(sessionContext?.profiles ?? []),
 		...(sessionContext?.travellers ?? []),
 	];
-	const expandedPartyLabels = allParties.flatMap((party) => {
-		const label = partyLabel(party).replace(/ × \d+$/, "");
-		const count = party.type === "user_profile" ? (party.count ?? 1) : 1;
-		return Array.from({ length: count }, (_, index) =>
-			count > 1 ? `${label} ${index + 1}` : label,
-		);
-	});
+	const expandedPartyLabels = expandTravellerLabels(allParties);
 	const travellerLabel = (
 		groupLegs: (typeof serviceJourneyGroups)[number]["legs"],
 		legId: string,

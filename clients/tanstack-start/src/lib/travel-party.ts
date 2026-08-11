@@ -62,6 +62,19 @@ export function travelPartyCount(
 	return fromProfiles + (travellers?.length ?? 0);
 }
 
+// Expands a party list into one label per individual traveller (e.g. a
+// user_profile with count 3 becomes ["Adult 1", "Adult 2", "Adult 3"]), so
+// travellers can be matched positionally against a package's ordered legs.
+export function expandTravellerLabels(parties: TravelParty[]): string[] {
+	return parties.flatMap((party) => {
+		const label = partyLabel(party).replace(/ × \d+$/, "");
+		const count = party.type === "user_profile" ? (party.count ?? 1) : 1;
+		return Array.from({ length: count }, (_, index) =>
+			count > 1 ? `${label} ${index + 1}` : label,
+		);
+	});
+}
+
 export function partyLabel(p: TravelParty): string {
 	if (p.type === "user_profile") {
 		const types =
