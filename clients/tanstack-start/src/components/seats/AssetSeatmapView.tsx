@@ -450,15 +450,15 @@ export default function AssetSeatmapView({
 			</div>
 			<div className="mt-2 flex flex-wrap gap-3 text-xs text-wayfare-text-secondary">
 				<span className="flex items-center gap-1">
-					<span className="inline-block h-3 w-3 rounded border border-sky-500/70 bg-sky-500/20" />
+					<span className="inline-block h-3 w-3 rounded border border-black/10 bg-[#ebebf1]" />
 					Available
 				</span>
 				<span className="flex items-center gap-1">
-					<span className="inline-block h-3 w-3 rounded border border-emerald-600 bg-emerald-500/50" />
+					<span className="inline-block h-3 w-3 rounded border border-black/10 bg-[#54568c]" />
 					Selected
 				</span>
 				<span className="flex items-center gap-1">
-					<span className="inline-block h-3 w-3 rounded border border-black/30 bg-black/15" />
+					<span className="inline-block h-3 w-3 rounded border border-black/10 bg-[#f8f8f8]" />
 					Occupied
 				</span>
 			</div>
