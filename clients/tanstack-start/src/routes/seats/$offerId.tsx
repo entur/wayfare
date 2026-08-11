@@ -149,6 +149,39 @@ function SeatsPage() {
 		return map;
 	}, [serviceJourneyGroups, assetQueries]);
 
+	// A compulsory seat may already be assigned to a leg (auto-assigned during
+	// select-offers) before the user has picked anything in this browser session,
+	// so the local session has no carriage/seat-number for it yet. Once the seatmap
+	// features load, backfill that info by matching the leg's confirmed asset id
+	// against the loaded features.
+	useEffect(() => {
+		if (!pkg) return;
+		setSelectedAssets((previous) => {
+			let changed = false;
+			const next = { ...previous };
+			for (const [legId, assetId] of Object.entries(
+				confirmedAssetIdsRef.current,
+			)) {
+				if (next[legId]?.assetId === assetId) continue;
+				const group = serviceJourneyGroups.find((candidate) =>
+					candidate.legs.some((leg) => leg.id === legId),
+				);
+				if (!group) continue;
+				const feature = (
+					featuresByServiceJourney.get(group.serviceJourney) ?? []
+				).find((candidate) => candidate.id === assetId);
+				if (!feature || !isSeatFeature(feature)) continue;
+				next[legId] = {
+					assetId,
+					carriage: feature.properties.carriage,
+					seatNumber: assetSeatNumber(feature),
+				};
+				changed = true;
+			}
+			return changed ? next : previous;
+		});
+	}, [pkg, serviceJourneyGroups, featuresByServiceJourney]);
+
 	const isLoadingByServiceJourney = useMemo(() => {
 		const map = new Map<string, boolean>();
 		for (let i = 0; i < serviceJourneyGroups.length; i++) {

@@ -26,6 +26,8 @@ export interface SeatFeatureProperties {
 	availability: AssetAvailability;
 	carriage: string;
 	seatNumber?: string;
+	/** True when this seat is already assigned to the current package. */
+	chosen?: boolean;
 }
 
 export interface FacilityFeatureProperties {

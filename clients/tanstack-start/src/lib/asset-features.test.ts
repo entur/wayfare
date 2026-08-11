@@ -3,6 +3,7 @@ import type { AssetFeature } from "../types/assets";
 import {
 	assetAvailability,
 	assetSeatNumber,
+	isChosenSeat,
 	isSeatFeature,
 } from "./asset-features";
 
@@ -37,5 +38,22 @@ describe("asset feature normalization", () => {
 
 		expect(isSeatFeature(seat)).toBe(true);
 		expect(assetSeatNumber(seat)).toBe("5-23");
+	});
+
+	it("treats a seat as chosen only when the platform marks it so", () => {
+		const own = feature({
+			type: "seat",
+			availability: "OCCUPIED",
+			seatNumber: "23",
+			chosen: true,
+		});
+		const someoneElses = feature({
+			type: "seat",
+			availability: "OCCUPIED",
+			seatNumber: "24",
+		});
+
+		expect(isChosenSeat(own)).toBe(true);
+		expect(isChosenSeat(someoneElses)).toBe(false);
 	});
 });

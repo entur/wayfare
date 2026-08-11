@@ -24,6 +24,7 @@ import {
 	usePurchasePackage,
 } from "../../hooks/use-purchase";
 import { useAuthorizeCard } from "../../hooks/use-recurring-payments";
+import { confirmedAssetIdsByLeg } from "../../lib/confirmed-assets";
 import { formatPrice } from "../../lib/format-price";
 import { getOfferReservationFlow } from "../../lib/offer-reservations";
 import {
@@ -41,6 +42,7 @@ import {
 	readSearchSession,
 	type SearchContext,
 } from "../../lib/search-session";
+import { manualSelectionServiceJourneyGroups } from "../../lib/service-journey-groups";
 import { setPendingGuestContact } from "../../lib/ticket-storage";
 import {
 	categoryNoun,
@@ -222,6 +224,20 @@ function CheckoutScreen() {
 		searchOffers,
 		assignedAncillaryIds,
 	);
+
+	const seatEligibleLegIds = new Set(
+		manualSelectionServiceJourneyGroups(
+			selectedPackage?.offers ?? [],
+			searchOffers,
+		).flatMap((group) => group.legs.map((leg) => leg.id)),
+	);
+	const confirmedSeatAssetIds = selectedPackage
+		? confirmedAssetIdsByLeg(selectedPackage)
+		: {};
+	const totalSeatCount = seatEligibleLegIds.size;
+	const assignedSeatCount = [...seatEligibleLegIds].filter(
+		(legId) => confirmedSeatAssetIds[legId],
+	).length;
 
 	const previewTotal =
 		selectedPackage?.price?.amount ??
@@ -810,6 +826,15 @@ function CheckoutScreen() {
 								{ancillaryError}
 							</p>
 						)}
+						{reservationFlow.canOpenSeatmap && totalSeatCount > 0 && (
+							<p className="mb-3 text-sm text-wayfare-text-secondary">
+								{assignedSeatCount === totalSeatCount
+									? `Seat${totalSeatCount > 1 ? "s" : ""} already assigned for all travellers.`
+									: assignedSeatCount > 0
+										? `${assignedSeatCount} of ${totalSeatCount} seats assigned.`
+										: `${totalSeatCount} seat${totalSeatCount > 1 ? "s" : ""} available to choose.`}
+							</p>
+						)}
 						<Button
 							variant="secondary"
 							disabled={!reservationFlow.canOpenSeatmap || assigningAncillary}
@@ -820,7 +845,7 @@ function CheckoutScreen() {
 								})
 							}
 						>
-							Choose seats
+							{assignedSeatCount > 0 ? "Change seats" : "Choose seats"}
 						</Button>
 					</div>
 				)}

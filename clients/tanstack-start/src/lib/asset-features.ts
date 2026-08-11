@@ -38,3 +38,8 @@ export function assetSeatNumber(feature: AssetFeature): string | undefined {
 	const value = properties.seatNumber ?? properties.visualId;
 	return value == null ? undefined : String(value);
 }
+
+export function isChosenSeat(feature: AssetFeature): boolean {
+	if (!isSeatFeature(feature)) return false;
+	return rawProperties(feature).chosen === true;
+}

@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
 	assetAvailability,
 	assetSeatNumber,
+	isChosenSeat,
 	isSeatFeature,
 } from "../../lib/asset-features";
 import { seatmapImageQuery } from "../../server-functions/assets.queries";
@@ -183,7 +184,10 @@ export default function AssetSeatmapView({
 		new Set(
 			seatAndFacilityFeatures
 				.map((feature) =>
-					iconHref(feature, selectedAssetIds.includes(feature.id)),
+					iconHref(
+						feature,
+						selectedAssetIds.includes(feature.id) || isChosenSeat(feature),
+					),
 				)
 				.filter((href): href is string => !!href),
 		),
@@ -246,7 +250,8 @@ export default function AssetSeatmapView({
 							)}
 							{overlayFeatures.map((f) => {
 								const isSeat = isSeatFeature(f);
-								const isSelected = selectedAssetIds.includes(f.id);
+								const isSelected =
+									selectedAssetIds.includes(f.id) || isChosenSeat(f);
 								const availability = seatAvailability(f);
 								const isOccupied =
 									availability === "OCCUPIED" ||
