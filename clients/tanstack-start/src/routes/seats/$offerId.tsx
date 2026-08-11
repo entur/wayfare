@@ -44,11 +44,6 @@ export const Route = createFileRoute("/seats/$offerId")({
 	component: SeatsPage,
 });
 
-interface PendingAssignment {
-	assetId: string;
-	previous?: SelectedAssetInfo;
-}
-
 function isAssetNotAvailable(error: unknown): boolean {
 	const msg = error instanceof Error ? error.message : String(error ?? "");
 	return /\(409\)/.test(msg) && /Asset Not Available/i.test(msg);
@@ -75,12 +70,9 @@ function SeatsPage() {
 	const [activeLegByServiceJourney, setActiveLegByServiceJourney] = useState<
 		Map<string, string>
 	>(new Map());
-	const [pendingAssignments, setPendingAssignments] = useState<
-		Record<string, PendingAssignment>
-	>({});
+	const [isCommitting, setIsCommitting] = useState(false);
 	const [assignError, setAssignError] = useState<string | null>(null);
 	const confirmedAssetIdsRef = useRef<Record<string, string>>({});
-	const assigningLegsRef = useRef(new Set<string>());
 
 	useEffect(() => {
 		const pkgSession = readPackageSession();
@@ -246,15 +238,16 @@ function SeatsPage() {
 
 	const assignAssetMutation = useAssignAsset();
 
-	async function handleSeatClick(legId: string, feature: AssetFeature) {
+	// Picking a seat only updates local state — nothing is sent to OMSA until
+	// the user commits by clicking "Continue to checkout". This lets the map
+	// show a coherent picture while browsing, and makes navigating away without
+	// continuing (e.g. back to checkout) a true cancel: whatever the platform
+	// had already assigned (from select-offers, or an earlier visit here) is
+	// left untouched.
+	function handleSeatClick(legId: string, feature: AssetFeature) {
 		if (!isSeatFeature(feature)) return;
 		if (assetAvailability(feature) !== "AVAILABLE") return;
-		if (!pkg?.id) return;
-		if (assigningLegsRef.current.has(legId)) return;
-		// Clicking already-selected seat is a no-op — OMSA has no "deselect" endpoint
-		const previousInfo = selectedAssets[legId];
-		const confirmedAssetId = confirmedAssetIdsRef.current[legId];
-		if (confirmedAssetId === feature.id) return;
+		if (confirmedAssetIdsRef.current[legId] === feature.id) return;
 		if (
 			Object.entries(selectedAssets).some(
 				([selectedLegId, asset]) =>
@@ -264,7 +257,6 @@ function SeatsPage() {
 			setAssignError("That seat is already selected for another traveller.");
 			return;
 		}
-		assigningLegsRef.current.add(legId);
 
 		const assetInfo: SelectedAssetInfo = {
 			assetId: feature.id,
@@ -279,99 +271,101 @@ function SeatsPage() {
 		);
 
 		setSelectedAssets((previous) => ({ ...previous, [legId]: assetInfo }));
-		setPendingAssignments((previous) => ({
-			...previous,
-			[legId]: { assetId: feature.id, previous: previousInfo },
-		}));
 		if (group && nextLeg) {
 			setActiveLegByServiceJourney((previous) =>
 				new Map(previous).set(group.serviceJourney, nextLeg.id),
 			);
 		}
 		setAssignError(null);
-		try {
-			const result = await assignAssetMutation.mutateAsync({
-				inputs: {
-					type: "asset",
-					packageId: pkg.id,
-					legId,
-					assetId: feature.id,
-					...(confirmedAssetId ? { replaceAssetId: confirmedAssetId } : {}),
-				},
-			});
+	}
 
-			const resultConfirmedAssetIds = confirmedAssetIdsByLeg(result);
-			confirmedAssetIdsRef.current = resultConfirmedAssetIds;
-			const confirmedResult = resultConfirmedAssetIds[legId] === feature.id;
-			const currentSession = readPackageSession();
-			const nextSelectedAssets = confirmedResult
-				? {
-						...retainConfirmedAssetInfo(
-							currentSession.selectedAssetsByLegId ?? {},
-							resultConfirmedAssetIds,
-						),
-						[legId]: assetInfo,
-					}
-				: retainConfirmedAssetInfo(
-						currentSession.selectedAssetsByLegId ?? {},
-						resultConfirmedAssetIds,
-					);
-			writePackageSession({
-				...currentSession,
-				package: result,
-				selectedAssetsByLegId: nextSelectedAssets,
-			});
-			setPkg(result);
-			setSelectedAssets(nextSelectedAssets);
-			if (!confirmedResult) {
-				setAssignError("The seat could not be confirmed. Please choose again.");
-			}
-			if (group) {
-				queryClient.invalidateQueries({
-					queryKey: ["assets", pkg.id, group.serviceJourney],
+	// Sends assign-asset only for legs whose local pick differs from what's
+	// already confirmed on the package, in order, stopping (and keeping
+	// whatever succeeded so far) on the first failure.
+	async function commitSeatChanges(): Promise<boolean> {
+		const changedEntries = Object.entries(selectedAssets).filter(
+			([legId, info]) => confirmedAssetIdsRef.current[legId] !== info.assetId,
+		);
+		if (changedEntries.length === 0) return true;
+		if (!pkg?.id) return false;
+
+		setIsCommitting(true);
+		setAssignError(null);
+		let currentPkg = pkg;
+		let failedLegId: string | undefined;
+		try {
+			for (const [legId, info] of changedEntries) {
+				failedLegId = legId;
+				const replaceAssetId = confirmedAssetIdsRef.current[legId];
+				const result = await assignAssetMutation.mutateAsync({
+					inputs: {
+						type: "asset",
+						packageId: currentPkg.id ?? "",
+						legId,
+						assetId: info.assetId,
+						...(replaceAssetId ? { replaceAssetId } : {}),
+					},
 				});
+				currentPkg = result;
+				confirmedAssetIdsRef.current = confirmedAssetIdsByLeg(result);
+				const committedServiceJourney = serviceJourneyGroups.find((group) =>
+					group.legs.some((leg) => leg.id === legId),
+				)?.serviceJourney;
+				if (committedServiceJourney) {
+					queryClient.invalidateQueries({
+						queryKey: ["assets", currentPkg.id, committedServiceJourney],
+					});
+				}
+
+				const currentSession = readPackageSession();
+				writePackageSession({
+					...currentSession,
+					package: currentPkg,
+					selectedAssetsByLegId: selectedAssets,
+				});
+				setPkg(currentPkg);
 			}
+			return true;
 		} catch (err) {
 			setSelectedAssets((previous) => {
-				if (previous[legId]?.assetId !== feature.id) return previous;
+				if (!failedLegId) return previous;
 				const next = { ...previous };
-				if (previousInfo) next[legId] = previousInfo;
-				else delete next[legId];
+				delete next[failedLegId];
 				return next;
 			});
-			if (group) {
+			const failedServiceJourney = serviceJourneyGroups.find((group) =>
+				group.legs.some((leg) => leg.id === failedLegId),
+			)?.serviceJourney;
+			if (failedServiceJourney) {
 				setActiveLegByServiceJourney((previous) =>
-					new Map(previous).set(group.serviceJourney, legId),
+					new Map(previous).set(
+						failedServiceJourney,
+						failedLegId ?? previous.get(failedServiceJourney) ?? "",
+					),
 				);
 			}
 			if (isAssetNotAvailable(err)) {
-				const serviceJourney = serviceJourneyGroups.find((group) =>
-					group.legs.some((leg) => leg.id === legId),
-				)?.serviceJourney;
-				if (serviceJourney) {
+				if (failedServiceJourney) {
 					queryClient.invalidateQueries({
-						queryKey: ["assets", pkg.id, serviceJourney],
+						queryKey: ["assets", currentPkg.id, failedServiceJourney],
 					});
 				}
 				setAssignError("That seat was just taken. Please choose another.");
 			} else {
 				setAssignError(
-					err instanceof Error ? err.message : "Could not reserve seat.",
+					err instanceof Error ? err.message : "Could not reserve your seats.",
 				);
 			}
+			return false;
 		} finally {
-			assigningLegsRef.current.delete(legId);
-			setPendingAssignments((previous) => {
-				if (previous[legId]?.assetId !== feature.id) return previous;
-				const next = { ...previous };
-				delete next[legId];
-				return next;
-			});
+			setIsCommitting(false);
 		}
 	}
 
-	function handleContinue() {
-		if (Object.keys(pendingAssignments).length > 0) return;
+	async function handleContinue() {
+		if (isCommitting) return;
+		const committed = await commitSeatChanges();
+		if (!committed) return;
 		navigate({
 			to: "/checkout/$offerId",
 			params: { offerId },
@@ -402,7 +396,6 @@ function SeatsPage() {
 
 	const previewTotal = pkg?.price?.amount ?? 0;
 	const previewCurrency = pkg?.price?.currencyCode ?? "NOK";
-	const hasPendingAssignments = Object.keys(pendingAssignments).length > 0;
 
 	const seatSummarySlot =
 		eligibleGroups.length > 0 ? (
@@ -463,11 +456,7 @@ function SeatsPage() {
 					onDismiss={() => setAssignError(null)}
 				/>
 			)}
-			<Button
-				variant="primary"
-				onClick={handleContinue}
-				disabled={hasPendingAssignments}
-			>
+			<Button variant="primary" onClick={handleContinue} loading={isCommitting}>
 				Continue to checkout
 				<RightArrowIcon aria-hidden="true" />
 			</Button>
@@ -528,8 +517,10 @@ function SeatsPage() {
 							? [selectedAssets[leg.id].assetId]
 							: [],
 					);
-					const isAssigning =
-						!!activeLegId && !!pendingAssignments[activeLegId];
+					const selectedInfoIsConfirmed =
+						!!activeLegId &&
+						!!selectedInfo &&
+						confirmedAssetIdsRef.current[activeLegId] === selectedInfo.assetId;
 					const hasAvailable = carriageFeatures.some(
 						(f) => isSeatFeature(f) && assetAvailability(f) === "AVAILABLE",
 					);
@@ -565,11 +556,7 @@ function SeatsPage() {
 													}
 												>
 													{travellerLabel(legs, leg.id)}
-													{pendingAssignments[leg.id]
-														? " …"
-														: selectedAssets[leg.id]
-															? " ✓"
-															: ""}
+													{selectedAssets[leg.id] ? " ✓" : ""}
 												</Button>
 											))}
 										</div>
@@ -599,17 +586,17 @@ function SeatsPage() {
 									>
 										{isLoading
 											? "Loading seats…"
-											: isAssigning
-												? "Reserving seat…"
-												: selectedInfo
-													? `Seat ${selectedInfo.seatNumber ?? selectedInfo.assetId} · Carriage ${selectedInfo.carriage}`
-													: !hasAvailable
-														? "No available seats in this carriage."
-														: "Click an available seat to select it."}
+											: selectedInfo
+												? `Seat ${selectedInfo.seatNumber ?? selectedInfo.assetId} · Carriage ${selectedInfo.carriage}`
+												: !hasAvailable
+													? "No available seats in this carriage."
+													: "Click an available seat to select it."}
 									</span>
-									{selectedInfo && !isAssigning && (
+									{selectedInfo && (
 										<span className="text-xs italic text-wayfare-text-secondary">
-											Held — change by clicking another
+											{selectedInfoIsConfirmed
+												? "Held — change by clicking another"
+												: "Selected — confirms when you continue"}
 										</span>
 									)}
 								</div>
@@ -625,7 +612,7 @@ function SeatsPage() {
 											features={carriageFeatures}
 											selectedAssetIds={selectedAssetIds}
 											onSeatClick={
-												activeLegId && !pendingAssignments[activeLegId]
+												activeLegId && !isCommitting
 													? (f) => handleSeatClick(activeLegId, f)
 													: undefined
 											}
@@ -651,7 +638,7 @@ function SeatsPage() {
 										variant="primary"
 										fluid
 										onClick={handleContinue}
-										disabled={hasPendingAssignments}
+										loading={isCommitting}
 									>
 										Continue to checkout
 										<RightArrowIcon aria-hidden="true" />
