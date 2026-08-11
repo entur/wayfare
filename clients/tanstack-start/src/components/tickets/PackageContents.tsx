@@ -1,25 +1,33 @@
 import { SeatIcon, TrainCarIcon } from "@entur/icons";
-import { useQueries } from "@tanstack/react-query";
-import { assetSeatNumber, isSeatFeature } from "../../lib/asset-features";
 import { formatPrice } from "../../lib/format-price";
-import { assetsCollectionQuery } from "../../server-functions/assets.queries";
 import type { PackageOffer } from "../../types/documents";
 
 interface PackageContentsProps {
-	packageId: string;
 	offers: PackageOffer[];
 }
 
 interface TravellerItem {
 	legId: string;
 	travellerLabel: string;
-	serviceJourney?: string;
 	productName?: string;
 	assetId?: string;
 	ancillaries: {
 		name: string;
 		price?: { amount?: number; currencyCode?: string };
 	}[];
+}
+
+// GET /collections/assets/items only works for packages still open for seat
+// selection — a CONFIRMED package 400s ("Assets can only be selected for
+// customizable packages"). The confirmed asset id itself already encodes
+// carriage and seat number as "<carriage>-<seatNumber>", so parse that
+// directly instead of trying to resolve it against the (now closed) seatmap.
+function parseSeatAssetId(
+	assetId: string,
+): { carriage: string; seatNumber: string } | null {
+	const match = assetId.match(/^(.+)-([^-]+)$/);
+	if (!match) return null;
+	return { carriage: match[1], seatNumber: match[2] };
 }
 
 // Each offer represents one (traveller × leg) pair, so the same traveller
@@ -52,7 +60,6 @@ function buildTravellerItems(offers: PackageOffer[]): TravellerItem[] {
 			items.push({
 				legId: leg.id,
 				travellerLabel: `Traveller ${travellerIndex + 1}`,
-				serviceJourney: leg.serviceJourney,
 				productName,
 				assetId: leg.assets?.[0],
 				ancillaries,
@@ -63,31 +70,8 @@ function buildTravellerItems(offers: PackageOffer[]): TravellerItem[] {
 	return items;
 }
 
-export default function PackageContents({
-	packageId,
-	offers,
-}: PackageContentsProps) {
+export default function PackageContents({ offers }: PackageContentsProps) {
 	const items = buildTravellerItems(offers);
-	const serviceJourneys = [
-		...new Set(
-			items
-				.map((item) => item.serviceJourney)
-				.filter((sj): sj is string => !!sj),
-		),
-	];
-
-	const assetQueries = useQueries({
-		queries: serviceJourneys.map((serviceJourney) =>
-			assetsCollectionQuery(packageId, serviceJourney),
-		),
-	});
-	const featuresByServiceJourney = new Map(
-		serviceJourneys.map((serviceJourney, i) => [
-			serviceJourney,
-			assetQueries[i]?.data?.features ?? [],
-		]),
-	);
-
 	if (items.length === 0) return null;
 
 	return (
@@ -97,13 +81,7 @@ export default function PackageContents({
 			</h2>
 			<div className="flex flex-col gap-3">
 				{items.map((item) => {
-					const features = item.serviceJourney
-						? (featuresByServiceJourney.get(item.serviceJourney) ?? [])
-						: [];
-					const feature = item.assetId
-						? features.find((candidate) => candidate.id === item.assetId)
-						: undefined;
-					const showSeat = feature && isSeatFeature(feature);
+					const seat = item.assetId ? parseSeatAssetId(item.assetId) : null;
 
 					return (
 						<div
@@ -137,15 +115,15 @@ export default function PackageContents({
 									</p>
 								))}
 							</div>
-							{showSeat && (
+							{seat && (
 								<div className="flex shrink-0 items-center gap-3 text-xs text-wayfare-text-secondary">
 									<span className="flex items-center gap-1">
 										<SeatIcon aria-hidden="true" />
-										{assetSeatNumber(feature) ?? item.assetId}
+										{seat.seatNumber}
 									</span>
 									<span className="flex items-center gap-1">
 										<TrainCarIcon aria-hidden="true" />
-										{feature.properties.carriage}
+										{seat.carriage}
 									</span>
 								</div>
 							)}

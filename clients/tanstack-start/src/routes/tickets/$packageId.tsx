@@ -338,10 +338,7 @@ function TicketDetailPage() {
 						</div>
 					</div>
 
-					<PackageContents
-						packageId={pkg.packageId}
-						offers={packageItem?.offers ?? []}
-					/>
+					<PackageContents offers={packageItem?.offers ?? []} />
 				</div>
 
 				<div style={{ opacity: isExpired ? 0.6 : undefined }}>
