@@ -269,9 +269,14 @@ function SeatsPage() {
 		const group = serviceJourneyGroups.find((candidate) =>
 			candidate.legs.some((leg) => leg.id === legId),
 		);
-		const nextLeg = group?.legs.find(
-			(leg) => leg.id !== legId && !selectedAssets[leg.id],
-		);
+		// Cycle to the next traveller by position, not by "has no seat yet" — a
+		// compulsory reservation auto-assigns every traveller a default seat
+		// up front, so nobody would ever look like they still need one.
+		const currentIndex = group?.legs.findIndex((leg) => leg.id === legId) ?? -1;
+		const nextLeg =
+			group && currentIndex >= 0 && currentIndex + 1 < group.legs.length
+				? group.legs[currentIndex + 1]
+				: undefined;
 
 		setSelectedAssets((previous) => ({ ...previous, [legId]: assetInfo }));
 		if (group && nextLeg) {
