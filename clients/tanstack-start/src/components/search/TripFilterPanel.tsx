@@ -2,41 +2,20 @@ import { AdjustmentsIcon } from "@entur/icons";
 import { useState } from "react";
 import {
 	ALL_MODE_GROUPS,
+	DEFAULT_MODE_GROUPS,
 	isDefaultFilters,
 	MODE_GROUP_LABELS,
 	type TransportModeGroup,
 	type TripFilters,
 } from "../../lib/trip-filters";
+import ModePill from "../ui/ModePill";
 
 interface TripFilterPanelProps {
 	filters: TripFilters;
 	onChange: (filters: TripFilters) => void;
 	onReset: () => void;
-}
-
-function ModePill({
-	label,
-	active,
-	onClick,
-}: {
-	label: string;
-	active: boolean;
-	onClick: () => void;
-}) {
-	return (
-		<button
-			type="button"
-			onClick={onClick}
-			aria-pressed={active}
-			className={`shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
-				active
-					? "border-wayfare-primary bg-wayfare-accent-soft text-wayfare-primary"
-					: "border-wayfare-line bg-wayfare-surface-strong text-wayfare-text-secondary hover:text-wayfare-text"
-			}`}
-		>
-			{label}
-		</button>
-	);
+	/** The modes a new search starts with; may reflect a user's setting. */
+	defaultModes?: readonly TransportModeGroup[];
 }
 
 function PreferenceSwitch({
@@ -86,6 +65,7 @@ export default function TripFilterPanel({
 	filters,
 	onChange,
 	onReset,
+	defaultModes = DEFAULT_MODE_GROUPS,
 }: TripFilterPanelProps) {
 	const [open, setOpen] = useState(false);
 	const excludedModes = ALL_MODE_GROUPS.filter(
@@ -152,7 +132,7 @@ export default function TripFilterPanel({
 				</span>
 			</button>
 
-			{!isDefaultFilters(filters) && (
+			{!isDefaultFilters(filters, defaultModes) && (
 				<div className="flex flex-wrap gap-2 border-t border-wayfare-line px-4 py-3">
 					{excludedModes.map((group) => {
 						const label = `No ${MODE_GROUP_LABELS[group]}`;
@@ -214,7 +194,7 @@ export default function TripFilterPanel({
 						/>
 					</div>
 
-					{!isDefaultFilters(filters) && (
+					{!isDefaultFilters(filters, defaultModes) && (
 						<button
 							type="button"
 							onClick={onReset}

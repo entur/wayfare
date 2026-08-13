@@ -7,6 +7,7 @@ import PaymentMethodsTab from "../components/settings/PaymentMethodsTab";
 import Illustration from "../components/shared/Illustration";
 import OperatorIcon from "../components/shared/OperatorIcon";
 import Button from "../components/ui/Button";
+import ModePill from "../components/ui/ModePill";
 import SegmentedControl from "../components/ui/SegmentedControl";
 import { useDevConfig } from "../context/dev-config";
 import { useProfile } from "../context/profile";
@@ -22,10 +23,18 @@ import {
 } from "../lib/favorites-storage";
 import { findOperator, OPERATORS } from "../lib/operators";
 import {
+	getDefaultTripModes,
 	getPreferredOperator,
+	setDefaultTripModes,
 	setPreferredOperator,
 } from "../lib/preferences-storage";
 import { clearPackages, getPackages } from "../lib/ticket-storage";
+import {
+	ALL_MODE_GROUPS,
+	DEFAULT_MODE_GROUPS,
+	MODE_GROUP_LABELS,
+	type TransportModeGroup,
+} from "../lib/trip-filters";
 import type { OmsaRuntimeMode } from "../server/runtime-config";
 import { getResolvedDevConfig } from "../server-functions/dev-config";
 import type { CustomerSearchParams, OmsaCustomer } from "../types/customer";
@@ -353,6 +362,48 @@ function PreferredOperatorSection() {
 	);
 }
 
+function DefaultTripModesSection() {
+	// Read after mount so the first client render matches SSR.
+	const [modes, setModes] = useState<TransportModeGroup[]>([
+		...DEFAULT_MODE_GROUPS,
+	]);
+
+	useEffect(() => {
+		setModes(getDefaultTripModes() ?? [...DEFAULT_MODE_GROUPS]);
+	}, []);
+
+	function toggle(group: TransportModeGroup) {
+		if (modes.includes(group) && modes.length === 1) return;
+		const next = ALL_MODE_GROUPS.filter((candidate) =>
+			modes.includes(candidate) ? candidate !== group : candidate === group,
+		);
+		setModes(next);
+		setDefaultTripModes(next);
+	}
+
+	return (
+		<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+			<h2 className="mb-1 text-sm font-semibold text-wayfare-text">
+				Default transport modes
+			</h2>
+			<p className="m-0 mb-4 text-xs text-wayfare-text-secondary">
+				Journey searches start with these modes enabled. You can still adjust
+				modes per search.
+			</p>
+			<div className="flex flex-wrap gap-2">
+				{ALL_MODE_GROUPS.map((group) => (
+					<ModePill
+						key={group}
+						label={MODE_GROUP_LABELS[group]}
+						active={modes.includes(group)}
+						onClick={() => toggle(group)}
+					/>
+				))}
+			</div>
+		</section>
+	);
+}
+
 function AppTab() {
 	const [cleared, setCleared] = useState(false);
 	const [count, setCount] = useState(0);
@@ -370,6 +421,7 @@ function AppTab() {
 
 	return (
 		<div className="space-y-4">
+			<DefaultTripModesSection />
 			<PreferredOperatorSection />
 
 			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
