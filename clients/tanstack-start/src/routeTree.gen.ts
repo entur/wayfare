@@ -9,40 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TripsRouteImport } from './routes/trips'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ProductsRouteImport } from './routes/products'
-import { Route as PaymentReturnRouteImport } from './routes/payment-return'
-import { Route as OffersRouteImport } from './routes/offers'
-import { Route as MapRouteImport } from './routes/map'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MapRouteImport } from './routes/map'
+import { Route as OffersRouteImport } from './routes/offers'
+import { Route as PaymentReturnRouteImport } from './routes/payment-return'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TripsRouteImport } from './routes/trips'
+import { Route as CheckoutOfferIdRouteImport } from './routes/checkout/$offerId'
 import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
 import { Route as TicketsPackageIdRouteImport } from './routes/tickets/$packageId'
-import { Route as CheckoutOfferIdRouteImport } from './routes/checkout/$offerId'
 
-const TripsRoute = TripsRouteImport.update({
-  id: '/trips',
-  path: '/trips',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductsRoute = ProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PaymentReturnRoute = PaymentReturnRouteImport.update({
-  id: '/payment-return',
-  path: '/payment-return',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OffersRoute = OffersRouteImport.update({
-  id: '/offers',
-  path: '/offers',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapRoute = MapRouteImport.update({
@@ -50,9 +30,34 @@ const MapRoute = MapRouteImport.update({
   path: '/map',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const OffersRoute = OffersRouteImport.update({
+  id: '/offers',
+  path: '/offers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentReturnRoute = PaymentReturnRouteImport.update({
+  id: '/payment-return',
+  path: '/payment-return',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TripsRoute = TripsRouteImport.update({
+  id: '/trips',
+  path: '/trips',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutOfferIdRoute = CheckoutOfferIdRouteImport.update({
+  id: '/checkout/$offerId',
+  path: '/checkout/$offerId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TicketsIndexRoute = TicketsIndexRouteImport.update({
@@ -63,11 +68,6 @@ const TicketsIndexRoute = TicketsIndexRouteImport.update({
 const TicketsPackageIdRoute = TicketsPackageIdRouteImport.update({
   id: '/tickets/$packageId',
   path: '/tickets/$packageId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CheckoutOfferIdRoute = CheckoutOfferIdRouteImport.update({
-  id: '/checkout/$offerId',
-  path: '/checkout/$offerId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -162,39 +162,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/trips': {
-      id: '/trips'
-      path: '/trips'
-      fullPath: '/trips'
-      preLoaderRoute: typeof TripsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/products': {
-      id: '/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof ProductsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/payment-return': {
-      id: '/payment-return'
-      path: '/payment-return'
-      fullPath: '/payment-return'
-      preLoaderRoute: typeof PaymentReturnRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/offers': {
-      id: '/offers'
-      path: '/offers'
-      fullPath: '/offers'
-      preLoaderRoute: typeof OffersRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/map': {
@@ -204,11 +176,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MapRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/offers': {
+      id: '/offers'
+      path: '/offers'
+      fullPath: '/offers'
+      preLoaderRoute: typeof OffersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payment-return': {
+      id: '/payment-return'
+      path: '/payment-return'
+      fullPath: '/payment-return'
+      preLoaderRoute: typeof PaymentReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trips': {
+      id: '/trips'
+      path: '/trips'
+      fullPath: '/trips'
+      preLoaderRoute: typeof TripsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/$offerId': {
+      id: '/checkout/$offerId'
+      path: '/checkout/$offerId'
+      fullPath: '/checkout/$offerId'
+      preLoaderRoute: typeof CheckoutOfferIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tickets/': {
@@ -223,13 +230,6 @@ declare module '@tanstack/react-router' {
       path: '/tickets/$packageId'
       fullPath: '/tickets/$packageId'
       preLoaderRoute: typeof TicketsPackageIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/checkout/$offerId': {
-      id: '/checkout/$offerId'
-      path: '/checkout/$offerId'
-      fullPath: '/checkout/$offerId'
-      preLoaderRoute: typeof CheckoutOfferIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
