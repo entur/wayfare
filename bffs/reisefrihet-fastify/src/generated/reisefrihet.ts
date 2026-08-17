@@ -175,13 +175,13 @@ export interface components {
         };
         RetryPaymentsResponse: {
             /** Format: int32 */
-            total?: number;
+            total: number;
             /** Format: int32 */
-            paid?: number;
+            paid: number;
             /** Format: int32 */
-            retried?: number;
+            retried: number;
             /** Format: int32 */
-            failed?: number;
+            failed: number;
         };
         /** @description Request to trigger billing of all billable orders for a given customer number, including today's orders */
         BillCustomerRequest: {
@@ -193,64 +193,65 @@ export interface components {
             customerNumber: number;
         };
         AmountOfMoney: {
-            amount?: number;
+            amount: number;
             /** @enum {string} */
-            currency?: "NOK";
+            currency: "NOK";
         };
         AnalysisMeta: {
-            confidenceLevel?: number;
+            confidenceLevel: number;
             checksum?: string | null;
             /** Format: date-time */
             analysedAt?: string | null;
         };
         CompletedJourney: {
-            journeyId?: components["schemas"]["JourneyId"];
+            journeyId: components["schemas"]["JourneyId"];
             serviceJourneyId?: string | null;
-            cost?: components["schemas"]["JourneyCost"][];
-            analysisMeta?: components["schemas"]["AnalysisMeta"];
+            cost: components["schemas"]["JourneyCost"][];
+            analysisMeta: components["schemas"]["AnalysisMeta"];
             /**
              * @description Indicates the type of reason why a journey was started:
              *             - USER_INITIATED: The journey was started by explicit user action
              *             - APP_INITIATED: When the app itself starts the trip due to its own logic
              * @enum {string}
              */
-            startedReason?: "USER_INITIATED" | "APP_INITIATED";
-            stoppedReason?: components["schemas"]["StopJourneyReason"];
+            startedReason: "USER_INITIATED" | "APP_INITIATED";
+            stoppedReason: components["schemas"]["StopJourneyReason"];
             /** Format: date-time */
-            stoppedTime?: string;
+            stoppedTime: string;
         };
         Distance: {
-            value?: number;
+            value: number;
             /** @enum {string} */
-            unit?: "METER" | "KILOMETER";
+            unit: "METER" | "KILOMETER";
         };
         JourneyCost: {
-            amount?: components["schemas"]["AmountOfMoney"];
-            passenger?: components["schemas"]["Passenger"];
+            amount: components["schemas"]["AmountOfMoney"];
+            passenger: components["schemas"]["Passenger"];
+            /** @description Flag to determine if this is the main passenger or an accompanying co-passenger */
+            isCoPassenger: boolean;
             /** @description All legs that are associated with this passenger as part of a journey */
-            legs?: components["schemas"]["JourneyLeg"][];
-            isCoPassenger?: boolean;
+            legs: components["schemas"]["JourneyLeg"][];
         };
         JourneyId: {
             /** Format: uuid */
-            uuid?: string;
+            uuid: string;
         };
         /** @description All legs that are associated with this passenger as part of a journey */
         JourneyLeg: {
             /** Format: date-time */
-            startedAt?: string;
-            distance?: components["schemas"]["Distance"];
+            startedAt: string;
+            distance: components["schemas"]["Distance"];
             /** @enum {string} */
-            transportMode?: "CAR" | "BUS" | "TRAIN" | "TRAM" | "METRO" | "BIKE" | "FOOT";
-            price?: components["schemas"]["Price"];
-            analysisMeta?: components["schemas"]["AnalysisMeta"];
-            legZoneInfo?: components["schemas"]["LegZoneInfo"];
+            transportMode: "CAR" | "BUS" | "TRAIN" | "TRAM" | "METRO" | "BIKE" | "FOOT";
+            price: components["schemas"]["Price"];
+            analysisMeta: components["schemas"]["AnalysisMeta"];
+            legZoneInfo: components["schemas"]["LegZoneInfo"];
         };
         LegZoneInfo: {
-            fromZone?: components["schemas"]["Zone"];
-            toZone?: components["schemas"]["Zone"];
+            fromZone: components["schemas"]["Zone"];
+            toZone: components["schemas"]["Zone"];
             /** Format: int32 */
-            totalZoneCount?: number;
+            totalZoneCount: number;
         };
         /** @description A luggage allowance with associated attributes. */
         LuggageAllowanceSimple: {
@@ -258,7 +259,7 @@ export interface components {
              * @description Unique code identifying the luggage type. Pattern is [codespace]:[type]:[id]
              * @example KOL:LuggageAllowance:9310d23
              */
-            code?: string;
+            code: string;
             /**
              * @description Description of the luggage allowance in multiple languages
              * @example [
@@ -272,17 +273,17 @@ export interface components {
              *       }
              *     ]
              */
-            description?: components["schemas"]["Translation"][];
+            description: components["schemas"]["Translation"][];
         };
         /** @description A passenger with associated user profile and a list of luggage allowances */
         Passenger: {
-            userProfileSimple?: components["schemas"]["UserProfileSimple"];
-            luggage?: components["schemas"]["LuggageAllowanceSimple"][];
+            userProfileSimple: components["schemas"]["UserProfileSimple"];
+            luggage: components["schemas"]["LuggageAllowanceSimple"][];
         };
         Price: {
-            basePriceComponent?: components["schemas"]["PriceComponent"];
-            discountedPriceComponent?: components["schemas"]["PriceComponent"];
-            finalPriceComponent?: components["schemas"]["PriceComponent"];
+            basePriceComponent: components["schemas"]["PriceComponent"];
+            discountedPriceComponent: components["schemas"]["PriceComponent"];
+            finalPriceComponent: components["schemas"]["PriceComponent"];
             priceMatchedProduct?: components["schemas"]["PriceMatchProduct"] | null;
         };
         PriceComponent: {
@@ -290,19 +291,19 @@ export interface components {
              * Format: int32
              * @description Cost of starting a journey, set inside a leg of a journey
              */
-            startUpPrice?: number;
+            startUpPrice: number;
             /**
              * Format: int32
              * @description Cost per distance unit, set inside a leg of a journey
              */
-            distancePrice?: number;
+            distancePrice: number;
         };
         /**
          * @description Price match product that can be applied to a journey leg.
          *             TODO: get codes from product API, and add other relevant fields
          */
         PriceMatchProduct: {
-            code?: string;
+            code: string;
         };
         StopJourneyReason: {
             /**
@@ -340,8 +341,8 @@ export interface components {
          */
         Translation: {
             /** @enum {string} */
-            language?: "NOB" | "NNO" | "ENG";
-            text?: string;
+            language: "NOB" | "NNO" | "ENG";
+            text: string;
         };
         /** @description A user profile with associated attributes. TODO: derive from products API */
         UserProfileSimple: {
@@ -349,7 +350,7 @@ export interface components {
              * @description Unique code identifying the user profile. Pattern is [codespace]:[type]:[id]
              * @example KOL:UserProfile:9310d23
              */
-            code?: string;
+            code: string;
             /**
              * @description The type of traveller this profile applies to, derived from the products API
              * @example CHILD
@@ -374,11 +375,11 @@ export interface components {
              *       }
              *     ]
              */
-            description?: components["schemas"]["Translation"][];
+            description: components["schemas"]["Translation"][];
         };
         Zone: {
-            id?: string;
-            name?: string;
+            id: string;
+            name: string;
         };
         StartJourneyRequest: {
             /**
@@ -398,19 +399,19 @@ export interface components {
         };
         /** @description An active ongoing journey */
         ActiveJourney: {
-            journeyId?: components["schemas"]["JourneyId"];
+            journeyId: components["schemas"]["JourneyId"];
             /** Format: date-time */
-            startTime?: string;
+            startTime: string;
         };
         FailedTransactionsResponse: {
-            hasFailedTransactions?: boolean;
+            hasFailedTransactions: boolean;
         };
         PreassignedFareProductSimple: {
-            id?: string;
-            version?: string;
+            id: string;
+            version: string;
             /** @enum {string} */
-            status?: "DRAFT" | "PROPOSED" | "VERSIONED" | "DEPRECATED";
-            description?: components["schemas"]["Translation"][];
+            status: "DRAFT" | "PROPOSED" | "VERSIONED" | "DEPRECATED";
+            description: components["schemas"]["Translation"][];
         };
     };
     responses: never;
