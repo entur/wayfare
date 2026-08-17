@@ -21,11 +21,11 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/netinfo": "12.0.1",
     "@tanstack/react-query": "^5.101.4",
-    "expo": "~57.0.13",
-    "expo-constants": "~57.0.11",
+    "expo": "~57.0.14",
+    "expo-constants": "~57.0.12",
     "expo-linking": "~57.0.6",
-    "expo-router": "~57.0.13",
-    "expo-splash-screen": "~57.0.6",
+    "expo-router": "~57.0.14",
+    "expo-splash-screen": "~57.0.7",
     "expo-status-bar": "~57.0.1",
     "lucide-react-native": "^1.28.0",
     "openapi-fetch": "^0.15.2",
@@ -56,7 +56,7 @@
   "packageManager": "pnpm@10.34.1",
   "pnpm": {
     "overrides": {
-      "@expo/metro-runtime": "57.0.10",
+      "@expo/metro-runtime": "57.0.11",
       "uuid@<11.1.1": "11.1.1"
     }
   }
