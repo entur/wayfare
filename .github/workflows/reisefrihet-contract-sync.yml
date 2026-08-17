@@ -1,0 +1,40 @@
+name: reisefrihet contract sync
+
+on:
+  schedule:
+    - cron: "0 6 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bffs/reisefrihet-fastify
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+          cache-dependency-path: bffs/reisefrihet-fastify/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm contract:generate
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          commit-message: "fix(bff): resync generated reisefrihet types with staging spec"
+          title: "fix(bff): resync generated reisefrihet types with staging spec"
+          body: >
+            The staging OpenAPI spec at api.staging.entur.io/reisefrihet has changed
+            shape. This regenerates src/generated/reisefrihet.ts from the current
+            spec. Review the diff for breaking changes (new required fields, removed
+            fields) before merging, since mappers.ts and its tests may need updates.
+          branch: chore/reisefrihet-contract-sync
+          add-paths: bffs/reisefrihet-fastify/src/generated/reisefrihet.ts

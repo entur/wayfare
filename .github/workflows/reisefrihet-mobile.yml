@@ -40,9 +40,10 @@ jobs:
           cache: pnpm
           cache-dependency-path: bffs/reisefrihet-fastify/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm contract:generate
-      - run: git diff --exit-code -- src/generated/reisefrihet.ts
       - run: pnpm check
+      # src/generated/reisefrihet.ts is synced against the live staging spec by
+      # reisefrihet-contract-sync.yml on a schedule, not gated here, since that
+      # spec can drift independently of any PR in this repo.
       - run: pnpm openapi:generate
       - run: git diff --exit-code -- contract/mobile.openapi.json
 
