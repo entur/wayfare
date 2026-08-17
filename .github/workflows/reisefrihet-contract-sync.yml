@@ -6,11 +6,11 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  issues: write
 
 jobs:
-  sync:
+  check-drift:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -27,14 +27,34 @@ jobs:
           cache-dependency-path: bffs/reisefrihet-fastify/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm contract:generate
-      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
-        with:
-          commit-message: "fix(bff): resync generated reisefrihet types with staging spec"
-          title: "fix(bff): resync generated reisefrihet types with staging spec"
-          body: >
-            The staging OpenAPI spec at api.staging.entur.io/reisefrihet has changed
-            shape. This regenerates src/generated/reisefrihet.ts from the current
-            spec. Review the diff for breaking changes (new required fields, removed
-            fields) before merging, since mappers.ts and its tests may need updates.
-          branch: chore/reisefrihet-contract-sync
-          add-paths: bffs/reisefrihet-fastify/src/generated/reisefrihet.ts
+      - id: diff
+        run: |
+          if git diff --quiet -- src/generated/reisefrihet.ts; then
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open an issue if the staging spec has drifted
+        if: steps.diff.outputs.drifted == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: "reisefrihet staging spec has drifted from src/generated/reisefrihet.ts"
+          ISSUE_BODY: |
+            The live OpenAPI spec at https://api.staging.entur.io/reisefrihet/v3/api-docs no
+            longer matches the committed `bffs/reisefrihet-fastify/src/generated/reisefrihet.ts`.
+
+            Regenerate it locally:
+
+                cd bffs/reisefrihet-fastify
+                pnpm contract:generate
+
+            Then run `pnpm check` and fix any type errors it surfaces in `src/mappers.ts` or
+            its tests (newly required or removed fields are the usual cause) before committing.
+        run: |
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title \"$ISSUE_TITLE\"" --json number --jq 'length')
+          if [ "$existing" != "0" ]; then
+            echo "Drift issue already open, skipping"
+            exit 0
+          fi
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
