@@ -1,0 +1,110 @@
+name: reisefrihet drift checks
+
+on:
+  schedule:
+    - cron: "0 6 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-drift:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bffs/reisefrihet-fastify
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+          cache-dependency-path: bffs/reisefrihet-fastify/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm contract:generate
+      - id: diff
+        run: |
+          if git diff --quiet -- src/generated/reisefrihet.ts; then
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open an issue if the staging spec has drifted
+        if: steps.diff.outputs.drifted == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: "reisefrihet staging spec has drifted from src/generated/reisefrihet.ts"
+          ISSUE_BODY: |
+            The live OpenAPI spec at https://api.staging.entur.io/reisefrihet/v3/api-docs no
+            longer matches the committed `bffs/reisefrihet-fastify/src/generated/reisefrihet.ts`.
+
+            Regenerate it locally:
+
+                cd bffs/reisefrihet-fastify
+                pnpm contract:generate
+
+            Then run `pnpm check` and fix any type errors it surfaces in `src/mappers.ts` or
+            its tests (newly required or removed fields are the usual cause) before committing.
+        run: |
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title \"$ISSUE_TITLE\"" --json number --jq 'length')
+          if [ "$existing" != "0" ]; then
+            echo "Drift issue already open, skipping"
+            exit 0
+          fi
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$ISSUE_TITLE" --body "$ISSUE_BODY"
+
+  mobile-sdk-drift:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients/react-native
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.15.0
+          cache: pnpm
+          cache-dependency-path: clients/react-native/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - id: doctor
+        run: |
+          if pnpm run doctor; then
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open an issue if installed packages drifted from the Expo SDK bundle
+        if: steps.doctor.outputs.drifted == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: "clients/react-native packages have drifted from the Expo SDK bundle"
+          ISSUE_BODY: |
+            `expo-doctor` reports installed package versions that no longer match what the
+            current Expo SDK bundles. This target can move within a single day, since Expo
+            publishes patch updates on its own schedule, independent of this repo.
+
+            Fix locally:
+
+                cd clients/react-native
+                npx expo install --fix
+
+            `expo` itself isn't touched by --fix; bump it manually if `expo-doctor` still
+            flags it after. Run `pnpm dlx expo-doctor` again to confirm, then `pnpm check`
+            before committing.
+        run: |
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title \"$ISSUE_TITLE\"" --json number --jq 'length')
+          if [ "$existing" != "0" ]; then
+            echo "Drift issue already open, skipping"
+            exit 0
+          fi
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$ISSUE_TITLE" --body "$ISSUE_BODY"

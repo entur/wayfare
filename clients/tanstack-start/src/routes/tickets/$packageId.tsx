@@ -169,8 +169,10 @@ function TicketDetailPage() {
 	const now = new Date();
 
 	const itemProps = packageItem?.properties;
-	const from = itemProps?.from?.name;
-	const to = itemProps?.to?.name;
+	// The package-item endpoint doesn't return place names, only the route
+	// stored locally at purchase time does — fall back to that first.
+	const from = pkg.route?.from?.name ?? itemProps?.from?.name;
+	const to = pkg.route?.to?.name ?? itemProps?.to?.name;
 
 	const firstDoc = documents[0]?.properties;
 	const validFrom = itemProps?.startTime
@@ -246,7 +248,11 @@ function TicketDetailPage() {
 							<div className="min-w-0 flex-1">
 								{from && to ? (
 									<p className="m-0 text-base font-bold text-wayfare-text">
-										{from} → {to}
+										{from} – {to}
+									</p>
+								) : zones.length > 0 ? (
+									<p className="m-0 text-base font-bold text-wayfare-text">
+										{formatZoneList(zones)}
 									</p>
 								) : (
 									<p className="m-0 font-mono text-sm font-semibold text-wayfare-text">
@@ -314,16 +320,12 @@ function TicketDetailPage() {
 									</span>
 								</div>
 							)}
-							{(!from || !to) && (
-								<div className="flex justify-between gap-4">
-									<span className="text-wayfare-text-secondary">
-										Package ID
-									</span>
-									<span className="font-mono text-xs text-wayfare-text">
-										{pkg.packageId}
-									</span>
-								</div>
-							)}
+							<div className="flex justify-between gap-4">
+								<span className="text-wayfare-text-secondary">Package ID</span>
+								<span className="font-mono text-xs text-wayfare-text">
+									{pkg.packageId}
+								</span>
+							</div>
 						</div>
 					</div>
 
