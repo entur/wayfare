@@ -1,10 +1,17 @@
 import { findOperator } from "./operators";
+import {
+	ALL_MODE_GROUPS,
+	isModeGroup,
+	type TransportModeGroup,
+} from "./trip-filters";
 
 const KEY = "wayfare:preferences";
 
 export interface Preferences {
 	/** Preferred operator codespace. */
 	preferredOperator?: string;
+	/** Transport modes enabled by default for new trip searches. */
+	defaultTripModes?: TransportModeGroup[];
 }
 
 function read(): Preferences {
@@ -14,13 +21,22 @@ function read(): Preferences {
 		if (!raw) return {};
 		const parsed = JSON.parse(raw);
 		if (!parsed || typeof parsed !== "object") return {};
-		const { preferredOperator } = parsed as Record<string, unknown>;
+		const { preferredOperator, defaultTripModes } = parsed as Record<
+			string,
+			unknown
+		>;
+		const preferences: Preferences = {};
 		if (
-			typeof preferredOperator !== "string" ||
-			!findOperator(preferredOperator)
-		)
-			return {};
-		return { preferredOperator };
+			typeof preferredOperator === "string" &&
+			findOperator(preferredOperator)
+		) {
+			preferences.preferredOperator = preferredOperator;
+		}
+		if (Array.isArray(defaultTripModes)) {
+			const modes = defaultTripModes.filter(isModeGroup);
+			if (modes.length > 0) preferences.defaultTripModes = modes;
+		}
+		return preferences;
 	} catch {
 		return {};
 	}
@@ -51,4 +67,21 @@ export function setPreferredOperator(code: string | null): void {
 		return;
 	}
 	write({ ...existing, preferredOperator: code });
+}
+
+export function getDefaultTripModes(): TransportModeGroup[] | undefined {
+	return read().defaultTripModes;
+}
+
+export function setDefaultTripModes(modes: TransportModeGroup[] | null): void {
+	const existing = read();
+	if (modes === null || modes.length === 0) {
+		delete existing.defaultTripModes;
+		write(existing);
+		return;
+	}
+	write({
+		...existing,
+		defaultTripModes: ALL_MODE_GROUPS.filter((group) => modes.includes(group)),
+	});
 }

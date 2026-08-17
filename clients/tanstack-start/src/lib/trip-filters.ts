@@ -11,6 +11,14 @@ export const ALL_MODE_GROUPS: readonly TransportModeGroup[] = [
 	"air",
 ];
 
+/**
+ * Modes a search starts with unless the user has picked their own defaults
+ * in settings. Air is excluded — it's rarely a useful option and clutters
+ * results for the domestic/regional trips this app is mostly used for.
+ */
+export const DEFAULT_MODE_GROUPS: readonly TransportModeGroup[] =
+	ALL_MODE_GROUPS.filter((group) => group !== "air");
+
 export const MODE_GROUP_LABELS: Record<TransportModeGroup, string> = {
 	rail: "Train",
 	bus: "Bus",
@@ -47,14 +55,24 @@ export interface TripFilters {
 }
 
 export const DEFAULT_FILTERS: TripFilters = {
-	modes: [...ALL_MODE_GROUPS],
+	modes: [...DEFAULT_MODE_GROUPS],
 	fewerTransfers: false,
 	lessWalking: false,
 };
 
-export function isDefaultFilters(filters: TripFilters): boolean {
+function sameModeSet(
+	a: readonly TransportModeGroup[],
+	b: readonly TransportModeGroup[],
+): boolean {
+	return a.length === b.length && a.every((group) => b.includes(group));
+}
+
+export function isDefaultFilters(
+	filters: TripFilters,
+	defaultModes: readonly TransportModeGroup[] = DEFAULT_MODE_GROUPS,
+): boolean {
 	return (
-		filters.modes.length === ALL_MODE_GROUPS.length &&
+		sameModeSet(filters.modes, defaultModes) &&
 		!filters.fewerTransfers &&
 		!filters.lessWalking
 	);
@@ -67,13 +85,19 @@ export interface TripFilterSearch {
 	lessWalking?: boolean;
 }
 
-function isModeGroup(value: unknown): value is TransportModeGroup {
+export function isModeGroup(value: unknown): value is TransportModeGroup {
 	return (
 		typeof value === "string" &&
 		(ALL_MODE_GROUPS as readonly string[]).includes(value)
 	);
 }
 
+/**
+ * Validates the raw `modes` search param. It can't fold an explicit
+ * mode list down to "unset" by comparing against a default set — the
+ * default is user-configurable (via settings) and unknown here, since
+ * this also runs on the server during route matching.
+ */
 export function parseTripFilterSearch(
 	search: Record<string, unknown>,
 ): TripFilterSearch {
@@ -82,7 +106,7 @@ export function parseTripFilterSearch(
 	const modes = (Array.isArray(rawModes) ? rawModes : [rawModes]).filter(
 		isModeGroup,
 	);
-	if (modes.length > 0 && modes.length < ALL_MODE_GROUPS.length) {
+	if (modes.length > 0) {
 		result.modes = ALL_MODE_GROUPS.filter((g) => modes.includes(g));
 	}
 	if (search.fewerTransfers === true) result.fewerTransfers = true;
@@ -90,17 +114,23 @@ export function parseTripFilterSearch(
 	return result;
 }
 
-export function filtersFromSearch(search: TripFilterSearch): TripFilters {
+export function filtersFromSearch(
+	search: TripFilterSearch,
+	defaultModes: readonly TransportModeGroup[] = DEFAULT_MODE_GROUPS,
+): TripFilters {
 	return {
-		modes: search.modes ?? [...ALL_MODE_GROUPS],
+		modes: search.modes ?? [...defaultModes],
 		fewerTransfers: search.fewerTransfers ?? false,
 		lessWalking: search.lessWalking ?? false,
 	};
 }
 
-export function searchFromFilters(filters: TripFilters): TripFilterSearch {
+export function searchFromFilters(
+	filters: TripFilters,
+	defaultModes: readonly TransportModeGroup[] = DEFAULT_MODE_GROUPS,
+): TripFilterSearch {
 	const search: TripFilterSearch = {};
-	if (filters.modes.length < ALL_MODE_GROUPS.length) {
+	if (!sameModeSet(filters.modes, defaultModes)) {
 		search.modes = filters.modes;
 	}
 	if (filters.fewerTransfers) search.fewerTransfers = true;
