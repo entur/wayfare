@@ -10,9 +10,22 @@ import { parseCustomerNumber } from "../src/schemas.js";
 import { checkoutFixture } from "../src/simulator.js";
 import { testConfig } from "./helpers.js";
 
+const legDefaults = {
+  distance: { value: 1000, unit: "METER" as const },
+  price: {
+    basePriceComponent: { startUpPrice: 10, distancePrice: 11 },
+    discountedPriceComponent: { startUpPrice: 10, distancePrice: 11 },
+    finalPriceComponent: { startUpPrice: 10, distancePrice: 11 },
+  },
+  analysisMeta: { confidenceLevel: 0.95 },
+};
+
 const journey = {
   journeyId: { uuid: "4a387310-01bf-4ebe-a4a4-0b70bb92412b" },
   stoppedTime: "2026-07-29T08:20:00.000Z",
+  analysisMeta: { confidenceLevel: 0.95 },
+  startedReason: "USER_INITIATED" as const,
+  stoppedReason: { type: "USER_INITIATED" as const },
   cost: [
     {
       amount: { amount: 21, currency: "NOK" as const },
@@ -22,14 +35,18 @@ const journey = {
           userType: "ADULT" as const,
           description: [{ language: "ENG" as const, text: "Adult" }],
         },
+        luggage: [],
       },
+      isCoPassenger: false,
       legs: [
         {
+          ...legDefaults,
           transportMode: "BUS" as const,
           startedAt: "2026-07-29T08:00:00.000Z",
           legZoneInfo: {
             fromZone: { id: "1", name: "A" },
             toZone: { id: "2", name: "B" },
+            totalZoneCount: 2,
           },
         },
       ],
@@ -42,14 +59,18 @@ const journey = {
           userType: "CHILD" as const,
           description: [{ language: "ENG" as const, text: "Child" }],
         },
+        luggage: [],
       },
+      isCoPassenger: true,
       legs: [
         {
+          ...legDefaults,
           transportMode: "BUS" as const,
           startedAt: "2026-07-29T08:00:00.000Z",
           legZoneInfo: {
             fromZone: { id: "1", name: "A" },
             toZone: { id: "2", name: "B" },
+            totalZoneCount: 2,
           },
         },
       ],
@@ -108,11 +129,13 @@ describe("mobile DTO mapping", () => {
           legs: [
             ...cost.legs,
             {
+              ...legDefaults,
               transportMode: "TRAIN" as const,
               startedAt: "2026-07-29T08:10:00.000Z",
               legZoneInfo: {
                 fromZone: { id: "2", name: "B" },
                 toZone: { id: "3", name: "C" },
+                totalZoneCount: 2,
               },
             },
           ],

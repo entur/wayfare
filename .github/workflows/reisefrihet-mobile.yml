@@ -40,9 +40,10 @@ jobs:
           cache: pnpm
           cache-dependency-path: bffs/reisefrihet-fastify/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm contract:generate
-      - run: git diff --exit-code -- src/generated/reisefrihet.ts
       - run: pnpm check
+      # src/generated/reisefrihet.ts is checked against the live staging spec by
+      # reisefrihet-drift-checks.yml on a schedule, not gated here, since that
+      # spec can drift independently of any PR in this repo.
       - run: pnpm openapi:generate
       - run: git diff --exit-code -- contract/mobile.openapi.json
 
@@ -64,5 +65,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm api:generate
       - run: git diff --exit-code -- src/api/schema.ts
+      # expo-doctor's "expected" versions are fetched live from Expo's SDK bundle
+      # and can drift within the same day, independent of any change in this repo.
+      # Non-blocking here; reisefrihet-drift-checks.yml tracks it on a schedule.
       - run: pnpm run doctor
+        continue-on-error: true
       - run: pnpm check
