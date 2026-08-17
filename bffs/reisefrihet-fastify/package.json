@@ -25,7 +25,7 @@
     "@fastify/swagger": "^9.8.1",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@sinclair/typebox": "^0.34.52",
-    "fastify": "^5.11.2",
+    "fastify": "^5.11.3",
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
@@ -34,7 +34,7 @@
     "eslint": "^9.39.5",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.9.6",
-    "tsx": "^4.23.7",
+    "tsx": "^4.23.12",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.66.0",
     "vitest": "^4.1.10"
