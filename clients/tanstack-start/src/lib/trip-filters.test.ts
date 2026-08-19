@@ -84,7 +84,7 @@ describe("replacement bus filtering", () => {
 });
 
 describe("transport mode requests", () => {
-	it("requests both water and ferry modes for the water group", () => {
+	it("requests only the water mode for the water group", () => {
 		const waterOnly: TripFilters = {
 			...DEFAULT_FILTERS,
 			modes: ["water"],
@@ -94,7 +94,7 @@ describe("transport mode requests", () => {
 			waterOnly,
 		).modes?.transportModes.map(({ transportMode }) => transportMode);
 
-		expect(modes).toEqual(["water", "ferry"]);
+		expect(modes).toEqual(["water"]);
 	});
 });
 

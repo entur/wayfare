@@ -31,7 +31,9 @@ const MODE_GROUP_TO_TRANSPORT_MODES: Record<TransportModeGroup, string[]> = {
 	rail: ["rail"],
 	bus: ["bus", "coach"],
 	metroTram: ["metro", "tram"],
-	water: ["water", "ferry"],
+	// JourneyPlanner's TransportMode input enum has no "ferry" value — it's
+	// only a leg-level output mode, subsumed by "water" for filtering.
+	water: ["water"],
 	air: ["air"],
 };
 
