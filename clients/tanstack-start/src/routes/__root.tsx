@@ -69,10 +69,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 								<div className="flex h-screen flex-col overflow-hidden">
 									<Header />
 									<div className="mobile-tabbar-pad flex flex-1 flex-col overflow-y-auto">
-										{children}
+										<div className="flex flex-1 flex-col">{children}</div>
+										<Footer />
 									</div>
 									<MobileTabBar />
-									<Footer />
 								</div>
 							</SearchFormProvider>
 						</ProfileProvider>
