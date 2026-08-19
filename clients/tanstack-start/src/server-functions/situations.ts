@@ -33,7 +33,7 @@ interface FetchJourneySituationsInput {
 
 export const fetchJourneySituations = createServerFn({ method: "POST" })
 	.middleware([devConfigMiddleware])
-	.inputValidator((data: FetchJourneySituationsInput) => data)
+	.validator((data: FetchJourneySituationsInput) => data)
 	.handler(async ({ data, context }): Promise<PtSituationElement[]> => {
 		const journeyPlanner = createJourneyPlannerClient(context.devConfig);
 		const ids = [...new Set(data.serviceJourneyIds.filter(Boolean))];

@@ -11,7 +11,7 @@ import type {
 
 export const purchaseOffers = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: PurchaseOffersRequest) => data)
+	.validator((data: PurchaseOffersRequest) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		const body: PurchaseOffersRequest = {
@@ -26,7 +26,7 @@ export const purchaseOffers = createServerFn({ method: "POST" })
 
 export const confirmPackage = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: ConfirmPackageRequest) => data)
+	.validator((data: ConfirmPackageRequest) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.post<ConfirmedPackage>(
@@ -37,7 +37,7 @@ export const confirmPackage = createServerFn({ method: "POST" })
 
 export const cancelPackage = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: CancelPackageRequest) => data)
+	.validator((data: CancelPackageRequest) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.post<ConfirmedPackage>(
@@ -48,7 +48,7 @@ export const cancelPackage = createServerFn({ method: "POST" })
 
 export const claimRefund = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: ClaimRefundRequest) => data)
+	.validator((data: ClaimRefundRequest) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.post<{ status?: string }>(

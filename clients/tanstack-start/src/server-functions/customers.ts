@@ -11,7 +11,7 @@ import {
 
 export const getCustomers = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((data: CustomerSearchParams) => data)
+	.validator((data: CustomerSearchParams) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		const params: Record<string, string> = {};
@@ -29,7 +29,7 @@ export const getCustomers = createServerFn({ method: "GET" })
 
 export const getCustomer = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((data: { customerId: string }) => data)
+	.validator((data: { customerId: string }) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		const raw = await omsa.get<OmsaCustomer>(
@@ -45,7 +45,7 @@ export interface UpdateCustomerRequest {
 
 export const updateCustomer = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: UpdateCustomerRequest) => data)
+	.validator((data: UpdateCustomerRequest) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.put<OmsaCustomer>(
