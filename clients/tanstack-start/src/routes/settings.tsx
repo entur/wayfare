@@ -405,6 +405,7 @@ function DefaultTripModesSection() {
 }
 
 function AppTab() {
+	const { data: resolved } = useResolvedDevConfig();
 	const [cleared, setCleared] = useState(false);
 	const [count, setCount] = useState(0);
 
@@ -445,6 +446,25 @@ function AppTab() {
 					</Button>
 				</div>
 			</section>
+
+			{resolved?.enturLoginEnabled && (
+				<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+					<h2 className="mb-4 text-sm font-semibold text-wayfare-text">
+						Entur login
+					</h2>
+					<div className="flex items-center justify-between">
+						<p className="m-0 text-sm text-wayfare-text-secondary">
+							Signed in with your Entur account
+						</p>
+						<a
+							href="/auth/logout"
+							className="inline-flex items-center justify-center gap-2 rounded-xl border border-wayfare-line bg-transparent px-5 py-2.5 text-sm font-semibold text-wayfare-text transition-colors hover:bg-wayfare-bg"
+						>
+							Log out
+						</a>
+					</div>
+				</section>
+			)}
 
 			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
 				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">About</h2>

@@ -12,6 +12,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "srvx";
 import { serveStatic } from "srvx/static";
+import {
+	authorizeRequest,
+	handleAuthRoutes,
+	isEnturLoginRequired,
+} from "./src/server/access-gate.ts";
 
 process.env.NODE_ENV ??= "production";
 
@@ -51,6 +56,18 @@ serve({
 					status: 200,
 					headers: { "content-type": "application/json" },
 				});
+			}
+
+			// Entur employee login gate — see src/server/access-gate.ts. Only
+			// active when REQUIRE_ENTUR_LOGIN=true (a published/locked
+			// deployment); local dev and the eventual public mock deployment
+			// never hit this at all.
+			if (isEnturLoginRequired()) {
+				const authRouteResponse = await handleAuthRoutes(request);
+				if (authRouteResponse) return authRouteResponse;
+
+				const denied = await authorizeRequest(request);
+				if (denied) return denied;
 			}
 
 			return await withAssetCaching(request, () => serverEntry.fetch(request));

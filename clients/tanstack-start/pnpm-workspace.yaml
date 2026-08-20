@@ -7,8 +7,14 @@ strictDepBuilds: true
 savePrefix: ""
 
 allowBuilds:
+  # Native bindings for @entur-partner/permission-client-node's optional
+  # WebSocket/STOMP transport (CommunicationType.SocketJS), which this app
+  # doesn't use — it relies on the client's default REST polling refresh.
+  bufferutil: false
+  es5-ext: false
   esbuild: true
   lightningcss: true
+  utf-8-validate: false
 
 overrides:
   "@tanstack/router-core": 1.171.19

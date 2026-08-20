@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { isEnturLoginRequired } from "../server/access-gate";
 import { devConfigMiddleware } from "../server/middleware";
 import {
 	areDevConfigOverridesAllowed,
@@ -28,6 +29,8 @@ export interface ResolvedDevConfig {
 	overridesEnabled: boolean;
 	/** Env modes the client may switch to. A single-item list when locked. */
 	allowedEnvModes: OmsaRuntimeMode[];
+	/** Whether this deployment sits behind the Entur employee login gate. */
+	enturLoginEnabled: boolean;
 	envDefaults: {
 		mode: string;
 		distributionChannel: string;
@@ -51,6 +54,7 @@ export const getResolvedDevConfig = createServerFn({ method: "GET" })
 			clientFingerprint: fingerprintClientId(config.clientId),
 			overridesEnabled,
 			allowedEnvModes: overridesEnabled ? ALL_ENV_MODES : [config.mode],
+			enturLoginEnabled: isEnturLoginRequired(),
 			envDefaults: {
 				mode: process.env.OMSA_ENV_MODE ?? "dev",
 				distributionChannel:
