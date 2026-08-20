@@ -38,20 +38,30 @@ async function withAssetCaching(request, next) {
 
 serve({
 	port: process.env.PORT,
-	// Bind to all interfaces by default. Set HOST=127.0.0.1 for a deployment
-	// where a sidecar (e.g. an oauth2-proxy gating employee access) is meant
-	// to be the only thing this pod exposes publicly.
+	// Bind to all interfaces by default. Set HOST=127.0.0.1 if this pod ever
+	// sits behind a sidecar meant to be its only public entry point.
 	hostname: process.env.HOST,
-	fetch(request) {
-		const { pathname } = new URL(request.url);
-		// Infra-only endpoint: intentionally does not call any upstream, so it
-		// stays meaningful as a k8s liveness probe even when OMSA is down.
-		if (pathname === "/health" || pathname === "/healthz") {
-			return new Response(JSON.stringify({ status: "ok" }), {
-				status: 200,
-				headers: { "content-type": "application/json" },
-			});
+	async fetch(request) {
+		try {
+			const { pathname } = new URL(request.url);
+			// Infra-only endpoint: intentionally does not call any upstream, so
+			// it stays meaningful as a k8s liveness probe even when OMSA is down.
+			if (pathname === "/health" || pathname === "/healthz") {
+				return new Response(JSON.stringify({ status: "ok" }), {
+					status: 200,
+					headers: { "content-type": "application/json" },
+				});
+			}
+
+			return await withAssetCaching(request, () => serverEntry.fetch(request));
+		} catch (error) {
+			// srvx's Node adapter does not catch synchronous/async throws from
+			// this handler — an uncaught one takes the whole process down,
+			// which would fail every other request (including /health) along
+			// with it. A single request's error must stay a single request's
+			// error.
+			console.error("[server] unhandled request error:", error);
+			return new Response("Internal Server Error", { status: 500 });
 		}
-		return withAssetCaching(request, () => serverEntry.fetch(request));
 	},
 });
