@@ -52,8 +52,7 @@ export async function authorizeRequest(
 	if (!(await hasStagingAccess(idToken))) {
 		return new Response(
 			"You're signed in, but your Entur account hasn't been granted " +
-				"wayfare-staging-access. Ask a Wayfare admin to assign it in " +
-				"Permission Store.",
+				"wayfare.web. Ask a Wayfare admin to assign it in Permission Store.",
 			{ status: 403, headers: { "content-type": "text/plain" } },
 		);
 	}

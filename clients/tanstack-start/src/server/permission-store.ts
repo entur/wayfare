@@ -21,8 +21,8 @@ import PermissionClient, {
  * organisation) and attach it to a role that specific employee accounts get
  * assigned to.
  */
-export const WAYFARE_STAGING_ACCESS: BusinessCapability = {
-	operation: "wayfare-staging-access",
+export const WAYFARE_WEB_ACCESS: BusinessCapability = {
+	operation: "wayfare.web",
 	access: "les",
 };
 
@@ -53,7 +53,7 @@ function getCache(): Promise<AuthorizeCache> {
 		);
 		return PermissionClient(
 			AuthorizeCacheType.IN_MEMORY,
-			[WAYFARE_STAGING_ACCESS],
+			[WAYFARE_WEB_ACCESS],
 			repository,
 		);
 	})();
@@ -62,7 +62,7 @@ function getCache(): Promise<AuthorizeCache> {
 
 /**
  * Whether the given (already-verified) Entur ID token's subject has been
- * granted WAYFARE_STAGING_ACCESS. Returns true unconditionally when
+ * granted WAYFARE_WEB_ACCESS. Returns true unconditionally when
  * Permission Store isn't configured yet — see .env.example — so the login
  * gate alone (any valid Entur/partner identity) still works before the
  * capability is provisioned, rather than hard-failing on a missing URL.
@@ -73,6 +73,6 @@ export async function hasStagingAccess(idToken: string): Promise<boolean> {
 	const cache = await getCache();
 	return cache.checkBusinessCapabilityPermission(
 		authoritySubject,
-		WAYFARE_STAGING_ACCESS,
+		WAYFARE_WEB_ACCESS,
 	);
 }
