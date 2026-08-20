@@ -145,6 +145,24 @@ function resolveEnvField(
 	return process.env[fieldName];
 }
 
+/**
+ * Whether client-supplied dev-config overrides (env mode, Entur headers,
+ * recommendation-control tweaks) are honoured at all.
+ *
+ * Defaults to enabled, matching local development (`pnpm dev`), where
+ * switching freely between dev/staging/local-dev/local-staging is the point.
+ * A published deployment sets ALLOW_DEV_CONFIG_OVERRIDES=false so the running
+ * mode is fixed by OMSA_ENV_MODE alone: a client-supplied cookie can no
+ * longer switch credentials, repoint the app at localhost, or override any
+ * Entur header. This is enforced server-side (see middleware.ts) regardless
+ * of what the UI offers.
+ */
+export function areDevConfigOverridesAllowed(): boolean {
+	return (
+		process.env.ALLOW_DEV_CONFIG_OVERRIDES?.trim().toLowerCase() !== "false"
+	);
+}
+
 export function getRuntimeConfig(
 	overrides?: DevConfigOverrides,
 ): RuntimeConfig {
