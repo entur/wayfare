@@ -17,9 +17,6 @@ function parseDevConfigCookie(): DevConfigOverrides {
 		const pattern = new RegExp(`(?:^|;\\s*)${DEV_CONFIG_COOKIE_NAME}=([^;]+)`);
 		const match = pattern.exec(cookieHeader);
 		if (!match?.[1]) return {};
-		// The cookie is client-writable and unsigned, so its contents are
-		// untrusted input: validate/narrow it the same way the client does
-		// before it can influence which env mode or Entur headers a request uses.
 		return sanitizeDevConfigOverrides(JSON.parse(decodeURIComponent(match[1])));
 	} catch {
 		return {};

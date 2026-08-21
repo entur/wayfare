@@ -5,8 +5,6 @@ import viteReact from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 const config = defineConfig(({ mode }) => ({
-	// Devtools are dev-only tooling; keep them out of production builds
-	// entirely rather than relying on runtime guards alone.
 	plugins: [
 		...(mode === "development" ? [devtools()] : []),
 		tailwindcss(),

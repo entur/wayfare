@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-// Production entry point for the built TanStack Start server.
-//
-// `vite build` emits a server-side fetch handler (dist/server/server.js) and
-// a static client bundle (dist/client/), but neither is wired to an HTTP
-// listener on its own — `vite preview` only works locally because the
-// TanStack Start Vite plugin wires that up internally for smoke-testing.
-// This file does the equivalent wiring for a real deployment: a lightweight
-// health check, static file serving for dist/client, and the built server
-// handler, listening on PORT (default 3000, srvx's default).
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "srvx";
@@ -33,9 +24,6 @@ const serveClientAssets = serveStatic({ dir: clientDir });
 
 await initializeAccessGate();
 
-// Vite content-hashes everything under /assets/, so an ungated deployment can
-// cache those responses for a long time. The access-gated staging deployment
-// overrides this below because every response behind the gate must be no-store.
 async function withAssetCaching(request, next) {
 	const response = await serveClientAssets(request, next);
 	if (new URL(request.url).pathname.startsWith("/assets/")) {
@@ -46,14 +34,10 @@ async function withAssetCaching(request, next) {
 
 serve({
 	port: process.env.PORT,
-	// Bind to all interfaces by default. Set HOST=127.0.0.1 if this pod ever
-	// sits behind a sidecar meant to be its only public entry point.
 	hostname: process.env.HOST,
 	async fetch(request) {
 		try {
 			const { pathname } = new URL(request.url);
-			// Infra-only endpoint: intentionally does not call any upstream, so
-			// it stays meaningful as a k8s liveness probe even when OMSA is down.
 			if (
 				pathname === "/health" ||
 				pathname === "/healthz" ||
@@ -75,10 +59,6 @@ serve({
 				);
 			}
 
-			// Entur employee login gate — see src/server/access-gate.ts. Only
-			// active when REQUIRE_ENTUR_LOGIN=true (a published/locked
-			// deployment); local dev and the eventual public mock deployment
-			// never hit this at all.
 			if (isEnturLoginRequired()) {
 				const authRouteResponse = await handleAuthRoutes(request);
 				if (authRouteResponse) return authRouteResponse;
@@ -95,11 +75,6 @@ serve({
 			}
 			return response;
 		} catch (error) {
-			// srvx's Node adapter does not catch synchronous/async throws from
-			// this handler — an uncaught one takes the whole process down,
-			// which would fail every other request (including /health) along
-			// with it. A single request's error must stay a single request's
-			// error.
 			console.error("[server] unhandled request error:", error);
 			return new Response("Internal Server Error", {
 				status: 500,

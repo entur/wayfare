@@ -22,14 +22,8 @@ export interface ResolvedDevConfig {
 	effectiveJourneyPlannerUrl: string;
 	effectiveGeocoderUrl: string;
 	clientFingerprint: string;
-	/**
-	 * Whether the client is allowed to override env mode / Entur headers at
-	 * all. False on a published deployment (see areDevConfigOverridesAllowed).
-	 */
 	overridesEnabled: boolean;
-	/** Env modes the client may switch to. A single-item list when locked. */
 	allowedEnvModes: OmsaRuntimeMode[];
-	/** Whether this deployment sits behind the Entur employee login gate. */
 	enturLoginEnabled: boolean;
 	envDefaults: {
 		mode: string;

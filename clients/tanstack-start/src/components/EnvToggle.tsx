@@ -36,7 +36,6 @@ export default function EnvToggle() {
 		setOverrides({ ...overrides, envMode: next });
 	}
 
-	// Nothing to switch to on a locked (published) deployment.
 	if (!allowedModes || allowedModes.length <= 1) return null;
 	if (!iconSrc) return null;
 

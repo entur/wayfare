@@ -6,11 +6,6 @@ import {
 	type ResolvedDevConfig,
 } from "../server-functions/dev-config";
 
-/**
- * Fetches the server's resolved dev-config (active mode, whether overrides
- * are allowed at all, which modes may be switched to, resolved endpoints).
- * Shared query key/options so every consumer sees the same cached result.
- */
 export function useResolvedDevConfig() {
 	const { overrides } = useDevConfig();
 	return useQuery<ResolvedDevConfig>({

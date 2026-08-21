@@ -35,9 +35,6 @@ const ALLOWED_RECOMMENDATION_TYPES: RecommendationType[] = [
 	"NON_FLEXIBLE",
 	"CHEAPEST",
 ];
-// Entur channel/client-name/POS identifiers look like "WAY:DistributionChannel:App".
-// Bounding to this charset keeps them from becoming a place to smuggle
-// arbitrary values into headers sent to real Entur upstreams.
 const SAFE_TOKEN_PATTERN = /^[A-Za-z0-9:_. -]{1,128}$/;
 
 function sanitizeToken(value: unknown): string | undefined {
@@ -47,13 +44,6 @@ function sanitizeToken(value: unknown): string | undefined {
 	return trimmed;
 }
 
-/**
- * Validates and narrows an arbitrary value (parsed from localStorage or a
- * client-supplied cookie) down to a well-formed DevConfigOverrides. Anything
- * that doesn't match the expected shape is dropped rather than passed
- * through, since this is the boundary between untrusted client input and
- * values that get forwarded as HTTP headers / OMSA request fields.
- */
 export function sanitizeDevConfigOverrides(raw: unknown): DevConfigOverrides {
 	if (typeof raw !== "object" || raw === null) return {};
 	const input = raw as Record<string, unknown>;
@@ -135,12 +125,6 @@ export function clearDevConfigOverrides(): void {
 	syncCookie({});
 }
 
-/**
- * Cached fingerprint of the active OAuth client, scoped by envMode. This is
- * server-derived data (fetched via getResolvedDevConfig), kept in its own
- * localStorage key so the synchronous ticket storage helpers can read it. It is
- * deliberately NOT part of DevConfigOverrides / the cookie.
- */
 export function clientFingerprintKey(envMode?: string): string {
 	return envMode ? `wayfare_client_fp_${envMode}` : "wayfare_client_fp";
 }
@@ -162,7 +146,7 @@ export function setClientFingerprint(
 	try {
 		localStorage.setItem(clientFingerprintKey(envMode), fingerprint);
 	} catch {
-		// storage may be unavailable
+		// Ignore unavailable storage.
 	}
 }
 

@@ -76,7 +76,6 @@ function readCookie(request: Request, name: string): string | undefined {
 	return match?.[1];
 }
 
-/** Same-origin relative paths only; never redirect a login to another host. */
 export function sanitizeReturnTo(value: string | null): string {
 	if (!value) return "/";
 	if (
@@ -255,7 +254,6 @@ async function verifyIdToken(idToken: string): Promise<void> {
 	});
 }
 
-/** The verified session token for the current request, or undefined if invalid. */
 export async function getSessionIdToken(
 	request: Request,
 ): Promise<string | undefined> {

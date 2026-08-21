@@ -670,9 +670,6 @@ function DeveloperTab() {
 		if (savedTimerRef.current !== null) clearTimeout(savedTimerRef.current);
 	}
 
-	// Published deployments fix OMSA_ENV_MODE server-side and ignore the dev-config
-	// cookie entirely (see areDevConfigOverridesAllowed) — nothing here is editable,
-	// so don't show controls that would silently have no effect.
 	if (!overridesEnabled) {
 		return (
 			<div className="space-y-4">
@@ -681,11 +678,11 @@ function DeveloperTab() {
 						Environment
 					</h2>
 					<p className="text-sm text-wayfare-text-secondary">
-						This deployment is locked to{" "}
+						Locked to{" "}
 						<span className="font-mono text-wayfare-text">
 							{resolved?.effectiveMode ?? "…"}
 						</span>
-						. Dev-config overrides are disabled.
+						. Overrides are disabled.
 					</p>
 				</section>
 				{resolved && <ResolvedEndpointsSection resolved={resolved} />}
