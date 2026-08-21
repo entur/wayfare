@@ -15,6 +15,8 @@ import { serveStatic } from "srvx/static";
 import {
 	authorizeRequest,
 	handleAuthRoutes,
+	initializeAccessGate,
+	isAccessGateReady,
 	isEnturLoginRequired,
 } from "./src/server/access-gate.ts";
 
@@ -29,10 +31,11 @@ const { default: serverEntry } = await import(
 
 const serveClientAssets = serveStatic({ dir: clientDir });
 
-// Vite content-hashes everything under /assets/, so it's safe to cache
-// those responses for a long time. Everything else (index.html,
-// manifest.json, stops-geo.json, ...) keeps whatever serveStatic sends by
-// default.
+await initializeAccessGate();
+
+// Vite content-hashes everything under /assets/, so an ungated deployment can
+// cache those responses for a long time. The access-gated staging deployment
+// overrides this below because every response behind the gate must be no-store.
 async function withAssetCaching(request, next) {
 	const response = await serveClientAssets(request, next);
 	if (new URL(request.url).pathname.startsWith("/assets/")) {
@@ -51,11 +54,25 @@ serve({
 			const { pathname } = new URL(request.url);
 			// Infra-only endpoint: intentionally does not call any upstream, so
 			// it stays meaningful as a k8s liveness probe even when OMSA is down.
-			if (pathname === "/health" || pathname === "/healthz") {
+			if (
+				pathname === "/health" ||
+				pathname === "/healthz" ||
+				pathname === "/health/liveness"
+			) {
 				return new Response(JSON.stringify({ status: "ok" }), {
 					status: 200,
 					headers: { "content-type": "application/json" },
 				});
+			}
+			if (pathname === "/health/readiness") {
+				const ready = isAccessGateReady();
+				return new Response(
+					JSON.stringify({ status: ready ? "ok" : "not_ready" }),
+					{
+						status: ready ? 200 : 503,
+						headers: { "content-type": "application/json" },
+					},
+				);
 			}
 
 			// Entur employee login gate — see src/server/access-gate.ts. Only
@@ -70,7 +87,13 @@ serve({
 				if (denied) return denied;
 			}
 
-			return await withAssetCaching(request, () => serverEntry.fetch(request));
+			const response = await withAssetCaching(request, () =>
+				serverEntry.fetch(request),
+			);
+			if (isEnturLoginRequired()) {
+				response.headers.set("cache-control", "no-store");
+			}
+			return response;
 		} catch (error) {
 			// srvx's Node adapter does not catch synchronous/async throws from
 			// this handler — an uncaught one takes the whole process down,
@@ -78,7 +101,12 @@ serve({
 			// with it. A single request's error must stay a single request's
 			// error.
 			console.error("[server] unhandled request error:", error);
-			return new Response("Internal Server Error", { status: 500 });
+			return new Response("Internal Server Error", {
+				status: 500,
+				headers: isEnturLoginRequired()
+					? { "cache-control": "no-store" }
+					: undefined,
+			});
 		}
 	},
 });

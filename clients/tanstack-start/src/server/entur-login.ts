@@ -1,15 +1,16 @@
-// Entur employee login for a published (locked) deployment — see
-// areDevConfigOverridesAllowed for the sibling "is this deployment locked"
-// concept. This is a hand-rolled Authorization Code + PKCE flow against
-// Entur's partner Auth0 tenant, the same tenant and library-free approach
-// real Entur GKE apps (kafka-admin-frontend, abt-backoffice) use for
-// employee-facing login — those do it client-side with @auth0/auth0-spa-js
-// because they're plain SPAs with a separate backend. This app has a real
-// server (server.mjs) in front of everything, so the flow runs there
-// instead: an HttpOnly session cookie, never a token sitting in localStorage
-// reachable by XSS.
-import { createHash, randomBytes } from "node:crypto";
 import { createRemoteJWKSet, jwtVerify } from "jose";
+import {
+	authorizationCodeGrant,
+	buildAuthorizationUrl,
+	buildEndSessionUrl,
+	type Configuration,
+	calculatePKCECodeChallenge,
+	discovery,
+	randomNonce,
+	randomPKCECodeVerifier,
+	randomState,
+} from "openid-client";
+import { requirePublishedDeploymentConfig } from "./deployment-config.ts";
 
 const SESSION_COOKIE_NAME = "wayfare_session";
 const PENDING_COOKIE_NAME = "wayfare_login_pending";
@@ -17,46 +18,41 @@ const PENDING_MAX_AGE_SECONDS = 5 * 60;
 
 interface PendingLogin {
 	state: string;
+	nonce: string;
 	codeVerifier: string;
 	returnTo: string;
 }
 
-export interface EnturLoginConfig {
-	domain: string;
-	clientId: string;
-}
+let oidcConfiguration:
+	| { key: string; promise: Promise<Configuration> }
+	| undefined;
+let jwks:
+	| { domain: string; value: ReturnType<typeof createRemoteJWKSet> }
+	| undefined;
 
-function partnerDomainForMode(mode: string | undefined): string {
-	return mode === "staging" || mode === "local-staging"
-		? "partner.staging.entur.org"
-		: "partner.dev.entur.org";
-}
-
-/**
- * Login is deliberately NOT wired into the per-request devConfig override
- * mechanism (see runtime-config.ts) — the domain/client id a published
- * deployment logs in against must not be something a client-supplied cookie
- * can influence, so this reads OMSA_ENV_MODE directly rather than going
- * through getRuntimeConfig().
- */
-export function getEnturLoginConfig(): EnturLoginConfig {
-	const domain =
-		process.env.ENTUR_LOGIN_DOMAIN ??
-		partnerDomainForMode(process.env.OMSA_ENV_MODE);
-	const clientId = process.env.ENTUR_LOGIN_CLIENT_ID;
-	if (!clientId) {
-		throw new Error(
-			"REQUIRE_ENTUR_LOGIN is enabled but ENTUR_LOGIN_CLIENT_ID is not set. " +
-				"This is the interactive SPA client id registered against " +
-				`${domain} — it isn't self-service via .entur/ (that only provisions ` +
-				"M2M clients), so it has to be requested and set explicitly.",
-		);
+function getOidcConfiguration(): Promise<Configuration> {
+	const config = requirePublishedDeploymentConfig();
+	const key = `${config.loginDomain}:${config.loginClientId}:${config.loginClientSecret}`;
+	if (oidcConfiguration?.key !== key) {
+		oidcConfiguration = {
+			key,
+			promise: discovery(
+				new URL(`https://${config.loginDomain}`),
+				config.loginClientId,
+				config.loginClientSecret,
+			),
+		};
 	}
-	return { domain, clientId };
+	return oidcConfiguration.promise;
 }
 
-function cookiesAreSecure(): boolean {
-	return process.env.COOKIE_SECURE?.trim().toLowerCase() !== "false";
+export async function initializeEnturLogin(): Promise<void> {
+	await getOidcConfiguration();
+}
+
+function buildPublicUrl(pathname: string): URL {
+	const { publicOrigin } = requirePublishedDeploymentConfig();
+	return new URL(pathname, publicOrigin);
 }
 
 function buildCookie(
@@ -64,15 +60,14 @@ function buildCookie(
 	value: string,
 	maxAgeSeconds: number,
 ): string {
-	const parts = [
+	return [
 		`${name}=${value}`,
 		"Path=/",
 		`Max-Age=${maxAgeSeconds}`,
 		"HttpOnly",
 		"SameSite=Lax",
-	];
-	if (cookiesAreSecure()) parts.push("Secure");
-	return parts.join("; ");
+		"Secure",
+	].join("; ");
 }
 
 function readCookie(request: Request, name: string): string | undefined {
@@ -81,63 +76,72 @@ function readCookie(request: Request, name: string): string | undefined {
 	return match?.[1];
 }
 
-function base64url(input: Buffer): string {
-	return input
-		.toString("base64")
-		.replace(/\+/g, "-")
-		.replace(/\//g, "_")
-		.replace(/=+$/, "");
-}
-
-/** Same-origin relative paths only — never let a login redirect target an arbitrary host. */
-function sanitizeReturnTo(value: string | null): string {
+/** Same-origin relative paths only; never redirect a login to another host. */
+export function sanitizeReturnTo(value: string | null): string {
 	if (!value) return "/";
 	if (
 		!value.startsWith("/") ||
 		value.startsWith("//") ||
-		value.includes("://")
+		value.includes("://") ||
+		value.includes("\\")
 	) {
 		return "/";
 	}
 	return value;
 }
 
+function isPendingLogin(value: unknown): value is PendingLogin {
+	if (!value || typeof value !== "object") return false;
+	const candidate = value as Record<string, unknown>;
+	return (
+		typeof candidate.state === "string" &&
+		typeof candidate.nonce === "string" &&
+		typeof candidate.codeVerifier === "string" &&
+		typeof candidate.returnTo === "string"
+	);
+}
+
+function noStoreHeaders(initial?: HeadersInit): Headers {
+	const headers = new Headers(initial);
+	headers.set("cache-control", "no-store");
+	headers.set("pragma", "no-cache");
+	headers.set("x-content-type-options", "nosniff");
+	return headers;
+}
+
 export function buildLoginRedirect(originalUrl: URL): Response {
-	const loginUrl = new URL("/auth/login", originalUrl.origin);
+	const loginUrl = buildPublicUrl("/auth/login");
 	loginUrl.searchParams.set(
 		"returnTo",
 		sanitizeReturnTo(originalUrl.pathname + originalUrl.search),
 	);
 	return new Response(null, {
 		status: 302,
-		headers: { location: loginUrl.toString() },
+		headers: noStoreHeaders({ location: loginUrl.toString() }),
 	});
 }
 
-export function startLogin(request: Request): Response {
-	const { domain, clientId } = getEnturLoginConfig();
-	const url = new URL(request.url);
-	const returnTo = sanitizeReturnTo(url.searchParams.get("returnTo"));
-
-	const state = base64url(randomBytes(16));
-	const codeVerifier = base64url(randomBytes(32));
-	const codeChallenge = base64url(
-		createHash("sha256").update(codeVerifier).digest(),
+export async function startLogin(request: Request): Promise<Response> {
+	const returnTo = sanitizeReturnTo(
+		new URL(request.url).searchParams.get("returnTo"),
 	);
+	const state = randomState();
+	const nonce = randomNonce();
+	const codeVerifier = randomPKCECodeVerifier();
+	const codeChallenge = await calculatePKCECodeChallenge(codeVerifier);
+	const pending: PendingLogin = { state, nonce, codeVerifier, returnTo };
+	const redirectUri = buildPublicUrl("/auth/callback").toString();
+	const authorizationUrl = buildAuthorizationUrl(await getOidcConfiguration(), {
+		redirect_uri: redirectUri,
+		response_type: "code",
+		scope: "openid profile email",
+		code_challenge: codeChallenge,
+		code_challenge_method: "S256",
+		state,
+		nonce,
+	});
 
-	const pending: PendingLogin = { state, codeVerifier, returnTo };
-	const redirectUri = new URL("/auth/callback", url.origin).toString();
-
-	const authorizeUrl = new URL(`https://${domain}/authorize`);
-	authorizeUrl.searchParams.set("response_type", "code");
-	authorizeUrl.searchParams.set("client_id", clientId);
-	authorizeUrl.searchParams.set("redirect_uri", redirectUri);
-	authorizeUrl.searchParams.set("scope", "openid profile email");
-	authorizeUrl.searchParams.set("code_challenge", codeChallenge);
-	authorizeUrl.searchParams.set("code_challenge_method", "S256");
-	authorizeUrl.searchParams.set("state", state);
-
-	const headers = new Headers({ location: authorizeUrl.toString() });
+	const headers = noStoreHeaders({ location: authorizationUrl.toString() });
 	headers.append(
 		"set-cookie",
 		buildCookie(
@@ -149,111 +153,109 @@ export function startLogin(request: Request): Response {
 	return new Response(null, { status: 302, headers });
 }
 
-function errorResponse(message: string): Response {
-	return new Response(`${message}\n\nTry logging in again: /auth/login`, {
+function loginErrorResponse(): Response {
+	return new Response("Login could not be completed. Please try again.", {
 		status: 400,
-		headers: { "content-type": "text/plain" },
+		headers: noStoreHeaders({ "content-type": "text/plain; charset=utf-8" }),
+	});
+}
+
+function logLoginFailure(reason: string, error?: unknown): void {
+	console.warn(`[auth] ${reason}`, {
+		errorType: error instanceof Error ? error.name : typeof error,
 	});
 }
 
 export async function handleCallback(request: Request): Promise<Response> {
-	const { domain, clientId } = getEnturLoginConfig();
-	const url = new URL(request.url);
-	const code = url.searchParams.get("code");
-	const state = url.searchParams.get("state");
+	const requestUrl = new URL(request.url);
+	const code = requestUrl.searchParams.get("code");
+	const state = requestUrl.searchParams.get("state");
 	const pendingRaw = readCookie(request, PENDING_COOKIE_NAME);
 
 	if (!code || !state || !pendingRaw) {
-		return errorResponse("Missing login callback parameters.");
+		logLoginFailure("callback parameters or pending login cookie missing");
+		return loginErrorResponse();
 	}
 
 	let pending: PendingLogin;
 	try {
-		pending = JSON.parse(decodeURIComponent(pendingRaw));
-	} catch {
-		return errorResponse("Corrupt or expired login attempt.");
-	}
-	if (pending.state !== state) {
-		return errorResponse(
-			"Login state mismatch — possible stale or replayed callback.",
-		);
-	}
-
-	const redirectUri = new URL("/auth/callback", url.origin).toString();
-	const tokenResponse = await fetch(`https://${domain}/oauth/token`, {
-		method: "POST",
-		headers: { "content-type": "application/x-www-form-urlencoded" },
-		body: new URLSearchParams({
-			grant_type: "authorization_code",
-			client_id: clientId,
-			code,
-			code_verifier: pending.codeVerifier,
-			redirect_uri: redirectUri,
-		}),
-	});
-	if (!tokenResponse.ok) {
-		return errorResponse(
-			`Token exchange failed (${tokenResponse.status}): ${await tokenResponse.text()}`,
-		);
-	}
-
-	const body = (await tokenResponse.json()) as {
-		id_token?: string;
-		expires_in?: number;
-	};
-	if (!body.id_token) {
-		return errorResponse("Token response did not include an ID token.");
-	}
-
-	let expSeconds: number;
-	try {
-		const claims = await verifyIdToken(body.id_token);
-		expSeconds = claims.exp ?? Math.floor(Date.now() / 1000) + 3600;
+		const parsed: unknown = JSON.parse(decodeURIComponent(pendingRaw));
+		if (!isPendingLogin(parsed)) {
+			throw new Error("pending login cookie has an unexpected shape");
+		}
+		pending = parsed;
 	} catch (error) {
-		return errorResponse(
-			`ID token failed verification: ${error instanceof Error ? error.message : String(error)}`,
-		);
+		logLoginFailure("pending login cookie is invalid", error);
+		return loginErrorResponse();
 	}
 
-	const maxAge = Math.max(60, expSeconds - Math.floor(Date.now() / 1000));
-	const headers = new Headers({
-		location: new URL(pending.returnTo, url.origin).toString(),
-	});
-	headers.append(
-		"set-cookie",
-		buildCookie(SESSION_COOKIE_NAME, body.id_token, maxAge),
-	);
-	headers.append("set-cookie", buildCookie(PENDING_COOKIE_NAME, "", 0));
-	return new Response(null, { status: 302, headers });
+	try {
+		const callbackUrl = buildPublicUrl("/auth/callback");
+		callbackUrl.search = requestUrl.search;
+		const tokens = await authorizationCodeGrant(
+			await getOidcConfiguration(),
+			callbackUrl,
+			{
+				expectedState: pending.state,
+				expectedNonce: pending.nonce,
+				pkceCodeVerifier: pending.codeVerifier,
+				idTokenExpected: true,
+			},
+		);
+		if (!tokens.id_token) {
+			throw new Error("token endpoint response did not contain an ID token");
+		}
+
+		const claims = tokens.claims();
+		const expiresAt = claims?.exp ?? Math.floor(Date.now() / 1000) + 3600;
+		const maxAge = Math.max(60, expiresAt - Math.floor(Date.now() / 1000));
+		const headers = noStoreHeaders({
+			location: buildPublicUrl(sanitizeReturnTo(pending.returnTo)).toString(),
+		});
+		headers.append(
+			"set-cookie",
+			buildCookie(SESSION_COOKIE_NAME, tokens.id_token, maxAge),
+		);
+		headers.append("set-cookie", buildCookie(PENDING_COOKIE_NAME, "", 0));
+		return new Response(null, { status: 302, headers });
+	} catch (error) {
+		logLoginFailure("authorization response validation failed", error);
+		return loginErrorResponse();
+	}
 }
 
-export function handleLogout(request: Request): Response {
-	const { domain, clientId } = getEnturLoginConfig();
-	const url = new URL(request.url);
-	const logoutUrl = new URL(`https://${domain}/v2/logout`);
-	logoutUrl.searchParams.set("client_id", clientId);
-	logoutUrl.searchParams.set("returnTo", url.origin);
-
-	const headers = new Headers({ location: logoutUrl.toString() });
+export async function handleLogout(request: Request): Promise<Response> {
+	const idToken = readCookie(request, SESSION_COOKIE_NAME);
+	const parameters: Record<string, string> = {
+		post_logout_redirect_uri: buildPublicUrl("/").toString(),
+	};
+	if (idToken) parameters.id_token_hint = idToken;
+	const logoutUrl = buildEndSessionUrl(
+		await getOidcConfiguration(),
+		parameters,
+	);
+	const headers = noStoreHeaders({ location: logoutUrl.toString() });
 	headers.append("set-cookie", buildCookie(SESSION_COOKIE_NAME, "", 0));
 	return new Response(null, { status: 302, headers });
 }
 
-let jwks: ReturnType<typeof createRemoteJWKSet> | undefined;
-
-async function verifyIdToken(idToken: string) {
-	const { domain, clientId } = getEnturLoginConfig();
-	jwks ??= createRemoteJWKSet(
-		new URL(`https://${domain}/.well-known/jwks.json`),
-	);
-	const { payload } = await jwtVerify(idToken, jwks, {
-		issuer: `https://${domain}/`,
-		audience: clientId,
+async function verifyIdToken(idToken: string): Promise<void> {
+	const { loginDomain, loginClientId } = requirePublishedDeploymentConfig();
+	if (jwks?.domain !== loginDomain) {
+		jwks = {
+			domain: loginDomain,
+			value: createRemoteJWKSet(
+				new URL(`https://${loginDomain}/.well-known/jwks.json`),
+			),
+		};
+	}
+	await jwtVerify(idToken, jwks.value, {
+		issuer: `https://${loginDomain}/`,
+		audience: loginClientId,
 	});
-	return payload;
 }
 
-/** The verified session token for the current request, or undefined if absent/invalid. */
+/** The verified session token for the current request, or undefined if invalid. */
 export async function getSessionIdToken(
 	request: Request,
 ): Promise<string | undefined> {

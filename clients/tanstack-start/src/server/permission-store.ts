@@ -11,6 +11,7 @@ import PermissionClient, {
 	PermissionDeliverRepository,
 	TokenFactory,
 } from "@entur-partner/permission-client-node";
+import { requirePublishedDeploymentConfig } from "./deployment-config.ts";
 
 /**
  * The capability that gates this deployment. Declaring it here and passing
@@ -26,49 +27,46 @@ export const WAYFARE_WEB_ACCESS: BusinessCapability = {
 	access: "les",
 };
 
-function permissionStoreIsConfigured(): boolean {
-	return Boolean(
-		process.env.PERMISSION_STORE_URL &&
-			process.env.PERMISSION_M2M_DOMAIN &&
-			process.env.PERMISSION_M2M_CLIENT_ID &&
-			process.env.PERMISSION_M2M_CLIENT_SECRET &&
-			process.env.PERMISSION_M2M_AUDIENCE,
-	);
-}
-
 let cachePromise: Promise<AuthorizeCache> | undefined;
 
 function getCache(): Promise<AuthorizeCache> {
 	cachePromise ??= (async () => {
+		const config = requirePublishedDeploymentConfig();
 		const tokenFactory = new TokenFactory({
-			domain: process.env.PERMISSION_M2M_DOMAIN as string,
-			clientId: process.env.PERMISSION_M2M_CLIENT_ID as string,
-			clientSecret: process.env.PERMISSION_M2M_CLIENT_SECRET as string,
-			audience: process.env.PERMISSION_M2M_AUDIENCE as string,
+			domain: config.permissionM2mDomain,
+			clientId: config.permissionM2mClientId,
+			clientSecret: config.permissionM2mClientSecret,
+			audience: config.permissionM2mAudience,
 		});
 		const repository = new PermissionDeliverRepository(
 			{ name: "wayfare", refreshRate: 60 },
 			tokenFactory,
-			new URL(process.env.PERMISSION_STORE_URL as string),
+			config.permissionStoreUrl,
 		);
-		return PermissionClient(
+		const cache = await PermissionClient(
 			AuthorizeCacheType.IN_MEMORY,
 			[WAYFARE_WEB_ACCESS],
 			repository,
 		);
+		cache.setScheduleErrorHandler((error) => {
+			console.error("[permission-store] cache refresh failed", error);
+		});
+		return cache;
 	})();
 	return cachePromise;
 }
 
+export async function initializePermissionStore(): Promise<void> {
+	await getCache();
+}
+
 /**
  * Whether the given (already-verified) Entur ID token's subject has been
- * granted WAYFARE_WEB_ACCESS. Returns true unconditionally when
- * Permission Store isn't configured yet — see .env.example — so the login
- * gate alone (any valid Entur/partner identity) still works before the
- * capability is provisioned, rather than hard-failing on a missing URL.
+ * granted WAYFARE_WEB_ACCESS. Startup initializes the client before the
+ * server listens, so missing configuration or an unavailable initial cache
+ * can never turn this check into an allow-all fallback.
  */
 export async function hasStagingAccess(idToken: string): Promise<boolean> {
-	if (!permissionStoreIsConfigured()) return true;
 	const authoritySubject = JwtDecoder.getAuthoritySubject(idToken);
 	const cache = await getCache();
 	return cache.checkBusinessCapabilityPermission(
