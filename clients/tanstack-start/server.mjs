@@ -3,6 +3,9 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "srvx";
 import { serveStatic } from "srvx/static";
+// Runs .ts sources directly via Node's built-in type stripping (default
+// since Node 23.6; this image pins Node 24) -- only erasable syntax here,
+// no enums/decorators, so no build step is needed for these files.
 import {
 	authorizeRequest,
 	handleAuthRoutes,
@@ -70,7 +73,7 @@ serve({
 			const response = await withAssetCaching(request, () =>
 				serverEntry.fetch(request),
 			);
-			if (isEnturLoginRequired()) {
+			if (isEnturLoginRequired() && !pathname.startsWith("/assets/")) {
 				response.headers.set("cache-control", "no-store");
 			}
 			return response;
