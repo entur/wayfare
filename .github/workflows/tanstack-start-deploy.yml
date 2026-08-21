@@ -1,0 +1,84 @@
+name: Deploy Wayfare staging
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "clients/tanstack-start/**"
+      - "helm/wayfare/**"
+      - ".github/workflows/tanstack-start-deploy.yml"
+
+concurrency:
+  group: deploy-wayfare-tst
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  docker-lint:
+    uses: entur/gha-docker/.github/workflows/lint.yml@v1
+    with:
+      dockerfile: clients/tanstack-start/Dockerfile
+
+  helm-lint:
+    uses: entur/gha-helm/.github/workflows/lint.yml@v1
+    with:
+      chart: helm/wayfare
+      environment: tst
+      values: values-kub-ent-tst.yaml
+
+  docker-build:
+    needs:
+      - docker-lint
+      - helm-lint
+    permissions:
+      contents: read
+      id-token: write
+    uses: entur/gha-docker/.github/workflows/build.yml@v1
+    with:
+      context: clients/tanstack-start
+      dockerfile: clients/tanstack-start/Dockerfile
+      image_name: wayfare
+
+  docker-scan:
+    needs: docker-build
+    permissions:
+      actions: read
+      contents: write
+      issues: write
+      pull-requests: write
+      security-events: write
+    uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets: inherit
+    with:
+      image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
+
+  docker-push:
+    needs:
+      - docker-build
+      - docker-scan
+    permissions:
+      contents: read
+      id-token: write
+    uses: entur/gha-docker/.github/workflows/push.yml@v1
+    secrets: inherit
+    with:
+      image_name: wayfare
+      git_tag: false
+
+  deploy-tst:
+    needs: docker-push
+    permissions:
+      contents: read
+      id-token: write
+    uses: entur/gha-helm/.github/workflows/deploy.yml@v1
+    secrets: inherit
+    with:
+      chart: helm/wayfare
+      environment: tst
+      image: ${{ needs.docker-push.outputs.image_and_tag }}
+      namespace: wayfare
+      release_name: wayfare
+      values: values-kub-ent-tst.yaml

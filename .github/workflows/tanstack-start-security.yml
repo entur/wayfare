@@ -4,20 +4,16 @@ on:
   pull_request:
     paths:
       - "clients/tanstack-start/**"
-      - ".github/workflows/tanstack-start-security.yml"
-  push:
-    branches:
-      - main
-    paths:
-      - "clients/tanstack-start/**"
+      - "helm/wayfare/**"
       - ".github/workflows/tanstack-start-security.yml"
 
 permissions:
   contents: read
 
 jobs:
-  tanstack-start-security:
-    runs-on: ubuntu-latest
+  application:
+    name: Application checks
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: clients/tanstack-start
@@ -55,3 +51,39 @@ jobs:
 
       - name: Audit (high/critical)
         run: pnpm audit --audit-level high --ignore GHSA-rmmr-r34h-pfm5
+
+  docker:
+    name: Docker lint, build, and scan
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@2332a7b74a6de0dda2e2221d575162eba76ba5e5 # v3.3.0
+        with:
+          dockerfile: clients/tanstack-start/Dockerfile
+
+      - name: Build image without credentials
+        run: >-
+          docker build
+          --file clients/tanstack-start/Dockerfile
+          --tag wayfare:ci
+          clients/tanstack-start
+
+      - name: Scan image
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7
+        with:
+          image: wayfare:ci
+          fail-build: true
+          severity-cutoff: high
+
+  helm-lint:
+    name: Helm lint
+    uses: entur/gha-helm/.github/workflows/lint.yml@v1
+    with:
+      chart: helm/wayfare
+      environment: tst
+      values: values-kub-ent-tst.yaml
