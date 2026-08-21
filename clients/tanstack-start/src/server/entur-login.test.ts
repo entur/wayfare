@@ -19,6 +19,7 @@ const jose = vi.hoisted(() => ({
 vi.mock("openid-client", () => oidc);
 vi.mock("jose", () => jose);
 
+import { stubPublishedEnvironment } from "./deployment-config.test-utils";
 import {
 	buildLoginRedirect,
 	getSessionIdToken,
@@ -28,29 +29,8 @@ import {
 	startLogin,
 } from "./entur-login";
 
-function stubStagingEnvironment(): void {
-	vi.stubEnv("REQUIRE_ENTUR_LOGIN", "true");
-	vi.stubEnv("OMSA_ENV_MODE", "staging");
-	vi.stubEnv("ALLOW_DEV_CONFIG_OVERRIDES", "false");
-	vi.stubEnv("COOKIE_SECURE", "true");
-	vi.stubEnv("CLIENT_ID", "omsa-client");
-	vi.stubEnv("CLIENT_SECRET", "omsa-secret");
-	vi.stubEnv("PUBLIC_ORIGIN", "https://wayfare.staging.entur.no");
-	vi.stubEnv("ENTUR_LOGIN_DOMAIN", "partner.staging.entur.org");
-	vi.stubEnv("ENTUR_LOGIN_CLIENT_ID", "login-client");
-	vi.stubEnv("ENTUR_LOGIN_CLIENT_SECRET", "login-secret");
-	vi.stubEnv(
-		"PERMISSION_STORE_URL",
-		"http://permission-store.tst.entur.internal",
-	);
-	vi.stubEnv("MNG_AUTH0_INT_HOST", "https://internal.staging.entur.org");
-	vi.stubEnv("MNG_AUTH0_INT_AUDIENCE", "https://permission-store");
-	vi.stubEnv("MNG_AUTH0_INT_CLIENT_ID", "permission-client");
-	vi.stubEnv("MNG_AUTH0_INT_CLIENT_SECRET", "permission-secret");
-}
-
 beforeEach(() => {
-	stubStagingEnvironment();
+	stubPublishedEnvironment();
 	oidc.discovery.mockResolvedValue({});
 	oidc.randomState.mockReturnValue("state-123");
 	oidc.randomNonce.mockReturnValue("nonce-123");

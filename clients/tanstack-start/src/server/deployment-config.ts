@@ -10,7 +10,10 @@ export interface PublishedDeploymentConfig {
 	permissionM2mClientSecret: string;
 }
 
-const STAGING_PUBLIC_ORIGIN = "https://wayfare.staging.entur.no";
+const PUBLIC_ORIGIN_BY_MODE: Record<string, string> = {
+	dev: "https://wayfare.dev.entur.no",
+	staging: "https://wayfare.staging.entur.no",
+};
 
 function isTrue(value: string | undefined): boolean {
 	return value?.trim().toLowerCase() === "true";
@@ -53,19 +56,18 @@ function parseUrl(
 	}
 }
 
-/**
- * Validate every invariant that protects a published staging deployment.
- * Local development and the future public mock deployment leave the login
- * gate disabled and therefore do not need any of this configuration.
- */
 export function validatePublishedDeploymentConfig(
 	env: NodeJS.ProcessEnv = process.env,
 ): PublishedDeploymentConfig | null {
 	if (!isEnturLoginRequired(env)) return null;
 
 	const errors: string[] = [];
-	if (env.OMSA_ENV_MODE?.trim().toLowerCase() !== "staging") {
-		errors.push("OMSA_ENV_MODE must be staging");
+	const mode = env.OMSA_ENV_MODE?.trim().toLowerCase();
+	const expectedOrigin = mode ? PUBLIC_ORIGIN_BY_MODE[mode] : undefined;
+	if (!expectedOrigin) {
+		errors.push(
+			`OMSA_ENV_MODE must be one of: ${Object.keys(PUBLIC_ORIGIN_BY_MODE).join(", ")}`,
+		);
 	}
 	if (env.ALLOW_DEV_CONFIG_OVERRIDES?.trim().toLowerCase() !== "false") {
 		errors.push("ALLOW_DEV_CONFIG_OVERRIDES must be false");
@@ -74,8 +76,6 @@ export function validatePublishedDeploymentConfig(
 		errors.push("COOKIE_SECURE must be true");
 	}
 
-	// The app must not start successfully if its real staging upstream or either
-	// layer of the access gate is missing credentials.
 	requireValue(env, "CLIENT_ID", errors);
 	requireValue(env, "CLIENT_SECRET", errors);
 
@@ -83,8 +83,8 @@ export function validatePublishedDeploymentConfig(
 	const publicOrigin = parseUrl("PUBLIC_ORIGIN", publicOriginValue, errors, [
 		"https:",
 	]);
-	if (publicOrigin.origin !== STAGING_PUBLIC_ORIGIN) {
-		errors.push(`PUBLIC_ORIGIN must be ${STAGING_PUBLIC_ORIGIN}`);
+	if (expectedOrigin && publicOrigin.origin !== expectedOrigin) {
+		errors.push(`PUBLIC_ORIGIN must be ${expectedOrigin}`);
 	}
 	if (
 		publicOrigin.pathname !== "/" ||

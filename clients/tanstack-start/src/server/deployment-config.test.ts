@@ -3,29 +3,7 @@ import {
 	isEnturLoginRequired,
 	validatePublishedDeploymentConfig,
 } from "./deployment-config";
-
-function stagingEnvironment(
-	overrides: NodeJS.ProcessEnv = {},
-): NodeJS.ProcessEnv {
-	return {
-		REQUIRE_ENTUR_LOGIN: "true",
-		OMSA_ENV_MODE: "staging",
-		ALLOW_DEV_CONFIG_OVERRIDES: "false",
-		COOKIE_SECURE: "true",
-		CLIENT_ID: "omsa-client",
-		CLIENT_SECRET: "omsa-secret",
-		PUBLIC_ORIGIN: "https://wayfare.staging.entur.no",
-		ENTUR_LOGIN_DOMAIN: "partner.staging.entur.org",
-		ENTUR_LOGIN_CLIENT_ID: "login-client",
-		ENTUR_LOGIN_CLIENT_SECRET: "login-secret",
-		PERMISSION_STORE_URL: "http://permission-store.tst.entur.internal",
-		MNG_AUTH0_INT_HOST: "https://internal.staging.entur.org",
-		MNG_AUTH0_INT_AUDIENCE: "https://permission-store",
-		MNG_AUTH0_INT_CLIENT_ID: "permission-client",
-		MNG_AUTH0_INT_CLIENT_SECRET: "permission-secret",
-		...overrides,
-	};
-}
+import { publishedEnvironment } from "./deployment-config.test-utils";
 
 describe("published deployment configuration", () => {
 	it("does not require staging credentials when the login gate is disabled", () => {
@@ -34,13 +12,37 @@ describe("published deployment configuration", () => {
 	});
 
 	it("accepts a complete fail-closed staging configuration", () => {
-		const config = validatePublishedDeploymentConfig(stagingEnvironment());
+		const config = validatePublishedDeploymentConfig(publishedEnvironment());
 
 		expect(config?.publicOrigin.toString()).toBe(
 			"https://wayfare.staging.entur.no/",
 		);
 		expect(config?.loginClientSecret).toBe("login-secret");
 		expect(config?.permissionM2mClientId).toBe("permission-client");
+	});
+
+	it("accepts a complete fail-closed dev configuration", () => {
+		const config = validatePublishedDeploymentConfig(
+			publishedEnvironment({
+				OMSA_ENV_MODE: "dev",
+				PUBLIC_ORIGIN: "https://wayfare.dev.entur.no",
+				ENTUR_LOGIN_DOMAIN: "partner.dev.entur.org",
+				PERMISSION_STORE_URL: "http://permission-store.dev.entur.internal",
+				MNG_AUTH0_INT_HOST: "https://internal.dev.entur.org",
+			}),
+		);
+
+		expect(config?.publicOrigin.toString()).toBe(
+			"https://wayfare.dev.entur.no/",
+		);
+	});
+
+	it("rejects a dev-mode deployment pointed at the staging origin", () => {
+		expect(() =>
+			validatePublishedDeploymentConfig(
+				publishedEnvironment({ OMSA_ENV_MODE: "dev" }),
+			),
+		).toThrow("PUBLIC_ORIGIN must be https://wayfare.dev.entur.no");
 	});
 
 	it.each([
@@ -73,12 +75,12 @@ describe("published deployment configuration", () => {
 		],
 	])("rejects %s", (_description, overrides, expectedMessage) => {
 		expect(() =>
-			validatePublishedDeploymentConfig(stagingEnvironment(overrides)),
+			validatePublishedDeploymentConfig(publishedEnvironment(overrides)),
 		).toThrow(expectedMessage);
 	});
 
 	it("reports every missing staging credential in one error", () => {
-		const env = stagingEnvironment({
+		const env = publishedEnvironment({
 			CLIENT_ID: "",
 			CLIENT_SECRET: "",
 			ENTUR_LOGIN_CLIENT_SECRET: "",
