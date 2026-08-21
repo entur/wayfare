@@ -1,7 +1,7 @@
 apiVersion: entur.io/securitytools/v1
 kind: CodeScanConfig
 metadata:
-  id: omsaexampleclients
+  id: wayfare
 spec:
   notifications:
     severityThreshold: high
