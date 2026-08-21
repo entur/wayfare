@@ -1,0 +1,41 @@
+name: Deploy Wayfare tst
+
+# Manual promotion of an already-pushed image to tst. Never auto-deploys.
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Image to promote, as image_name:image_tag (e.g. wayfare:main.20260821-abcdef1)"
+        required: true
+        type: string
+
+concurrency:
+  group: deploy-wayfare-tst
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  helm-lint:
+    uses: entur/gha-helm/.github/workflows/lint.yml@v1
+    with:
+      chart: helm/wayfare
+      environment: tst
+      values: values-kub-ent-tst.yaml
+
+  deploy-tst:
+    needs: helm-lint
+    permissions:
+      contents: read
+      id-token: write
+    uses: entur/gha-helm/.github/workflows/deploy.yml@v1
+    secrets: inherit
+    with:
+      chart: helm/wayfare
+      environment: tst
+      image: ${{ inputs.image }}
+      namespace: wayfare
+      release_name: wayfare
+      values: values-kub-ent-tst.yaml

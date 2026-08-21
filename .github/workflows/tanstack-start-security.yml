@@ -34,7 +34,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: clients/tanstack-start/pnpm-lock.yaml
 
-      - name: Install dependencies (frozen lockfile)
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
@@ -52,38 +52,45 @@ jobs:
       - name: Audit (high/critical)
         run: pnpm audit --audit-level high --ignore GHSA-rmmr-r34h-pfm5
 
-  docker:
-    name: Docker lint, build, and scan
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Lint Dockerfile
-        uses: hadolint/hadolint-action@2332a7b74a6de0dda2e2221d575162eba76ba5e5 # v3.3.0
-        with:
-          dockerfile: clients/tanstack-start/Dockerfile
-
-      - name: Build image without credentials
-        run: >-
-          docker build
-          --file clients/tanstack-start/Dockerfile
-          --tag wayfare:ci
-          clients/tanstack-start
-
-      - name: Scan image
-        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7
-        with:
-          image: wayfare:ci
-          fail-build: true
-          severity-cutoff: high
-
   helm-lint:
     name: Helm lint
+    strategy:
+      matrix:
+        environment: [dev, tst]
     uses: entur/gha-helm/.github/workflows/lint.yml@v1
     with:
       chart: helm/wayfare
-      environment: tst
-      values: values-kub-ent-tst.yaml
+      environment: ${{ matrix.environment }}
+      values: values-kub-ent-${{ matrix.environment }}.yaml
+
+  docker-lint:
+    uses: entur/gha-docker/.github/workflows/lint.yml@v1
+    with:
+      dockerfile: clients/tanstack-start/Dockerfile
+
+  # Build and scan only, no push -- avoids pushing an image per PR commit.
+  docker-build:
+    needs:
+      - docker-lint
+      - helm-lint
+    permissions:
+      contents: read
+      id-token: write
+    uses: entur/gha-docker/.github/workflows/build.yml@v1
+    with:
+      context: clients/tanstack-start
+      dockerfile: clients/tanstack-start/Dockerfile
+      image_name: wayfare
+
+  docker-scan:
+    needs: docker-build
+    permissions:
+      actions: read
+      contents: write
+      issues: write
+      pull-requests: write
+      security-events: write
+    uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets: inherit
+    with:
+      image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
