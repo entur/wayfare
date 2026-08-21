@@ -27,6 +27,18 @@ updates:
         patterns:
           - "*"
 
+  - package-ecosystem: docker
+    directory: /clients/tanstack-start
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    groups:
+      tanstack-start-container:
+        patterns:
+          - "*"
+
   - package-ecosystem: npm
     directory: /clients/react-native
     schedule:
