@@ -28,13 +28,13 @@ common:
     enabled: true
 
   secrets:
-    wayfare-omsa:
+    omsa:
       - CLIENT_ID
       - CLIENT_SECRET
-    wayfare-login:
+    login:
       - ENTUR_LOGIN_CLIENT_ID
       - ENTUR_LOGIN_CLIENT_SECRET
-    wayfare-auth0-internal:
+    auth0-internal:
       - MNG_AUTH0_INT_HOST
       - MNG_AUTH0_INT_AUDIENCE
       - MNG_AUTH0_INT_CLIENT_ID
