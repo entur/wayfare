@@ -7,8 +7,12 @@ strictDepBuilds: true
 savePrefix: ""
 
 allowBuilds:
+  # Unused optional WebSocket dependencies from permission-client-node.
+  bufferutil: false
+  es5-ext: false
   esbuild: true
   lightningcss: true
+  utf-8-validate: false
 
 overrides:
   "@tanstack/router-core": 1.171.19

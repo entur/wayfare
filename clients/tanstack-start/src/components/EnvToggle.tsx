@@ -1,18 +1,17 @@
 import { useEffect } from "react";
 import { useDevConfig } from "../context/dev-config";
-import { envFaviconSrc, envIconSrc, useEnvMode } from "../hooks/use-env-mode";
-import type { OmsaRuntimeMode } from "../server/runtime-config";
-
-const ENV_CYCLE: OmsaRuntimeMode[] = [
-	"dev",
-	"staging",
-	"local-dev",
-	"local-staging",
-];
+import {
+	envFaviconSrc,
+	envIconSrc,
+	useEnvMode,
+	useResolvedDevConfig,
+} from "../hooks/use-env-mode";
 
 export default function EnvToggle() {
 	const { overrides, setOverrides } = useDevConfig();
 	const envMode = useEnvMode();
+	const { data: resolved } = useResolvedDevConfig();
+	const allowedModes = resolved?.allowedEnvModes;
 	const iconSrc = envIconSrc(envMode);
 	const favicon = envFaviconSrc(envMode);
 
@@ -30,12 +29,14 @@ export default function EnvToggle() {
 	}, [favicon.href, favicon.type]);
 
 	function cycleMode() {
-		const current = envMode ?? "dev";
-		const idx = ENV_CYCLE.indexOf(current);
-		const next = ENV_CYCLE[(idx + 1) % ENV_CYCLE.length];
+		if (!allowedModes || allowedModes.length <= 1) return;
+		const current = envMode ?? allowedModes[0];
+		const idx = allowedModes.indexOf(current);
+		const next = allowedModes[(idx + 1) % allowedModes.length];
 		setOverrides({ ...overrides, envMode: next });
 	}
 
+	if (!allowedModes || allowedModes.length <= 1) return null;
 	if (!iconSrc) return null;
 
 	const label = `Environment: ${envMode}. Click to cycle.`;

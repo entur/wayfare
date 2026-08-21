@@ -1,5 +1,4 @@
 import { UserIcon } from "@entur/icons";
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import PageShell from "../components/layout/PageShell";
@@ -12,6 +11,7 @@ import SegmentedControl from "../components/ui/SegmentedControl";
 import { useDevConfig } from "../context/dev-config";
 import { useProfile } from "../context/profile";
 import { useCustomerSearch } from "../hooks/use-customers";
+import { useResolvedDevConfig } from "../hooks/use-env-mode";
 import type {
 	DevConfigOverrides,
 	RecommendationControlOverride,
@@ -36,7 +36,7 @@ import {
 	type TransportModeGroup,
 } from "../lib/trip-filters";
 import type { OmsaRuntimeMode } from "../server/runtime-config";
-import { getResolvedDevConfig } from "../server-functions/dev-config";
+import type { ResolvedDevConfig } from "../server-functions/dev-config";
 import type { CustomerSearchParams, OmsaCustomer } from "../types/customer";
 
 type Tab = "profile" | "payment" | "favorites" | "app" | "developer";
@@ -405,6 +405,7 @@ function DefaultTripModesSection() {
 }
 
 function AppTab() {
+	const { data: resolved } = useResolvedDevConfig();
 	const [cleared, setCleared] = useState(false);
 	const [count, setCount] = useState(0);
 
@@ -445,6 +446,25 @@ function AppTab() {
 					</Button>
 				</div>
 			</section>
+
+			{resolved?.enturLoginEnabled && (
+				<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+					<h2 className="mb-4 text-sm font-semibold text-wayfare-text">
+						Entur login
+					</h2>
+					<div className="flex items-center justify-between">
+						<p className="m-0 text-sm text-wayfare-text-secondary">
+							Signed in with your Entur account
+						</p>
+						<a
+							href="/auth/logout"
+							className="inline-flex items-center justify-center gap-2 rounded-xl border border-wayfare-line bg-transparent px-5 py-2.5 text-sm font-semibold text-wayfare-text transition-colors hover:bg-wayfare-bg"
+						>
+							Log out
+						</a>
+					</div>
+				</section>
+			)}
 
 			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
 				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">About</h2>
@@ -488,6 +508,40 @@ function EnvModeLabel({ icons, label }: { icons: string[]; label: string }) {
 	);
 }
 
+function ResolvedEndpointsSection({
+	resolved,
+}: {
+	resolved: ResolvedDevConfig;
+}) {
+	return (
+		<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+			<h2 className="mb-3 text-sm font-semibold text-wayfare-text">
+				Resolved endpoints
+			</h2>
+			<dl className="space-y-2 text-xs">
+				{(
+					[
+						["OMSA", resolved.effectiveOmsaBaseUrl],
+						["Sales", resolved.effectiveSalesBaseUrl],
+						["Journey planner", resolved.effectiveJourneyPlannerUrl],
+						["Geocoder", resolved.effectiveGeocoderUrl],
+					] as const
+				).map(([label, url]) => (
+					<div key={label} className="flex justify-between gap-4">
+						<dt className="text-wayfare-text-secondary">{label}</dt>
+						<dd
+							className="truncate font-mono text-right text-wayfare-text"
+							title={url}
+						>
+							{url}
+						</dd>
+					</div>
+				))}
+			</dl>
+		</section>
+	);
+}
+
 const ENV_MODE_OPTIONS: readonly {
 	value: OmsaRuntimeMode;
 	label: ReactNode;
@@ -525,11 +579,13 @@ const ENV_MODE_OPTIONS: readonly {
 function DeveloperTab() {
 	const { overrides, setOverrides, resetOverrides } = useDevConfig();
 
-	const { data: resolved } = useQuery({
-		queryKey: ["resolved-dev-config", overrides.envMode],
-		queryFn: () => getResolvedDevConfig(),
-		staleTime: 30_000,
-	});
+	const { data: resolved } = useResolvedDevConfig();
+	const overridesEnabled = resolved?.overridesEnabled ?? true;
+	const envModeOptions = ENV_MODE_OPTIONS.filter(
+		(option) =>
+			!resolved?.allowedEnvModes ||
+			resolved.allowedEnvModes.includes(option.value),
+	);
 
 	const [formMode, setFormMode] = useState<OmsaRuntimeMode>(
 		() => overrides.envMode ?? "dev",
@@ -614,6 +670,26 @@ function DeveloperTab() {
 		if (savedTimerRef.current !== null) clearTimeout(savedTimerRef.current);
 	}
 
+	if (!overridesEnabled) {
+		return (
+			<div className="space-y-4">
+				<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+					<h2 className="mb-2 text-sm font-semibold text-wayfare-text">
+						Environment
+					</h2>
+					<p className="text-sm text-wayfare-text-secondary">
+						Locked to{" "}
+						<span className="font-mono text-wayfare-text">
+							{resolved?.effectiveMode ?? "…"}
+						</span>
+						. Overrides are disabled.
+					</p>
+				</section>
+				{resolved && <ResolvedEndpointsSection resolved={resolved} />}
+			</div>
+		);
+	}
+
 	return (
 		<div className="space-y-4">
 			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
@@ -622,7 +698,7 @@ function DeveloperTab() {
 				</h2>
 				<SegmentedControl
 					legend="Environment mode"
-					options={ENV_MODE_OPTIONS}
+					options={envModeOptions}
 					value={formMode}
 					onChange={setFormMode}
 				/>
@@ -632,33 +708,7 @@ function DeveloperTab() {
 				</p>
 			</section>
 
-			{resolved && (
-				<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
-					<h2 className="mb-3 text-sm font-semibold text-wayfare-text">
-						Resolved endpoints
-					</h2>
-					<dl className="space-y-2 text-xs">
-						{(
-							[
-								["OMSA", resolved.effectiveOmsaBaseUrl],
-								["Sales", resolved.effectiveSalesBaseUrl],
-								["Journey planner", resolved.effectiveJourneyPlannerUrl],
-								["Geocoder", resolved.effectiveGeocoderUrl],
-							] as const
-						).map(([label, url]) => (
-							<div key={label} className="flex justify-between gap-4">
-								<dt className="text-wayfare-text-secondary">{label}</dt>
-								<dd
-									className="truncate font-mono text-right text-wayfare-text"
-									title={url}
-								>
-									{url}
-								</dd>
-							</div>
-						))}
-					</dl>
-				</section>
-			)}
+			{resolved && <ResolvedEndpointsSection resolved={resolved} />}
 
 			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
 				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">

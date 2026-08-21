@@ -1,0 +1,22 @@
+common:
+  env: dev
+
+  ingress:
+    host: wayfare.dev.entur.no
+
+  configmap:
+    data:
+      PUBLIC_ORIGIN: https://wayfare.dev.entur.no
+      OMSA_ENV_MODE: dev
+      ALLOW_DEV_CONFIG_OVERRIDES: "false"
+      REQUIRE_ENTUR_LOGIN: "true"
+      COOKIE_SECURE: "true"
+      ENTUR_LOGIN_DOMAIN: partner.dev.entur.org
+      PERMISSION_STORE_URL: http://permission-store.dev.entur.internal
+      ENTUR_DISTRIBUTION_CHANNEL: WAY:DistributionChannel:App
+      ENTUR_CLIENT_NAME: Wayfare-Web
+      ENTUR_POS: Wayfare
+      ENABLE_REQUEST_RESPONSE_LOGGING: "false"
+
+  deployment:
+    minAvailable: 0

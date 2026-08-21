@@ -1,0 +1,10 @@
+apiVersion: v2
+name: wayfare
+description: Wayfare web application
+type: application
+version: 0.1.0
+dependencies:
+  - name: common
+    version: "1.22.0"
+    repository: https://entur.github.io/helm-charts
+    alias: common

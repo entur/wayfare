@@ -4,20 +4,16 @@ on:
   pull_request:
     paths:
       - "clients/tanstack-start/**"
-      - ".github/workflows/tanstack-start-security.yml"
-  push:
-    branches:
-      - main
-    paths:
-      - "clients/tanstack-start/**"
+      - "helm/wayfare/**"
       - ".github/workflows/tanstack-start-security.yml"
 
 permissions:
   contents: read
 
 jobs:
-  tanstack-start-security:
-    runs-on: ubuntu-latest
+  application:
+    name: Application checks
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: clients/tanstack-start
@@ -38,7 +34,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: clients/tanstack-start/pnpm-lock.yaml
 
-      - name: Install dependencies (frozen lockfile)
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
@@ -55,3 +51,46 @@ jobs:
 
       - name: Audit (high/critical)
         run: pnpm audit --audit-level high --ignore GHSA-rmmr-r34h-pfm5
+
+  helm-lint:
+    name: Helm lint
+    strategy:
+      matrix:
+        environment: [dev, tst]
+    uses: entur/gha-helm/.github/workflows/lint.yml@v1
+    with:
+      chart: helm/wayfare
+      environment: ${{ matrix.environment }}
+      values: values-kub-ent-${{ matrix.environment }}.yaml
+
+  docker-lint:
+    uses: entur/gha-docker/.github/workflows/lint.yml@v1
+    with:
+      dockerfile: clients/tanstack-start/Dockerfile
+
+  # Build and scan only, no push -- avoids pushing an image per PR commit.
+  docker-build:
+    needs:
+      - docker-lint
+      - helm-lint
+    permissions:
+      contents: read
+      id-token: write
+    uses: entur/gha-docker/.github/workflows/build.yml@v1
+    with:
+      context: clients/tanstack-start
+      dockerfile: clients/tanstack-start/Dockerfile
+      image_name: wayfare
+
+  docker-scan:
+    needs: docker-build
+    permissions:
+      actions: read
+      contents: write
+      issues: write
+      pull-requests: write
+      security-events: write
+    uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets: inherit
+    with:
+      image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
