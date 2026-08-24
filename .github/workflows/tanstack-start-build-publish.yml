@@ -1,8 +1,8 @@
 name: Build and publish Wayfare image
 
 # Builds, scans, and pushes the image on every merge to main. Deployment
-# (helm/, .entur/) lives in entur/wayfare-deployment-config: Renovate there
-# watches this image tag and opens a bump PR when it changes.
+# (helm/, .entur/) lives in entur/wayfare-deployment-config: deploys there are
+# a manual workflow_dispatch with the image tag this run prints below.
 
 on:
   push:
@@ -63,3 +63,16 @@ jobs:
     with:
       image_name: wayfare
       git_tag: true
+
+  tag-summary:
+    needs: docker-push
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Print the image tag for manual deploy dispatch
+        run: |
+          {
+            echo "Pushed \`${{ needs.docker-push.outputs.image_and_tag }}\`."
+            echo ""
+            echo "To deploy: entur/wayfare-deployment-config -> Actions -> CD -> Run workflow,"
+            echo "with image = \`${{ needs.docker-push.outputs.image_and_tag }}\`."
+          } >> "$GITHUB_STEP_SUMMARY"
