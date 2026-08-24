@@ -1,4 +1,8 @@
-name: Deploy Wayfare dev
+name: Build and publish Wayfare image
+
+# Builds, scans, and pushes the image on every merge to main. Deployment
+# (helm/, .entur/) lives in entur/wayfare-deployment-config: deploys there are
+# a manual workflow_dispatch with the image tag this run prints below.
 
 on:
   push:
@@ -6,11 +10,10 @@ on:
       - main
     paths:
       - "clients/tanstack-start/**"
-      - "helm/wayfare/**"
-      - ".github/workflows/tanstack-start-deploy-dev.yml"
+      - ".github/workflows/tanstack-start-build-publish.yml"
 
 concurrency:
-  group: deploy-wayfare-dev
+  group: build-publish-wayfare
   cancel-in-progress: false
 
 permissions:
@@ -22,22 +25,9 @@ jobs:
     with:
       dockerfile: clients/tanstack-start/Dockerfile
 
-  helm-lint:
-    name: Helm lint
-    strategy:
-      matrix:
-        environment: [dev, tst]
-    uses: entur/gha-helm/.github/workflows/lint.yml@v1
-    with:
-      chart: helm/wayfare
-      environment: ${{ matrix.environment }}
-      values: values-kub-ent-${{ matrix.environment }}.yaml
-
-  # The build that actually ships -- one per merge, not per PR push.
   docker-build:
     needs:
       - docker-lint
-      - helm-lint
     permissions:
       contents: read
       id-token: write
@@ -74,30 +64,15 @@ jobs:
       image_name: wayfare
       git_tag: true
 
-  # Not guaranteed stable, points at upstream dev services.
-  deploy-dev:
-    needs: docker-push
-    permissions:
-      contents: read
-      id-token: write
-    uses: entur/gha-helm/.github/workflows/deploy.yml@v1
-    secrets: inherit
-    with:
-      chart: helm/wayfare
-      environment: dev
-      image: ${{ needs.docker-push.outputs.image_and_tag }}
-      namespace: wayfare
-      release_name: wayfare
-      values: values-kub-ent-dev.yaml
-
-  promotion-summary:
+  tag-summary:
     needs: docker-push
     runs-on: ubuntu-24.04
     steps:
-      - name: Print the tst promotion command
+      - name: Print the image tag for manual deploy dispatch
         run: |
           {
             echo "Pushed \`${{ needs.docker-push.outputs.image_and_tag }}\`."
             echo ""
-            echo "To promote it to tst: Actions -> Deploy Wayfare tst -> Run workflow, with image = \`${{ needs.docker-push.outputs.image_and_tag }}\`."
+            echo "To deploy: entur/wayfare-deployment-config -> Actions -> CD -> Run workflow,"
+            echo "with image = \`${{ needs.docker-push.outputs.image_and_tag }}\`."
           } >> "$GITHUB_STEP_SUMMARY"
