@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - "clients/tanstack-start/**"
-      - "helm/wayfare/**"
       - ".github/workflows/tanstack-start-security.yml"
 
 permissions:
@@ -52,17 +51,6 @@ jobs:
       - name: Audit (high/critical)
         run: pnpm audit --audit-level high --ignore GHSA-rmmr-r34h-pfm5
 
-  helm-lint:
-    name: Helm lint
-    strategy:
-      matrix:
-        environment: [dev, tst]
-    uses: entur/gha-helm/.github/workflows/lint.yml@v1
-    with:
-      chart: helm/wayfare
-      environment: ${{ matrix.environment }}
-      values: values-kub-ent-${{ matrix.environment }}.yaml
-
   docker-lint:
     uses: entur/gha-docker/.github/workflows/lint.yml@v1
     with:
@@ -72,7 +60,6 @@ jobs:
   docker-build:
     needs:
       - docker-lint
-      - helm-lint
     permissions:
       contents: read
       id-token: write

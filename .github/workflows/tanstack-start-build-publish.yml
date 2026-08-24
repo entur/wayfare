@@ -1,0 +1,65 @@
+name: Build and publish Wayfare image
+
+# Builds, scans, and pushes the image on every merge to main. Deployment
+# (helm/, .entur/) lives in entur/wayfare-deployment-config: Renovate there
+# watches this image tag and opens a bump PR when it changes.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "clients/tanstack-start/**"
+      - ".github/workflows/tanstack-start-build-publish.yml"
+
+concurrency:
+  group: build-publish-wayfare
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  docker-lint:
+    uses: entur/gha-docker/.github/workflows/lint.yml@v1
+    with:
+      dockerfile: clients/tanstack-start/Dockerfile
+
+  docker-build:
+    needs:
+      - docker-lint
+    permissions:
+      contents: read
+      id-token: write
+    uses: entur/gha-docker/.github/workflows/build.yml@v1
+    with:
+      context: clients/tanstack-start
+      dockerfile: clients/tanstack-start/Dockerfile
+      image_name: wayfare
+
+  docker-scan:
+    needs: docker-build
+    permissions:
+      actions: read
+      contents: write
+      issues: write
+      pull-requests: write
+      security-events: write
+    uses: entur/gha-security/.github/workflows/docker-scan.yml@v2
+    secrets: inherit
+    with:
+      image_artifact: ${{ needs.docker-build.outputs.image_artifact }}
+
+  docker-push:
+    needs:
+      - docker-build
+      - docker-scan
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: write
+    uses: entur/gha-docker/.github/workflows/push.yml@v1
+    secrets: inherit
+    with:
+      image_name: wayfare
+      git_tag: true
