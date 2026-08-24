@@ -11,6 +11,7 @@ spec:
     - tst
   repositories:
     - wayfare
+    - wayfare-deployment-config
   kubernetes:
     enabled: true
   auth0:
