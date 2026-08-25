@@ -73,6 +73,16 @@ describe("published deployment configuration", () => {
 			{ ENTUR_LOGIN_DOMAIN: "https://partner.staging.entur.org" },
 			"ENTUR_LOGIN_DOMAIN",
 		],
+		[
+			"a session secret shorter than 32 characters",
+			{ ENTUR_LOGIN_SESSION_SECRET: "too-short" },
+			"ENTUR_LOGIN_SESSION_SECRET must be at least 32 characters",
+		],
+		[
+			"a CSRF secret shorter than 32 characters",
+			{ ENTUR_LOGIN_CSRF_SECRET: "too-short" },
+			"ENTUR_LOGIN_CSRF_SECRET must be at least 32 characters",
+		],
 	])("rejects %s", (_description, overrides, expectedMessage) => {
 		expect(() =>
 			validatePublishedDeploymentConfig(publishedEnvironment(overrides)),

@@ -1,79 +1,148 @@
-import { createRemoteJWKSet, jwtVerify } from "jose";
 import {
-	authorizationCodeGrant,
-	buildAuthorizationUrl,
-	buildEndSessionUrl,
-	type Configuration,
-	calculatePKCECodeChallenge,
-	discovery,
-	randomNonce,
-	randomPKCECodeVerifier,
-	randomState,
-} from "openid-client";
+	type CookieHandler,
+	type CookieSerializeOptions,
+	CookieTransactionStore,
+	ServerClient,
+	StatelessStateStore,
+} from "@auth0/auth0-server-js";
 import { requirePublishedDeploymentConfig } from "./deployment-config.ts";
 
 const SESSION_COOKIE_NAME = "wayfare_session";
 const PENDING_COOKIE_NAME = "wayfare_login_pending";
-const PENDING_MAX_AGE_SECONDS = 5 * 60;
 
-interface PendingLogin {
-	state: string;
-	nonce: string;
-	codeVerifier: string;
+interface StoreOptions {
+	request: Request;
+	responseHeaders: Headers;
+}
+
+interface AppState {
 	returnTo: string;
 }
 
-let oidcConfiguration:
-	| { key: string; promise: Promise<Configuration> }
-	| undefined;
-let jwks:
-	| { domain: string; value: ReturnType<typeof createRemoteJWKSet> }
-	| undefined;
-
-function getOidcConfiguration(): Promise<Configuration> {
-	const config = requirePublishedDeploymentConfig();
-	const key = `${config.loginDomain}:${config.loginClientId}:${config.loginClientSecret}`;
-	if (oidcConfiguration?.key !== key) {
-		oidcConfiguration = {
-			key,
-			promise: discovery(
-				new URL(`https://${config.loginDomain}`),
-				config.loginClientId,
-				config.loginClientSecret,
-			),
-		};
+function parseCookies(request: Request): Record<string, string> {
+	const header = request.headers.get("cookie");
+	if (!header) return {};
+	const cookies: Record<string, string> = {};
+	for (const part of header.split(";")) {
+		const separatorIndex = part.indexOf("=");
+		if (separatorIndex === -1) continue;
+		const name = part.slice(0, separatorIndex).trim();
+		if (!name) continue;
+		cookies[name] = part.slice(separatorIndex + 1).trim();
 	}
-	return oidcConfiguration.promise;
+	return cookies;
 }
 
-export async function initializeEnturLogin(): Promise<void> {
-	await getOidcConfiguration();
+function serializeCookie(
+	name: string,
+	value: string,
+	options: CookieSerializeOptions = {},
+): string {
+	const segments = [`${name}=${value}`, `Path=${options.path ?? "/"}`];
+	if (typeof options.maxAge === "number") {
+		segments.push(`Max-Age=${Math.max(0, Math.floor(options.maxAge))}`);
+	}
+	if (options.expires)
+		segments.push(`Expires=${options.expires.toUTCString()}`);
+	if (options.domain) segments.push(`Domain=${options.domain}`);
+	if (options.httpOnly !== false) segments.push("HttpOnly");
+	const sameSite = options.sameSite ?? "lax";
+	segments.push(`SameSite=${sameSite[0].toUpperCase()}${sameSite.slice(1)}`);
+	// Deployment config already requires COOKIE_SECURE=true; Secure is never optional here.
+	segments.push("Secure");
+	return segments.join("; ");
 }
+
+// Bridges @auth0/auth0-server-js to the plain Request/Response world of
+// server.mjs: this gate runs before the TanStack Start SSR handler, so there
+// is no ambient request context to read cookies from, unlike the framework
+// helpers TanStack Start server functions get. Callers pass the incoming
+// Request and a Headers object to collect outgoing Set-Cookie values onto.
+class WayfareCookieHandler implements CookieHandler<StoreOptions> {
+	getCookie(name: string, storeOptions?: StoreOptions): string | undefined {
+		return storeOptions && parseCookies(storeOptions.request)[name];
+	}
+
+	getCookies(storeOptions?: StoreOptions): Record<string, string> {
+		return storeOptions ? parseCookies(storeOptions.request) : {};
+	}
+
+	setCookie(
+		name: string,
+		value: string,
+		options?: CookieSerializeOptions,
+		storeOptions?: StoreOptions,
+	): void {
+		storeOptions?.responseHeaders.append(
+			"set-cookie",
+			serializeCookie(name, value, options),
+		);
+	}
+
+	deleteCookie(
+		name: string,
+		storeOptions?: StoreOptions,
+		options?: CookieSerializeOptions,
+	): void {
+		storeOptions?.responseHeaders.append(
+			"set-cookie",
+			serializeCookie(name, "", { ...options, maxAge: 0 }),
+		);
+	}
+}
+
+const cookieHandler = new WayfareCookieHandler();
+
+let serverClient:
+	| { key: string; client: ServerClient<StoreOptions> }
+	| undefined;
 
 function buildPublicUrl(pathname: string): URL {
 	const { publicOrigin } = requirePublishedDeploymentConfig();
 	return new URL(pathname, publicOrigin);
 }
 
-function buildCookie(
-	name: string,
-	value: string,
-	maxAgeSeconds: number,
-): string {
-	return [
-		`${name}=${value}`,
-		"Path=/",
-		`Max-Age=${maxAgeSeconds}`,
-		"HttpOnly",
-		"SameSite=Lax",
-		"Secure",
-	].join("; ");
+function getServerClient(): ServerClient<StoreOptions> {
+	const config = requirePublishedDeploymentConfig();
+	const key = [
+		config.loginDomain,
+		config.loginClientId,
+		config.loginClientSecret,
+		config.loginSessionSecret,
+		config.loginCsrfSecret,
+	].join(":");
+	if (serverClient?.key !== key) {
+		serverClient = {
+			key,
+			client: new ServerClient<StoreOptions>({
+				domain: config.loginDomain,
+				clientId: config.loginClientId,
+				clientSecret: config.loginClientSecret,
+				authorizationParams: {
+					redirect_uri: buildPublicUrl("/auth/callback").toString(),
+					scope: "openid profile email offline_access",
+				},
+				stateIdentifier: SESSION_COOKIE_NAME,
+				transactionIdentifier: PENDING_COOKIE_NAME,
+				transactionStore: new CookieTransactionStore(
+					{ secret: config.loginCsrfSecret },
+					cookieHandler,
+				),
+				stateStore: new StatelessStateStore(
+					{ secret: config.loginSessionSecret },
+					cookieHandler,
+				),
+			}),
+		};
+	}
+	return serverClient.client;
 }
 
-function readCookie(request: Request, name: string): string | undefined {
-	const header = request.headers.get("cookie") ?? "";
-	const match = new RegExp(`(?:^|;\\s*)${name}=([^;]+)`).exec(header);
-	return match?.[1];
+// Constructs the client eagerly so a misconfigured deployment fails startup
+// instead of the first login attempt. OIDC discovery itself is lazy and
+// cached inside the SDK, so this does not reach the IdP.
+export async function initializeEnturLogin(): Promise<void> {
+	getServerClient();
 }
 
 export function sanitizeReturnTo(value: string | null): string {
@@ -87,17 +156,6 @@ export function sanitizeReturnTo(value: string | null): string {
 		return "/";
 	}
 	return value;
-}
-
-function isPendingLogin(value: unknown): value is PendingLogin {
-	if (!value || typeof value !== "object") return false;
-	const candidate = value as Record<string, unknown>;
-	return (
-		typeof candidate.state === "string" &&
-		typeof candidate.nonce === "string" &&
-		typeof candidate.codeVerifier === "string" &&
-		typeof candidate.returnTo === "string"
-	);
 }
 
 function noStoreHeaders(initial?: HeadersInit): Headers {
@@ -124,32 +182,13 @@ export async function startLogin(request: Request): Promise<Response> {
 	const returnTo = sanitizeReturnTo(
 		new URL(request.url).searchParams.get("returnTo"),
 	);
-	const state = randomState();
-	const nonce = randomNonce();
-	const codeVerifier = randomPKCECodeVerifier();
-	const codeChallenge = await calculatePKCECodeChallenge(codeVerifier);
-	const pending: PendingLogin = { state, nonce, codeVerifier, returnTo };
-	const redirectUri = buildPublicUrl("/auth/callback").toString();
-	const authorizationUrl = buildAuthorizationUrl(await getOidcConfiguration(), {
-		redirect_uri: redirectUri,
-		response_type: "code",
-		scope: "openid profile email",
-		code_challenge: codeChallenge,
-		code_challenge_method: "S256",
-		state,
-		nonce,
-	});
-
-	const headers = noStoreHeaders({ location: authorizationUrl.toString() });
-	headers.append(
-		"set-cookie",
-		buildCookie(
-			PENDING_COOKIE_NAME,
-			encodeURIComponent(JSON.stringify(pending)),
-			PENDING_MAX_AGE_SECONDS,
-		),
+	const responseHeaders = noStoreHeaders();
+	const authorizationUrl = await getServerClient().startInteractiveLogin(
+		{ appState: { returnTo } satisfies AppState },
+		{ request, responseHeaders },
 	);
-	return new Response(null, { status: 302, headers });
+	responseHeaders.set("location", authorizationUrl.href);
+	return new Response(null, { status: 302, headers: responseHeaders });
 }
 
 function loginErrorResponse(): Response {
@@ -166,57 +205,16 @@ function logLoginFailure(reason: string, error?: unknown): void {
 }
 
 export async function handleCallback(request: Request): Promise<Response> {
-	const requestUrl = new URL(request.url);
-	const code = requestUrl.searchParams.get("code");
-	const state = requestUrl.searchParams.get("state");
-	const pendingRaw = readCookie(request, PENDING_COOKIE_NAME);
-
-	if (!code || !state || !pendingRaw) {
-		logLoginFailure("callback parameters or pending login cookie missing");
-		return loginErrorResponse();
-	}
-
-	let pending: PendingLogin;
+	const responseHeaders = noStoreHeaders();
 	try {
-		const parsed: unknown = JSON.parse(decodeURIComponent(pendingRaw));
-		if (!isPendingLogin(parsed)) {
-			throw new Error("pending login cookie has an unexpected shape");
-		}
-		pending = parsed;
-	} catch (error) {
-		logLoginFailure("pending login cookie is invalid", error);
-		return loginErrorResponse();
-	}
-
-	try {
-		const callbackUrl = buildPublicUrl("/auth/callback");
-		callbackUrl.search = requestUrl.search;
-		const tokens = await authorizationCodeGrant(
-			await getOidcConfiguration(),
-			callbackUrl,
-			{
-				expectedState: pending.state,
-				expectedNonce: pending.nonce,
-				pkceCodeVerifier: pending.codeVerifier,
-				idTokenExpected: true,
-			},
-		);
-		if (!tokens.id_token) {
-			throw new Error("token endpoint response did not contain an ID token");
-		}
-
-		const claims = tokens.claims();
-		const expiresAt = claims?.exp ?? Math.floor(Date.now() / 1000) + 3600;
-		const maxAge = Math.max(60, expiresAt - Math.floor(Date.now() / 1000));
-		const headers = noStoreHeaders({
-			location: buildPublicUrl(sanitizeReturnTo(pending.returnTo)).toString(),
-		});
-		headers.append(
-			"set-cookie",
-			buildCookie(SESSION_COOKIE_NAME, tokens.id_token, maxAge),
-		);
-		headers.append("set-cookie", buildCookie(PENDING_COOKIE_NAME, "", 0));
-		return new Response(null, { status: 302, headers });
+		const { appState } =
+			await getServerClient().completeInteractiveLogin<AppState>(
+				new URL(request.url),
+				{ request, responseHeaders },
+			);
+		const returnTo = sanitizeReturnTo(appState?.returnTo ?? null);
+		responseHeaders.set("location", buildPublicUrl(returnTo).toString());
+		return new Response(null, { status: 302, headers: responseHeaders });
 	} catch (error) {
 		logLoginFailure("authorization response validation failed", error);
 		return loginErrorResponse();
@@ -224,45 +222,36 @@ export async function handleCallback(request: Request): Promise<Response> {
 }
 
 export async function handleLogout(request: Request): Promise<Response> {
-	const idToken = readCookie(request, SESSION_COOKIE_NAME);
-	const parameters: Record<string, string> = {
-		post_logout_redirect_uri: buildPublicUrl("/").toString(),
-	};
-	if (idToken) parameters.id_token_hint = idToken;
-	const logoutUrl = buildEndSessionUrl(
-		await getOidcConfiguration(),
-		parameters,
+	const responseHeaders = noStoreHeaders();
+	const logoutUrl = await getServerClient().logout(
+		{ returnTo: buildPublicUrl("/").toString() },
+		{ request, responseHeaders },
 	);
-	const headers = noStoreHeaders({ location: logoutUrl.toString() });
-	headers.append("set-cookie", buildCookie(SESSION_COOKIE_NAME, "", 0));
-	return new Response(null, { status: 302, headers });
+	responseHeaders.set("location", logoutUrl.href);
+	return new Response(null, { status: 302, headers: responseHeaders });
 }
 
-async function verifyIdToken(idToken: string): Promise<void> {
-	const { loginDomain, loginClientId } = requirePublishedDeploymentConfig();
-	if (jwks?.domain !== loginDomain) {
-		jwks = {
-			domain: loginDomain,
-			value: createRemoteJWKSet(
-				new URL(`https://${loginDomain}/.well-known/jwks.json`),
-			),
-		};
-	}
-	await jwtVerify(idToken, jwks.value, {
-		issuer: `https://${loginDomain}/`,
-		audience: loginClientId,
-	});
-}
-
-export async function getSessionIdToken(
+// Returns the signed-in user's subject, or undefined when there is no valid
+// session. Any Set-Cookie the SDK needs to write (e.g. a rotated session
+// cookie after a refresh) is appended to `responseHeaders`; the caller is
+// responsible for copying those onto the final response.
+export async function getSessionSubject(
 	request: Request,
+	responseHeaders: Headers,
 ): Promise<string | undefined> {
-	const token = readCookie(request, SESSION_COOKIE_NAME);
-	if (!token) return undefined;
+	const storeOptions: StoreOptions = { request, responseHeaders };
+	const client = getServerClient();
+	const session = await client.getSession(storeOptions);
+	if (!session?.user) return undefined;
 	try {
-		await verifyIdToken(token);
-		return token;
+		// Touching the access token lets the SDK refresh it (and persist a
+		// rotated session cookie) when the current one is close to expiry, so a
+		// session can outlive a single ID token via the refresh token. The
+		// token itself is unused here -- Wayfare calls Entur APIs with a
+		// separate machine credential (see src/server/auth.ts).
+		await client.getAccessToken({}, storeOptions);
 	} catch {
 		return undefined;
 	}
+	return session.user.sub;
 }

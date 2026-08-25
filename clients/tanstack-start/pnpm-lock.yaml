@@ -18,6 +18,9 @@ importers:
 
   .:
     dependencies:
+      '@auth0/auth0-server-js':
+        specifier: 1.12.1
+        version: 1.12.1
       '@entur-partner/permission-client-node':
         specifier: 3.6.2
         version: 3.6.2
@@ -72,18 +75,12 @@ importers:
       '@types/qrcode':
         specifier: 1.5.6
         version: 1.5.6
-      jose:
-        specifier: 6.2.9
-        version: 6.2.9
       lucide-react:
         specifier: 1.28.0
         version: 1.28.0(react@19.2.8)
       maplibre-gl:
         specifier: 5.24.0
         version: 5.24.0
-      openid-client:
-        specifier: 6.8.6
-        version: 6.8.6
       qrcode:
         specifier: 1.5.4
         version: 1.5.4
@@ -171,6 +168,12 @@ packages:
 
   '@asamuzakjp/nwsapi@2.3.9':
     resolution: {integrity: sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q==}
+
+  '@auth0/auth0-auth-js@1.12.1':
+    resolution: {integrity: sha512-YgYOAGmfwO40YOYkYSW7XvE6b+qkdlXdpzBshvOjCioygesUxIw2qRerilW1/8XQV41mnFvQIPnsTdEOHN9BeA==}
+
+  '@auth0/auth0-server-js@1.12.1':
+    resolution: {integrity: sha512-EeHSoJBCvzOv3j2ExvZy7g3m7eppsBVbgtz1j7srDhgWsd+igs2+sISewxGJ02BL0ccXbeKZk2vVmVMvvrRYmg==}
 
   '@babel/code-frame@7.27.1':
     resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
@@ -2676,6 +2679,16 @@ snapshots:
   '@asamuzakjp/generational-cache@1.0.1': {}
 
   '@asamuzakjp/nwsapi@2.3.9': {}
+
+  '@auth0/auth0-auth-js@1.12.1':
+    dependencies:
+      jose: 6.2.9
+      openid-client: 6.8.6
+
+  '@auth0/auth0-server-js@1.12.1':
+    dependencies:
+      '@auth0/auth0-auth-js': 1.12.1
+      jose: 6.2.9
 
   '@babel/code-frame@7.27.1':
     dependencies:

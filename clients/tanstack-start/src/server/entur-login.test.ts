@@ -1,28 +1,33 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const oidc = vi.hoisted(() => ({
-	authorizationCodeGrant: vi.fn(),
-	buildAuthorizationUrl: vi.fn(),
-	buildEndSessionUrl: vi.fn(),
-	calculatePKCECodeChallenge: vi.fn(),
-	discovery: vi.fn(),
-	randomNonce: vi.fn(),
-	randomPKCECodeVerifier: vi.fn(),
-	randomState: vi.fn(),
-}));
+const auth0 = vi.hoisted(() => {
+	const client = {
+		startInteractiveLogin: vi.fn(),
+		completeInteractiveLogin: vi.fn(),
+		getSession: vi.fn(),
+		getAccessToken: vi.fn(),
+		logout: vi.fn(),
+	};
+	return {
+		client,
+		ServerClient: vi.fn(function ServerClient() {
+			return client;
+		}),
+		CookieTransactionStore: vi.fn(),
+		StatelessStateStore: vi.fn(),
+	};
+});
 
-const jose = vi.hoisted(() => ({
-	createRemoteJWKSet: vi.fn(),
-	jwtVerify: vi.fn(),
+vi.mock("@auth0/auth0-server-js", () => ({
+	ServerClient: auth0.ServerClient,
+	CookieTransactionStore: auth0.CookieTransactionStore,
+	StatelessStateStore: auth0.StatelessStateStore,
 }));
-
-vi.mock("openid-client", () => oidc);
-vi.mock("jose", () => jose);
 
 import { stubPublishedEnvironment } from "./deployment-config.test-utils";
 import {
 	buildLoginRedirect,
-	getSessionIdToken,
+	getSessionSubject,
 	handleCallback,
 	handleLogout,
 	sanitizeReturnTo,
@@ -31,29 +36,6 @@ import {
 
 beforeEach(() => {
 	stubPublishedEnvironment();
-	oidc.discovery.mockResolvedValue({});
-	oidc.randomState.mockReturnValue("state-123");
-	oidc.randomNonce.mockReturnValue("nonce-123");
-	oidc.randomPKCECodeVerifier.mockReturnValue("verifier-123");
-	oidc.calculatePKCECodeChallenge.mockResolvedValue("challenge-123");
-	oidc.buildAuthorizationUrl.mockImplementation(
-		(_configuration, parameters: Record<string, string>) => {
-			const url = new URL("https://partner.staging.entur.org/authorize");
-			for (const [key, value] of Object.entries(parameters)) {
-				url.searchParams.set(key, value);
-			}
-			return url;
-		},
-	);
-	oidc.authorizationCodeGrant.mockResolvedValue({
-		id_token: "signed-id-token",
-		claims: () => ({ exp: Math.floor(Date.now() / 1000) + 1800 }),
-	});
-	oidc.buildEndSessionUrl.mockReturnValue(
-		new URL("https://partner.staging.entur.org/v2/logout"),
-	);
-	jose.createRemoteJWKSet.mockReturnValue(vi.fn());
-	jose.jwtVerify.mockResolvedValue({ payload: {} });
 });
 
 afterEach(() => {
@@ -85,83 +67,75 @@ describe("Entur login", () => {
 		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 
-	it("starts Authorization Code with PKCE, state, nonce, and a secure cookie", async () => {
+	it("starts an interactive login carrying the sanitized return path as app state", async () => {
+		auth0.client.startInteractiveLogin.mockImplementation(
+			async (_options: unknown, storeOptions: { responseHeaders: Headers }) => {
+				storeOptions.responseHeaders.append(
+					"set-cookie",
+					"wayfare_login_pending=encrypted-transaction; HttpOnly; SameSite=Lax; Secure",
+				);
+				return new URL("https://partner.staging.entur.org/authorize?state=abc");
+			},
+		);
+
 		const response = await startLogin(
 			new Request(
 				"http://internal-service/auth/login?returnTo=%2Fmap%3Ffrom%3DOslo",
 			),
 		);
 
-		expect(response.status).toBe(302);
-		expect(response.headers.get("location")).toContain(
-			"redirect_uri=https%3A%2F%2Fwayfare.staging.entur.no%2Fauth%2Fcallback",
+		expect(auth0.client.startInteractiveLogin).toHaveBeenCalledWith(
+			{ appState: { returnTo: "/map?from=Oslo" } },
+			expect.objectContaining({ responseHeaders: expect.any(Headers) }),
 		);
-		expect(response.headers.get("location")).toContain("state=state-123");
-		expect(response.headers.get("location")).toContain("nonce=nonce-123");
-		expect(response.headers.get("location")).toContain(
-			"code_challenge=challenge-123",
+		expect(response.status).toBe(302);
+		expect(response.headers.get("location")).toBe(
+			"https://partner.staging.entur.org/authorize?state=abc",
 		);
 		expect(response.headers.get("set-cookie")).toMatch(/HttpOnly/);
-		expect(response.headers.get("set-cookie")).toMatch(/SameSite=Lax/);
 		expect(response.headers.get("set-cookie")).toMatch(/Secure/);
+		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 
-	it("validates callback state, nonce, and verifier before creating a session", async () => {
-		const pending = encodeURIComponent(
-			JSON.stringify({
-				state: "state-123",
-				nonce: "nonce-123",
-				codeVerifier: "verifier-123",
-				returnTo: "/map",
-			}),
+	it("completes the login and redirects to the sanitized return path", async () => {
+		auth0.client.completeInteractiveLogin.mockImplementation(
+			async (_url: URL, storeOptions: { responseHeaders: Headers }) => {
+				storeOptions.responseHeaders.append(
+					"set-cookie",
+					"wayfare_session.0=encrypted-session; HttpOnly; Secure",
+				);
+				return { appState: { returnTo: "/map" } };
+			},
 		);
+
 		const response = await handleCallback(
 			new Request(
 				"http://internal-service/auth/callback?code=code-123&state=state-123",
-				{ headers: { cookie: `wayfare_login_pending=${pending}` } },
 			),
 		);
 
-		expect(oidc.authorizationCodeGrant).toHaveBeenCalledWith(
-			expect.anything(),
+		expect(auth0.client.completeInteractiveLogin).toHaveBeenCalledWith(
 			new URL(
-				"https://wayfare.staging.entur.no/auth/callback?code=code-123&state=state-123",
+				"http://internal-service/auth/callback?code=code-123&state=state-123",
 			),
-			{
-				expectedState: "state-123",
-				expectedNonce: "nonce-123",
-				pkceCodeVerifier: "verifier-123",
-				idTokenExpected: true,
-			},
+			expect.objectContaining({ responseHeaders: expect.any(Headers) }),
 		);
 		expect(response.status).toBe(302);
 		expect(response.headers.get("location")).toBe(
 			"https://wayfare.staging.entur.no/map",
 		);
-		expect(response.headers.get("set-cookie")).toContain(
-			"wayfare_session=signed-id-token",
-		);
+		expect(response.headers.get("set-cookie")).toContain("wayfare_session");
 		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 
 	it("returns a generic error for an invalid callback", async () => {
-		oidc.authorizationCodeGrant.mockRejectedValue(
+		auth0.client.completeInteractiveLogin.mockRejectedValue(
 			new Error("token endpoint returned client secret details"),
 		);
-		const pending = encodeURIComponent(
-			JSON.stringify({
-				state: "state-123",
-				nonce: "nonce-123",
-				codeVerifier: "verifier-123",
-				returnTo: "/",
-			}),
-		);
+
 		const response = await handleCallback(
 			new Request(
 				"https://wayfare.staging.entur.no/auth/callback?code=bad&state=bad",
-				{
-					headers: { cookie: `wayfare_login_pending=${pending}` },
-				},
 			),
 		);
 
@@ -171,26 +145,60 @@ describe("Entur login", () => {
 		);
 	});
 
-	it("rejects invalid or expired session cookies", async () => {
-		const request = new Request("https://wayfare.staging.entur.no/", {
-			headers: { cookie: "wayfare_session=expired-token" },
+	it("returns the session subject for a valid, refreshable session", async () => {
+		auth0.client.getSession.mockResolvedValue({
+			user: { sub: "auth0|employee" },
 		});
-		expect(await getSessionIdToken(request)).toBe("expired-token");
+		auth0.client.getAccessToken.mockResolvedValue({ accessToken: "unused" });
 
-		jose.jwtVerify.mockRejectedValue(new Error("JWT expired"));
-		expect(await getSessionIdToken(request)).toBeUndefined();
+		const request = new Request("https://wayfare.staging.entur.no/");
+		expect(await getSessionSubject(request, new Headers())).toBe(
+			"auth0|employee",
+		);
+	});
+
+	it("treats a session with no refreshable token as logged out", async () => {
+		auth0.client.getSession.mockResolvedValue({
+			user: { sub: "auth0|employee" },
+		});
+		auth0.client.getAccessToken.mockRejectedValue(
+			new Error("refresh token expired"),
+		);
+
+		const request = new Request("https://wayfare.staging.entur.no/");
+		expect(await getSessionSubject(request, new Headers())).toBeUndefined();
+	});
+
+	it("treats a missing session as logged out", async () => {
+		auth0.client.getSession.mockResolvedValue(undefined);
+
+		const request = new Request("https://wayfare.staging.entur.no/");
+		expect(await getSessionSubject(request, new Headers())).toBeUndefined();
 	});
 
 	it("logs out through Auth0 and clears the local session", async () => {
-		await handleLogout(
-			new Request("http://internal-service/auth/logout", {
-				headers: { cookie: "wayfare_session=signed-id-token" },
-			}),
+		auth0.client.logout.mockImplementation(
+			async (_options: unknown, storeOptions: { responseHeaders: Headers }) => {
+				storeOptions.responseHeaders.append(
+					"set-cookie",
+					"wayfare_session.0=; Max-Age=0",
+				);
+				return new URL("https://partner.staging.entur.org/v2/logout");
+			},
 		);
 
-		expect(oidc.buildEndSessionUrl).toHaveBeenCalledWith(expect.anything(), {
-			post_logout_redirect_uri: "https://wayfare.staging.entur.no/",
-			id_token_hint: "signed-id-token",
-		});
+		const response = await handleLogout(
+			new Request("http://internal-service/auth/logout"),
+		);
+
+		expect(auth0.client.logout).toHaveBeenCalledWith(
+			{ returnTo: "https://wayfare.staging.entur.no/" },
+			expect.objectContaining({ responseHeaders: expect.any(Headers) }),
+		);
+		expect(response.status).toBe(302);
+		expect(response.headers.get("location")).toBe(
+			"https://partner.staging.entur.org/v2/logout",
+		);
+		expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
 	});
 });

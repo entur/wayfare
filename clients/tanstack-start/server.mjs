@@ -62,17 +62,27 @@ serve({
 				);
 			}
 
+			let authResponseHeaders;
 			if (isEnturLoginRequired()) {
 				const authRouteResponse = await handleAuthRoutes(request);
 				if (authRouteResponse) return authRouteResponse;
 
-				const denied = await authorizeRequest(request);
+				authResponseHeaders = new Headers();
+				const denied = await authorizeRequest(request, authResponseHeaders);
 				if (denied) return denied;
 			}
 
 			const response = await withAssetCaching(request, () =>
 				serverEntry.fetch(request),
 			);
+			// The gate may have refreshed the session (e.g. rotated an expiring
+			// token) while authorizing this request -- carry those Set-Cookie
+			// headers onto the response the SSR handler produced.
+			if (authResponseHeaders) {
+				for (const cookie of authResponseHeaders.getSetCookie()) {
+					response.headers.append("set-cookie", cookie);
+				}
+			}
 			if (isEnturLoginRequired() && !pathname.startsWith("/assets/")) {
 				response.headers.set("cache-control", "no-store");
 			}

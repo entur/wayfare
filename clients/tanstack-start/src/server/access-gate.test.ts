@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const login = vi.hoisted(() => ({
 	buildLoginRedirect: vi.fn(),
-	getSessionIdToken: vi.fn(),
+	getSessionSubject: vi.fn(),
 	handleCallback: vi.fn(),
 	handleLogout: vi.fn(),
 	initializeEnturLogin: vi.fn(),
@@ -48,6 +48,7 @@ describe("access gate", () => {
 		const { authorizeRequest } = await loadAccessGate();
 		const response = await authorizeRequest(
 			new Request("https://wayfare.staging.entur.no/map"),
+			new Headers(),
 		);
 
 		expect(response?.status).toBe(503);
@@ -65,12 +66,13 @@ describe("access gate", () => {
 	});
 
 	it("redirects an invalid session with no-store headers", async () => {
-		login.getSessionIdToken.mockResolvedValue(undefined);
+		login.getSessionSubject.mockResolvedValue(undefined);
 		const { authorizeRequest, initializeAccessGate } = await loadAccessGate();
 		await initializeAccessGate();
 
 		const response = await authorizeRequest(
 			new Request("https://wayfare.staging.entur.no/map"),
+			new Headers(),
 		);
 
 		expect(response?.status).toBe(302);
@@ -78,13 +80,14 @@ describe("access gate", () => {
 	});
 
 	it("returns a no-store 403 when Permission Store denies the capability", async () => {
-		login.getSessionIdToken.mockResolvedValue("id-token");
+		login.getSessionSubject.mockResolvedValue("employee-subject");
 		permission.hasStagingAccess.mockResolvedValue(false);
 		const { authorizeRequest, initializeAccessGate } = await loadAccessGate();
 		await initializeAccessGate();
 
 		const response = await authorizeRequest(
 			new Request("https://wayfare.staging.entur.no/map"),
+			new Headers(),
 		);
 
 		expect(response?.status).toBe(403);
@@ -92,7 +95,7 @@ describe("access gate", () => {
 	});
 
 	it("allows a verified session with wayfare.web", async () => {
-		login.getSessionIdToken.mockResolvedValue("id-token");
+		login.getSessionSubject.mockResolvedValue("employee-subject");
 		permission.hasStagingAccess.mockResolvedValue(true);
 		const { authorizeRequest, initializeAccessGate } = await loadAccessGate();
 		await initializeAccessGate();
@@ -100,6 +103,7 @@ describe("access gate", () => {
 		expect(
 			await authorizeRequest(
 				new Request("https://wayfare.staging.entur.no/map"),
+				new Headers(),
 			),
 		).toBeNull();
 	});

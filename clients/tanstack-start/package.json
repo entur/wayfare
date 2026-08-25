@@ -19,6 +19,7 @@
     "check": "biome check"
   },
   "dependencies": {
+    "@auth0/auth0-server-js": "1.12.1",
     "@entur-partner/permission-client-node": "3.6.2",
     "@entur/button": "4.0.11",
     "@entur/form": "9.3.8",
@@ -37,10 +38,8 @@
     "@tanstack/router-core": "1.171.19",
     "@tanstack/router-plugin": "1.168.27",
     "@types/qrcode": "1.5.6",
-    "jose": "6.2.9",
     "lucide-react": "1.28.0",
     "maplibre-gl": "5.24.0",
-    "openid-client": "6.8.6",
     "qrcode": "1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",

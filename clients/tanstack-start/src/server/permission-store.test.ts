@@ -15,7 +15,6 @@ const permission = vi.hoisted(() => {
 	return {
 		cache,
 		permissionClient: vi.fn().mockResolvedValue(cache),
-		getAuthoritySubject: vi.fn(),
 		PermissionDeliverRepository,
 		TokenFactory,
 		tokenFactoryArguments,
@@ -25,7 +24,6 @@ const permission = vi.hoisted(() => {
 vi.mock("@entur-partner/permission-client-node", () => ({
 	default: permission.permissionClient,
 	AuthorizeCacheType: { IN_MEMORY: "IN_MEMORY" },
-	JwtDecoder: { getAuthoritySubject: permission.getAuthoritySubject },
 	PermissionDeliverRepository: permission.PermissionDeliverRepository,
 	TokenFactory: permission.TokenFactory,
 }));
@@ -47,7 +45,6 @@ afterEach(() => {
 
 describe("Permission Store gate", () => {
 	it("initializes the wayfare.web capability before checking allow and deny", async () => {
-		permission.getAuthoritySubject.mockReturnValue("auth0|employee");
 		permission.cache.checkBusinessCapabilityPermission
 			.mockReturnValueOnce(true)
 			.mockReturnValueOnce(false);
@@ -67,8 +64,16 @@ describe("Permission Store gate", () => {
 				audience: "https://permission-store",
 			},
 		]);
-		expect(await hasStagingAccess("id-token")).toBe(true);
-		expect(await hasStagingAccess("id-token")).toBe(false);
-		expect(permission.getAuthoritySubject).toHaveBeenCalledWith("id-token");
+		expect(await hasStagingAccess("auth0|employee")).toBe(true);
+		expect(await hasStagingAccess("auth0|employee")).toBe(false);
+		// The authority is derived from ENTUR_LOGIN_DOMAIN
+		// ("partner.staging.entur.org"), the same value used as the token
+		// issuer -- no JWT decoding needed.
+		expect(
+			permission.cache.checkBusinessCapabilityPermission,
+		).toHaveBeenCalledWith(
+			{ authority: "partner", subject: "auth0|employee" },
+			WAYFARE_WEB_ACCESS,
+		);
 	});
 });

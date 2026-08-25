@@ -1,7 +1,7 @@
 import { isEnturLoginRequired } from "./deployment-config.ts";
 import {
 	buildLoginRedirect,
-	getSessionIdToken,
+	getSessionSubject,
 	handleCallback,
 	handleLogout,
 	initializeEnturLogin,
@@ -45,6 +45,7 @@ export async function handleAuthRoutes(
 
 export async function authorizeRequest(
 	request: Request,
+	responseHeaders: Headers,
 ): Promise<Response | null> {
 	if (!ready) {
 		return new Response("Service Unavailable", {
@@ -55,11 +56,11 @@ export async function authorizeRequest(
 			},
 		});
 	}
-	const idToken = await getSessionIdToken(request);
-	if (!idToken) {
+	const subject = await getSessionSubject(request, responseHeaders);
+	if (!subject) {
 		return buildLoginRedirect(new URL(request.url));
 	}
-	if (!(await hasStagingAccess(idToken))) {
+	if (!(await hasStagingAccess(subject))) {
 		return new Response(
 			"Your Entur account does not have wayfare.web access.",
 			{

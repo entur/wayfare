@@ -11,6 +11,8 @@ const VALID_PUBLISHED_ENV: NodeJS.ProcessEnv = {
 	ENTUR_LOGIN_DOMAIN: "partner.staging.entur.org",
 	ENTUR_LOGIN_CLIENT_ID: "login-client",
 	ENTUR_LOGIN_CLIENT_SECRET: "login-secret",
+	ENTUR_LOGIN_SESSION_SECRET: "0123456789abcdef0123456789abcdef01234567",
+	ENTUR_LOGIN_CSRF_SECRET: "fedcba9876543210fedcba9876543210fedcba98",
 	PERMISSION_STORE_URL: "http://permission-store.tst.entur.internal",
 	MNG_AUTH0_INT_HOST: "https://internal.staging.entur.org",
 	MNG_AUTH0_INT_AUDIENCE: "https://permission-store",

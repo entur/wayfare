@@ -3,6 +3,8 @@ export interface PublishedDeploymentConfig {
 	loginDomain: string;
 	loginClientId: string;
 	loginClientSecret: string;
+	loginSessionSecret: string;
+	loginCsrfSecret: string;
 	permissionStoreUrl: URL;
 	permissionM2mDomain: string;
 	permissionM2mAudience: string;
@@ -33,6 +35,18 @@ function requireValue(
 	const value = env[name]?.trim();
 	if (!value) errors.push(`${name} must be set`);
 	return value ?? "";
+}
+
+function requireSecret(
+	env: NodeJS.ProcessEnv,
+	name: string,
+	errors: string[],
+): string {
+	const value = requireValue(env, name, errors);
+	if (value && value.length < 32) {
+		errors.push(`${name} must be at least 32 characters`);
+	}
+	return value;
 }
 
 function parseUrl(
@@ -121,6 +135,12 @@ export function validatePublishedDeploymentConfig(
 		loginDomain,
 		loginClientId: requireValue(env, "ENTUR_LOGIN_CLIENT_ID", errors),
 		loginClientSecret: requireValue(env, "ENTUR_LOGIN_CLIENT_SECRET", errors),
+		loginSessionSecret: requireSecret(
+			env,
+			"ENTUR_LOGIN_SESSION_SECRET",
+			errors,
+		),
+		loginCsrfSecret: requireSecret(env, "ENTUR_LOGIN_CSRF_SECRET", errors),
 		permissionStoreUrl,
 		permissionM2mDomain: requireValue(env, "MNG_AUTH0_INT_HOST", errors),
 		permissionM2mAudience: requireValue(env, "MNG_AUTH0_INT_AUDIENCE", errors),
