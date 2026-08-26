@@ -13,7 +13,6 @@ import { DevConfigProvider } from "../context/dev-config";
 import { ProfileProvider } from "../context/profile";
 import { SearchFormProvider } from "../context/search-form";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
-import TanStackQueryProvider from "../integrations/tanstack-query/root-provider";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -52,8 +51,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-	const { queryClient } = Route.useRouteContext();
-
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
@@ -62,36 +59,34 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body className="font-sans antialiased [overflow-wrap:anywhere]">
-				<TanStackQueryProvider queryClient={queryClient}>
-					<DevConfigProvider>
-						<ProfileProvider>
-							<SearchFormProvider>
-								<div className="flex h-screen flex-col overflow-hidden">
-									<Header />
-									<div className="mobile-tabbar-pad flex flex-1 flex-col overflow-y-auto">
-										<div className="flex flex-1 flex-col">{children}</div>
-										<Footer />
-									</div>
-									<MobileTabBar />
+				<DevConfigProvider>
+					<ProfileProvider>
+						<SearchFormProvider>
+							<div className="flex h-screen flex-col overflow-hidden">
+								<Header />
+								<div className="mobile-tabbar-pad flex flex-1 flex-col overflow-y-auto">
+									<div className="flex flex-1 flex-col">{children}</div>
+									<Footer />
 								</div>
-							</SearchFormProvider>
-						</ProfileProvider>
-					</DevConfigProvider>
-					{import.meta.env.DEV && (
-						<TanStackDevtools
-							config={{
-								position: "bottom-right",
-							}}
-							plugins={[
-								{
-									name: "Tanstack Router",
-									render: <TanStackRouterDevtoolsPanel />,
-								},
-								TanStackQueryDevtools,
-							]}
-						/>
-					)}
-				</TanStackQueryProvider>
+								<MobileTabBar />
+							</div>
+						</SearchFormProvider>
+					</ProfileProvider>
+				</DevConfigProvider>
+				{import.meta.env.DEV && (
+					<TanStackDevtools
+						config={{
+							position: "bottom-right",
+						}}
+						plugins={[
+							{
+								name: "Tanstack Router",
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+							TanStackQueryDevtools,
+						]}
+					/>
+				)}
 				<Scripts />
 			</body>
 		</html>

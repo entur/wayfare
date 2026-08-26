@@ -95,6 +95,65 @@ export interface OfferProduct {
 	type?: "product";
 	productId?: OfferProductId | string;
 	productName?: string;
+	service?: OfferService[];
+	reservationRequirements?: OfferReservationRequirement[];
+}
+
+export type ReservationSpotType =
+	| "VEHICLE_SPOT"
+	| "PASSENGER_SPOT"
+	| "LUGGAGE_SPOT";
+
+export type ReservationPolicy =
+	| "COMPULSORY"
+	| "OPTIONAL"
+	| "NOT_POSSIBLE"
+	| "UNKNOWN";
+
+export type AssetSelection =
+	| "AUTO_ASSIGNED"
+	| "MANUAL_AVAILABLE"
+	| "NOT_AVAILABLE"
+	| "UNKNOWN";
+
+export interface FulfilledByAncillary {
+	ancillaryId: string;
+	name?: string;
+}
+
+export interface OfferReservationRequirement {
+	type?: "reservation_requirement";
+	spotType?: ReservationSpotType;
+	reservationPolicy?: ReservationPolicy;
+	sourceReservationPolicy?: string;
+	assetSelection?: AssetSelection;
+	serviceJourney?: string;
+	fulfilledByAncillaries?: FulfilledByAncillary[];
+}
+
+export interface OfferAccommodation {
+	type?: "accommodation";
+	name?: string;
+	berthType?: string;
+}
+
+export interface OfferService {
+	type?: "service";
+	serviceJourney?: string;
+	class?: string;
+	accommodations?: OfferAccommodation[];
+}
+
+export interface OfferAncillary {
+	ancillaryId: string;
+	name?: string;
+	type?: "ancillary";
+	price?: AmountOfMoney;
+	description?: string;
+	available?: number;
+	service?: OfferService[];
+	reservationRequirements?: OfferReservationRequirement[];
+	links?: Link[];
 }
 
 export interface TravellerMapping {
@@ -133,14 +192,23 @@ export interface OfferSummary {
 export interface OfferLeg {
 	id: string;
 	type?: "leg";
+	serviceJourney?: string;
+	from?: PlaceReference;
+	to?: PlaceReference;
 	sequenceNumber?: number;
 	traveller?: string;
 	state?: string;
+	price?: AmountOfMoney;
 	products?: string[];
+	ancillaries?: string[];
+	reservationRequirement?: OfferReservationRequirement;
+	operator?: { organisationId?: string; name?: string };
+	assets?: string[];
 }
 
 export interface OfferProperties {
 	legs?: OfferLeg[];
+	ancillaries?: OfferAncillary[];
 	products?: OfferProduct[];
 	price?: AmountOfMoney;
 	expiryTime?: string;

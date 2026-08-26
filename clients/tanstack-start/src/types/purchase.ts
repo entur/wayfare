@@ -1,5 +1,6 @@
 import type { AmountOfMoney, Link } from "./common";
 import type { OmsaCustomer } from "./customer";
+import type { Offer, OfferAncillary } from "./search";
 
 export interface Subscriber {
 	successUri?: string;
@@ -19,13 +20,70 @@ export interface PurchaseOffersRequest {
 	subscriber?: Subscriber;
 }
 
+export interface SelectOffersInputs {
+	type: "select_offers";
+	offerIds: string[];
+	customer?: OmsaCustomer;
+	timestamp?: string;
+}
+
+export interface SelectOffersRequest {
+	inputs: SelectOffersInputs;
+	subscriber?: Subscriber;
+}
+
 export interface PackageInput {
 	type: "package_input" | "package";
 	packageId: string;
 	timestamp?: string;
 }
 
+export interface ListAncillariesRequest {
+	packageId: string;
+	legId?: string;
+	limit?: number;
+	offset?: number;
+}
+
+export interface AncillaryCollectionItem {
+	id?: string;
+	properties?: OfferAncillary;
+	links?: Link[];
+}
+
+export interface AncillaryCollection {
+	type: "AncillaryCollection";
+	ancillaries?: AncillaryCollectionItem[];
+	numberMatched?: number;
+	numberReturned?: number;
+	links?: Link[];
+}
+
+export interface AncillaryReference {
+	ancillaryId: string;
+	name?: string;
+}
+
+export interface AssignAncillaryInput {
+	type: "ancillary";
+	packageId: string;
+	legId: string;
+	offerId?: string;
+	location?: { placeId: string; name?: string };
+	ancillaryId: AncillaryReference;
+	replaceAncillaryId?: AncillaryReference;
+}
+
+export interface AssignAncillaryRequest {
+	inputs: AssignAncillaryInput;
+	subscriber?: Subscriber;
+}
+
 export interface ConfirmPackageRequest {
+	inputs: PackageInput;
+}
+
+export interface PurchasePackageRequest {
 	inputs: PackageInput;
 }
 
@@ -46,6 +104,7 @@ export interface ClaimRefundRequest {
 
 export type PackageStatus =
 	| "OFFER"
+	| "PENDING"
 	| "CONFIRMED"
 	| "CANCEL_PENDING"
 	| "CANCELLED"
@@ -67,6 +126,7 @@ export interface ConfirmedPackage {
 	id?: string;
 	status: PackageStatus;
 	price: AmountOfMoney;
+	offers?: Offer[];
 	orderVersion?: number;
 	links?: Link[];
 }

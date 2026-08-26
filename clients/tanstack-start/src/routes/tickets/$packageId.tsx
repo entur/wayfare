@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { JourneyStepper } from "../../components/layout/JourneyStepper";
 import PageShell from "../../components/layout/PageShell";
 import {
 	JourneyLegLabels,
@@ -10,7 +11,8 @@ import {
 import Illustration from "../../components/shared/Illustration";
 import SituationBanner from "../../components/situations/SituationBanner";
 import DocumentViewer from "../../components/tickets/DocumentViewer";
-import Button from "../../components/ui/Button";
+import PackageActionsMenu from "../../components/tickets/PackageActionsMenu";
+import PackageContents from "../../components/tickets/PackageContents";
 import { useDevConfig } from "../../context/dev-config";
 import { useProfile } from "../../context/profile";
 import {
@@ -213,13 +215,22 @@ function TicketDetailPage() {
 		});
 
 	return (
-		<PageShell title="Ticket details">
-			<Link
-				to="/tickets"
-				className="mb-6 inline-block text-sm font-medium text-wayfare-text-secondary no-underline"
-			>
-				← My tickets
-			</Link>
+		<PageShell title="Ticket details" stepper={<JourneyStepper />}>
+			<div className="mb-6 flex items-center justify-between gap-3">
+				<Link
+					to="/tickets"
+					className="inline-block text-sm font-medium text-wayfare-text-secondary no-underline"
+				>
+					← My tickets
+				</Link>
+				<PackageActionsMenu
+					refundOptions={refundOptions}
+					onClaimRefund={handleClaimRefund}
+					claimingRefund={claimRefundMutation.isPending}
+					onCancel={handleCancel}
+					cancelling={cancelMutation.isPending}
+				/>
+			</div>
 
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
 				<div className="flex flex-col gap-4">
@@ -329,54 +340,7 @@ function TicketDetailPage() {
 						</div>
 					</div>
 
-					{refundOptions.length > 0 && (
-						<div className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4">
-							<h2 className="mb-3 text-sm font-semibold text-wayfare-text">
-								Refund options
-							</h2>
-							<div className="flex flex-col gap-2">
-								{refundOptions.map((opt) => (
-									<div
-										key={
-											opt.id ?? opt.properties?.refundType ?? "refund-option"
-										}
-										className="flex items-center justify-between"
-									>
-										<p className="m-0 text-sm text-wayfare-text">
-											{opt.properties?.refundType ?? "Refund"}
-											{opt.properties?.consequences?.[0]?.amount && (
-												<span className="ml-2 font-semibold text-wayfare-primary">
-													{opt.properties.consequences[0].amount.currencyCode ??
-														opt.properties.consequences[0].currencyCode ??
-														"NOK"}{" "}
-													{opt.properties.consequences[0].amount.amount?.toFixed(
-														2,
-													)}
-												</span>
-											)}
-										</p>
-										<button
-											type="button"
-											onClick={() => opt.id && handleClaimRefund(opt.id)}
-											className="cursor-pointer rounded-lg border-0 bg-wayfare-accent-soft px-3 py-1.5 text-xs font-semibold text-wayfare-primary"
-										>
-											Claim
-										</button>
-									</div>
-								))}
-							</div>
-						</div>
-					)}
-
-					<Button
-						variant="negative"
-						fluid
-						disabled={cancelMutation.isPending}
-						loading={cancelMutation.isPending}
-						onClick={handleCancel}
-					>
-						Cancel ticket
-					</Button>
+					<PackageContents offers={packageItem?.offers ?? []} />
 				</div>
 
 				<div style={{ opacity: isExpired ? 0.6 : undefined }}>

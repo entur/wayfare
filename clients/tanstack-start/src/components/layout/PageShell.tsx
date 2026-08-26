@@ -12,6 +12,8 @@ interface PageShellProps {
 	contentClassName?: string;
 	/** Theme-specific colours for the corner banners. */
 	banner?: PageBanner;
+	stepper?: React.ReactNode;
+	rightRail?: React.ReactNode;
 }
 
 function CornerBanner({ position }: { position: "start" | "end" }) {
@@ -33,7 +35,20 @@ export default function PageShell({
 	subtitle,
 	contentClassName,
 	banner,
+	stepper,
+	rightRail,
 }: PageShellProps) {
+	const header = (title || subtitle) && (
+		<div className="mb-6">
+			{title && (
+				<h1 className="text-2xl font-bold text-wayfare-text">{title}</h1>
+			)}
+			{subtitle && (
+				<p className="mt-1 text-sm text-wayfare-text-secondary">{subtitle}</p>
+			)}
+		</div>
+	);
+
 	return (
 		<main className="page-wrap relative min-h-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
 			{banner && (
@@ -50,21 +65,21 @@ export default function PageShell({
 					<CornerBanner position="end" />
 				</div>
 			)}
-			<div className={`relative ${contentClassName ?? ""}`}>
-				{(title || subtitle) && (
-					<div className="mb-6">
-						{title && (
-							<h1 className="text-2xl font-bold text-wayfare-text">{title}</h1>
-						)}
-						{subtitle && (
-							<p className="mt-1 text-sm text-wayfare-text-secondary">
-								{subtitle}
-							</p>
-						)}
+			{stepper && <div className="relative mb-8">{stepper}</div>}
+			{rightRail ? (
+				<div className="relative lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-8">
+					<div className={contentClassName}>
+						{header}
+						{children}
 					</div>
-				)}
-				{children}
-			</div>
+					<aside className="mt-8 lg:mt-0">{rightRail}</aside>
+				</div>
+			) : (
+				<div className={`relative ${contentClassName ?? ""}`}>
+					{header}
+					{children}
+				</div>
+			)}
 		</main>
 	);
 }

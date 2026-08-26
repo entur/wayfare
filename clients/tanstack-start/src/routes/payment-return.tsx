@@ -57,9 +57,11 @@ function PaymentReturnPage() {
 						});
 					}
 				}
+				// confirm-package also confirms any held seat reservations server-side
 				const confirmed = await confirmMutation.mutateAsync({
 					inputs: { type: "package_input", packageId: resolvedPackageId },
 				});
+
 				const guestContact = popPendingGuestContact(resolvedPackageId);
 				const searchContext = readSearchSession().context;
 				savePackage({

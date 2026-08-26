@@ -1,5 +1,5 @@
 import type { Link } from "./common";
-import type { ZoneLabel } from "./search";
+import type { OfferAncillary, ZoneLabel } from "./search";
 import type { TripPattern } from "./trip-planner";
 
 export interface BinaryTicketDocument {
@@ -146,11 +146,19 @@ export interface OfferLeg {
 	state?: string;
 	price?: { amount?: number; currencyCode?: string };
 	products?: string[];
+	serviceJourney?: string;
+	/** Ids of assets (e.g. seats) assigned to this leg. */
+	assets?: string[];
+	/** Ids of ancillaries assigned to this leg — cross-reference against the
+	 * offer-level ancillary catalog below to resolve a name and price. */
+	ancillaries?: string[];
 }
 
 export interface PackageOfferProperties {
 	legs?: OfferLeg[];
 	products?: OfferProduct[];
+	/** Catalog of ancillaries available on this offer, keyed by ancillaryId. */
+	ancillaries?: OfferAncillary[];
 	price?: { amount?: number; currencyCode?: string };
 	summary?: {
 		geographicalValidity?: GeographicalValidity;

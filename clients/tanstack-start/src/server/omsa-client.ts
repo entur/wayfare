@@ -360,15 +360,29 @@ async function handleResponse<T>(
 		const text = await response.text();
 		throw new Error(`OMSA ${action} failed (${response.status}): ${text}`);
 	}
-	return response.json() as Promise<T>;
+	const body = (await response.json()) as T;
+	const orderVersion = response.headers.get("entur-order-version");
+	if (
+		orderVersion &&
+		typeof body === "object" &&
+		body !== null &&
+		!("orderVersion" in body)
+	) {
+		return {
+			...body,
+			orderVersion: Number(orderVersion),
+		};
+	}
+	return body;
 }
 
 export function createOmsaClient(
 	devConfig?: DevConfigOverrides,
-	options?: { quiet?: boolean },
+	options?: { quiet?: boolean; signal?: AbortSignal },
 ) {
 	const config = getRuntimeConfig(devConfig);
 	const quiet = options?.quiet ?? false;
+	const signal = options?.signal;
 
 	return {
 		async get<T>(path: string, params?: Record<string, string>): Promise<T> {
@@ -383,7 +397,7 @@ export function createOmsaClient(
 			const headers = await authorizedHeaders(config, devConfig);
 			logRequest("GET", requestUrl, undefined, headers, quiet);
 			try {
-				const response = await fetch(requestUrl, { headers });
+				const response = await fetch(requestUrl, { headers, signal });
 				await logResponse("GET", requestUrl, response, startedAt, quiet);
 				return handleResponse<T>(response, `GET ${path}`);
 			} catch (error) {
