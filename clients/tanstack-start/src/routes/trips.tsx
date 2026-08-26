@@ -20,12 +20,14 @@ import {
 	type OfferPreview,
 	offerQueryKey,
 } from "../lib/offer-query";
+import { getDefaultTripModes } from "../lib/preferences-storage";
 import { writeSearchSession } from "../lib/search-session";
 import {
 	filtersFromSearch,
 	isDefaultFilters,
 	parseTripFilterSearch,
 	searchFromFilters,
+	type TransportModeGroup,
 	type TripFilters,
 } from "../lib/trip-filters";
 import {
@@ -89,10 +91,21 @@ function TripsPage() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [params, setParams] = useState<TripSearchParams | null>(null);
+	// Read after mount so the first client render matches SSR.
+	const [defaultModes, setDefaultModes] = useState<
+		TransportModeGroup[] | undefined
+	>(undefined);
 	const search = Route.useSearch();
-	const filters = useMemo(() => filtersFromSearch(search), [search]);
+	const filters = useMemo(
+		() => filtersFromSearch(search, defaultModes),
+		[search, defaultModes],
+	);
 	const tripQuery = useTripPlanner(params, filters);
 	const { overrides } = useDevConfig();
+
+	useEffect(() => {
+		setDefaultModes(getDefaultTripModes());
+	}, []);
 
 	const [selectingPatternKey, setSelectingPatternKey] = useState<string | null>(
 		null,
@@ -160,7 +173,7 @@ function TripsPage() {
 	function setFilters(next: TripFilters) {
 		navigate({
 			to: "/trips",
-			search: searchFromFilters(next),
+			search: searchFromFilters(next, defaultModes),
 			replace: true,
 		});
 	}
@@ -227,7 +240,9 @@ function TripsPage() {
 		p.legs.some((l) => l.serviceJourney != null),
 	);
 	const showFilteredEmptyState =
-		tripQuery.isSuccess && !hasTransitPatterns && !isDefaultFilters(filters);
+		tripQuery.isSuccess &&
+		!hasTransitPatterns &&
+		!isDefaultFilters(filters, defaultModes);
 
 	return (
 		<PageShell stepper={<JourneyStepper />}>
@@ -258,6 +273,7 @@ function TripsPage() {
 				filters={filters}
 				onChange={setFilters}
 				onReset={() => navigate({ to: "/trips", search: {}, replace: true })}
+				defaultModes={defaultModes}
 			/>
 
 			{tripQuery.isPending && (

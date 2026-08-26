@@ -50,7 +50,7 @@ interface StopDeparturesData {
 
 export const fetchStopDepartures = createServerFn({ method: "POST" })
 	.middleware([devConfigMiddleware])
-	.inputValidator((data: StopDeparturesVariables) => data)
+	.validator((data: StopDeparturesVariables) => data)
 	.handler(async ({ data, context }): Promise<StopDepartures> => {
 		const journeyPlanner = createJourneyPlannerClient(context.devConfig);
 		const result = await journeyPlanner.query<StopDeparturesData>(

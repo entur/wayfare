@@ -6,11 +6,6 @@ import type {
 
 export type { OmsaRuntimeMode };
 
-/**
- * Short, non-secret fingerprint of the active OAuth client_id. Used to scope
- * client-side data (tickets) to the caller, since OMSA only shows packages to
- * the client that created them. Never derived from clientSecret.
- */
 export function fingerprintClientId(clientId: string | undefined): string {
 	if (!clientId) return "none";
 	return createHash("sha256").update(clientId).digest("hex").slice(0, 8);
@@ -143,6 +138,12 @@ function resolveEnvField(
 	}
 
 	return process.env[fieldName];
+}
+
+export function areDevConfigOverridesAllowed(): boolean {
+	return (
+		process.env.ALLOW_DEV_CONFIG_OVERRIDES?.trim().toLowerCase() !== "false"
+	);
 }
 
 export function getRuntimeConfig(

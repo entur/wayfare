@@ -83,7 +83,7 @@ export function searchFareZones(
 }
 
 export const getFareZoneSuggestions = createServerFn({ method: "GET" })
-	.inputValidator((input: FareZoneQuery) => input)
+	.validator((input: FareZoneQuery) => input)
 	.handler(async ({ data }) => {
 		const fareZones = await getFareZones();
 		const matches = searchFareZones(

@@ -11,7 +11,7 @@ import type {
 
 export const getPackageItem = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((packageId: string) => packageId)
+	.validator((packageId: string) => packageId)
 	.handler(async ({ data: packageId, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<PackageItem>(
@@ -23,7 +23,7 @@ export const getPackageItem = createServerFn({ method: "GET" })
 // required so we never fetch the whole client-wide package set by accident.
 export const listCustomerPackages = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((customerId: string) => customerId)
+	.validator((customerId: string) => customerId)
 	.handler(async ({ data: customerId, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<PackageCollection>("/collections/packages/items", {
@@ -34,7 +34,7 @@ export const listCustomerPackages = createServerFn({ method: "GET" })
 
 export const getTravelDocuments = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((packageId: string) => packageId)
+	.validator((packageId: string) => packageId)
 	.handler(async ({ data: packageId, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<TravelDocumentCollection>(
@@ -45,7 +45,7 @@ export const getTravelDocuments = createServerFn({ method: "GET" })
 
 export const getRefundOptions = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((packageId: string) => packageId)
+	.validator((packageId: string) => packageId)
 	.handler(async ({ data: packageId, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<RefundOptionCollection>(
@@ -56,7 +56,7 @@ export const getRefundOptions = createServerFn({ method: "GET" })
 
 export const getChangeOptions = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((packageId: string) => packageId)
+	.validator((packageId: string) => packageId)
 	.handler(async ({ data: packageId, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<ChangeOptionCollection>(

@@ -87,7 +87,7 @@ interface TripQueryData {
 
 export const planTrip = createServerFn({ method: "POST" })
 	.middleware([devConfigMiddleware])
-	.inputValidator((data: TripQueryVariables) => data)
+	.validator((data: TripQueryVariables) => data)
 	.handler(async ({ data, context }) => {
 		const journeyPlanner = createJourneyPlannerClient(context.devConfig);
 		const result = await journeyPlanner.query<TripQueryData>(TRIP_QUERY, data);

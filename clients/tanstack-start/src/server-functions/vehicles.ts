@@ -36,7 +36,7 @@ interface VehiclePositionData {
 
 export const fetchVehiclePosition = createServerFn({ method: "POST" })
 	.middleware([devConfigMiddleware])
-	.inputValidator((data: { serviceJourneyId: string }) => data)
+	.validator((data: { serviceJourneyId: string }) => data)
 	.handler(async ({ data, context }): Promise<VehiclePosition | null> => {
 		const client = createVehiclePositionsClient(context.devConfig);
 		const result = await client.query<VehiclePositionData>(
@@ -105,7 +105,7 @@ interface RawServiceJourneyData {
 
 export const fetchServiceJourneyRoute = createServerFn({ method: "POST" })
 	.middleware([devConfigMiddleware])
-	.inputValidator((data: { serviceJourneyId: string }) => data)
+	.validator((data: { serviceJourneyId: string }) => data)
 	.handler(async ({ data, context }): Promise<ServiceJourneyRoute | null> => {
 		const client = createJourneyPlannerClient(context.devConfig);
 		const result = await client.query<RawServiceJourneyData>(

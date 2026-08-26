@@ -1,15 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDevConfig } from "../context/dev-config";
 import type { OmsaRuntimeMode } from "../server/runtime-config";
-import { getResolvedDevConfig } from "../server-functions/dev-config";
+import {
+	getResolvedDevConfig,
+	type ResolvedDevConfig,
+} from "../server-functions/dev-config";
 
-export function useEnvMode(): OmsaRuntimeMode | undefined {
+export function useResolvedDevConfig() {
 	const { overrides } = useDevConfig();
-	const { data } = useQuery({
+	return useQuery<ResolvedDevConfig>({
 		queryKey: ["resolved-dev-config", overrides.envMode],
 		queryFn: () => getResolvedDevConfig(),
 		staleTime: 5 * 60 * 1000,
 	});
+}
+
+export function useEnvMode(): OmsaRuntimeMode | undefined {
+	const { overrides } = useDevConfig();
+	const { data } = useResolvedDevConfig();
 
 	return (overrides.envMode ?? data?.effectiveMode) as
 		| OmsaRuntimeMode

@@ -11,7 +11,7 @@ import type {
 
 export const listRecurringPayments = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator(
+	.validator(
 		(data: { customerNumber: string; includeExpired?: boolean }) => data,
 	)
 	.handler(async ({ data, context }) => {
@@ -27,7 +27,7 @@ export const listRecurringPayments = createServerFn({ method: "GET" })
 
 export const createRecurringPayment = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: CreateRecurringPaymentRequest) => data)
+	.validator((data: CreateRecurringPaymentRequest) => data)
 	.handler(async ({ data, context }) => {
 		const sales = createSalesClient(context.devConfig);
 		return sales.post<RecurringPayment>("/recurring-payments", data);
@@ -40,7 +40,7 @@ export interface UpdateRecurringPaymentInput {
 
 export const updateRecurringPayment = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: UpdateRecurringPaymentInput) => data)
+	.validator((data: UpdateRecurringPaymentInput) => data)
 	.handler(async ({ data, context }) => {
 		const sales = createSalesClient(context.devConfig);
 		return sales.patch<RecurringPayment>(
@@ -51,7 +51,7 @@ export const updateRecurringPayment = createServerFn({ method: "POST" })
 
 export const deleteRecurringPayment = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: { recurringPaymentId: number }) => data)
+	.validator((data: { recurringPaymentId: number }) => data)
 	.handler(async ({ data, context }) => {
 		const sales = createSalesClient(context.devConfig);
 		return sales.delete<RecurringPayment>(
@@ -67,7 +67,7 @@ export interface CreateRecurringPaymentTerminalInput {
 
 export const createRecurringPaymentTerminal = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: CreateRecurringPaymentTerminalInput) => data)
+	.validator((data: CreateRecurringPaymentTerminalInput) => data)
 	.handler(async ({ data, context }) => {
 		const sales = createSalesClient(context.devConfig);
 		const body: RecurringPaymentTerminalRequest = {
@@ -82,7 +82,7 @@ export const createRecurringPaymentTerminal = createServerFn({ method: "POST" })
 
 export const authorizeRecurringPayment = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: { recurringPaymentId: number }) => data)
+	.validator((data: { recurringPaymentId: number }) => data)
 	.handler(async ({ data, context }) => {
 		const sales = createSalesClient(context.devConfig);
 		return sales.put<RecurringPayment>(

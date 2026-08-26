@@ -4,7 +4,11 @@ import {
 	ALL_MODE_GROUPS,
 	buildTripVariables,
 	DEFAULT_FILTERS,
+	DEFAULT_MODE_GROUPS,
+	filtersFromSearch,
+	isDefaultFilters,
 	patternMatchesFilters,
+	searchFromFilters,
 	type TripFilters,
 } from "./trip-filters";
 import type { TripSearchParams } from "./trip-session";
@@ -80,7 +84,7 @@ describe("replacement bus filtering", () => {
 });
 
 describe("transport mode requests", () => {
-	it("requests both water and ferry modes for the water group", () => {
+	it("requests only the water mode for the water group", () => {
 		const waterOnly: TripFilters = {
 			...DEFAULT_FILTERS,
 			modes: ["water"],
@@ -90,6 +94,47 @@ describe("transport mode requests", () => {
 			waterOnly,
 		).modes?.transportModes.map(({ transportMode }) => transportMode);
 
-		expect(modes).toEqual(["water", "ferry"]);
+		expect(modes).toEqual(["water"]);
+	});
+});
+
+describe("default modes", () => {
+	it("excludes air from the built-in default", () => {
+		expect(DEFAULT_MODE_GROUPS).not.toContain("air");
+		expect(DEFAULT_FILTERS.modes).not.toContain("air");
+	});
+
+	it("falls back to the built-in default when no search params are set", () => {
+		expect(filtersFromSearch({}).modes).toEqual(DEFAULT_MODE_GROUPS);
+	});
+
+	it("falls back to a custom default when one is provided", () => {
+		const customDefault = ["rail", "air"] as const;
+		expect(filtersFromSearch({}, customDefault).modes).toEqual(customDefault);
+	});
+
+	it("omits modes from the URL when they match the active default", () => {
+		const filters: TripFilters = { ...DEFAULT_FILTERS };
+		expect(searchFromFilters(filters).modes).toBeUndefined();
+
+		const customDefault = ["rail", "air"] as const;
+		expect(
+			searchFromFilters(
+				{ ...filters, modes: [...customDefault] },
+				customDefault,
+			).modes,
+		).toBeUndefined();
+	});
+
+	it("keeps modes in the URL when they deviate from the active default", () => {
+		const filters: TripFilters = { ...DEFAULT_FILTERS, modes: ["rail"] };
+		expect(searchFromFilters(filters).modes).toEqual(["rail"]);
+	});
+
+	it("treats an explicit match with the default as the default state", () => {
+		expect(isDefaultFilters({ ...DEFAULT_FILTERS })).toBe(true);
+		expect(
+			isDefaultFilters({ ...DEFAULT_FILTERS, modes: [...ALL_MODE_GROUPS] }),
+		).toBe(false);
 	});
 });

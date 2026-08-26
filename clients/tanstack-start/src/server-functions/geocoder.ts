@@ -12,7 +12,7 @@ interface AutocompleteInput {
 
 export const autocompletePlaces = createServerFn({ method: "GET" })
 	.middleware([devConfigMiddleware])
-	.inputValidator((data: AutocompleteInput) => data)
+	.validator((data: AutocompleteInput) => data)
 	.handler(async ({ data, context }) => {
 		const config = getRuntimeConfig(context.devConfig);
 		const params = new URLSearchParams({
