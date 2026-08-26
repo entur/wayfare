@@ -680,32 +680,35 @@ function CheckoutScreen() {
 				)}
 			</div>
 		) : null;
-	const rightRail = checkoutContext ? (
-		<JourneySummary
-			variant="rail"
-			from={checkoutContext.from.name ?? checkoutContext.from.placeId}
-			to={checkoutContext.to.name ?? checkoutContext.to.placeId}
-			startTime={
-				checkoutContext.pattern?.expectedStartTime ?? checkoutContext.travelDate
-			}
-			endTime={checkoutContext.pattern?.expectedEndTime}
-			durationSeconds={checkoutContext.pattern?.duration}
-			partyLabel={checkoutPartyStr}
-			ticketRows={ticketRows.length > 0 ? ticketRows : undefined}
-			addOnRows={addOnRows.length > 0 ? addOnRows : undefined}
-			total={
-				previewTotal > 0
-					? { amount: previewTotal, currencyCode: currency }
-					: undefined
-			}
-			detailsSlot={seatDetailsSlot}
-			onChangeJourney={() => {
-				clearPackageSession();
-				clearPurchaseOptionsSession();
-				navigate({ to: "/offers" });
-			}}
-		/>
-	) : null;
+	const { from: checkoutFrom, to: checkoutTo } = checkoutContext ?? {};
+	const rightRail =
+		checkoutContext && checkoutFrom && checkoutTo ? (
+			<JourneySummary
+				variant="rail"
+				from={checkoutFrom.name ?? checkoutFrom.placeId}
+				to={checkoutTo.name ?? checkoutTo.placeId}
+				startTime={
+					checkoutContext.pattern?.expectedStartTime ??
+					checkoutContext.travelDate
+				}
+				endTime={checkoutContext.pattern?.expectedEndTime}
+				durationSeconds={checkoutContext.pattern?.duration}
+				partyLabel={checkoutPartyStr}
+				ticketRows={ticketRows.length > 0 ? ticketRows : undefined}
+				addOnRows={addOnRows.length > 0 ? addOnRows : undefined}
+				total={
+					previewTotal > 0
+						? { amount: previewTotal, currencyCode: currency }
+						: undefined
+				}
+				detailsSlot={seatDetailsSlot}
+				onChangeJourney={() => {
+					clearPackageSession();
+					clearPurchaseOptionsSession();
+					navigate({ to: "/offers" });
+				}}
+			/>
+		) : null;
 
 	if (!hydrated) {
 		return (

@@ -287,21 +287,23 @@ function OffersScreen() {
 		);
 	}
 
-	const rightRail = context ? (
-		<div className="flex flex-col gap-3">
-			<JourneySummary
-				variant="rail"
-				from={context.from.name ?? context.from.placeId}
-				to={context.to.name ?? context.to.placeId}
-				startTime={context.pattern?.expectedStartTime ?? context.travelDate}
-				endTime={context.pattern?.expectedEndTime}
-				durationSeconds={context.pattern?.duration}
-				partyLabel={partyStr}
-				onChangeJourney={() => navigate({ to: "/" })}
-			/>
-			<FavoriteToggle from={context.from} to={context.to} variant="text" />
-		</div>
-	) : null;
+	const { from: contextFrom, to: contextTo } = context ?? {};
+	const rightRail =
+		context && contextFrom && contextTo ? (
+			<div className="flex flex-col gap-3">
+				<JourneySummary
+					variant="rail"
+					from={contextFrom.name ?? contextFrom.placeId}
+					to={contextTo.name ?? contextTo.placeId}
+					startTime={context.pattern?.expectedStartTime ?? context.travelDate}
+					endTime={context.pattern?.expectedEndTime}
+					durationSeconds={context.pattern?.duration}
+					partyLabel={partyStr}
+					onChangeJourney={() => navigate({ to: "/" })}
+				/>
+				<FavoriteToggle from={contextFrom} to={contextTo} variant="text" />
+			</div>
+		) : null;
 
 	return (
 		<PageShell

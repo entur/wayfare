@@ -438,38 +438,45 @@ function SeatsPage() {
 		);
 	}
 
-	const rightRail = sessionContext ? (
-		<div className="flex flex-col gap-3">
-			<JourneySummary
-				variant="rail"
-				from={sessionContext.from.name ?? sessionContext.from.placeId}
-				to={sessionContext.to.name ?? sessionContext.to.placeId}
-				startTime={
-					sessionContext.pattern?.expectedStartTime ?? sessionContext.travelDate
-				}
-				endTime={sessionContext.pattern?.expectedEndTime}
-				durationSeconds={sessionContext.pattern?.duration}
-				partyLabel={partyStr}
-				total={
-					previewTotal > 0
-						? { amount: previewTotal, currencyCode: previewCurrency }
-						: undefined
-				}
-				detailsSlot={seatSummarySlot}
-				onChangeJourney={handleChangeJourney}
-			/>
-			{assignError && (
-				<ErrorBanner
-					message={assignError}
-					onDismiss={() => setAssignError(null)}
+	const { from: sessionFrom, to: sessionTo } = sessionContext ?? {};
+	const rightRail =
+		sessionContext && sessionFrom && sessionTo ? (
+			<div className="flex flex-col gap-3">
+				<JourneySummary
+					variant="rail"
+					from={sessionFrom.name ?? sessionFrom.placeId}
+					to={sessionTo.name ?? sessionTo.placeId}
+					startTime={
+						sessionContext.pattern?.expectedStartTime ??
+						sessionContext.travelDate
+					}
+					endTime={sessionContext.pattern?.expectedEndTime}
+					durationSeconds={sessionContext.pattern?.duration}
+					partyLabel={partyStr}
+					total={
+						previewTotal > 0
+							? { amount: previewTotal, currencyCode: previewCurrency }
+							: undefined
+					}
+					detailsSlot={seatSummarySlot}
+					onChangeJourney={handleChangeJourney}
 				/>
-			)}
-			<Button variant="primary" onClick={handleContinue} loading={isCommitting}>
-				Continue to checkout
-				<RightArrowIcon aria-hidden="true" />
-			</Button>
-		</div>
-	) : null;
+				{assignError && (
+					<ErrorBanner
+						message={assignError}
+						onDismiss={() => setAssignError(null)}
+					/>
+				)}
+				<Button
+					variant="primary"
+					onClick={handleContinue}
+					loading={isCommitting}
+				>
+					Continue to checkout
+					<RightArrowIcon aria-hidden="true" />
+				</Button>
+			</div>
+		) : null;
 
 	const groupsToRender = allSettled ? eligibleGroups : serviceJourneyGroups;
 	const assetLoadError = assetQueries.find((query) => query.isError)?.error;
