@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import MapLibreGL, { type PopupOptions } from "maplibre-gl";
+import * as MapLibreGL from "maplibre-gl";
 import { type ReactNode, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 
@@ -32,7 +32,7 @@ type MapPopupProps = {
 	className?: string;
 	/** Show a close button in the popup (default: false) */
 	closeButton?: boolean;
-} & Omit<PopupOptions, "className" | "closeButton">;
+} & Omit<MapLibreGL.PopupOptions, "className" | "closeButton">;
 
 function MapPopup({
 	longitude,
