@@ -4,7 +4,6 @@ import { authMiddleware } from "../server/middleware";
 import { createOmsaClient } from "../server/omsa-client";
 import {
 	type CustomerCollection,
-	type CustomerSearchParams,
 	normalizeCustomer,
 	normalizeCustomerCollection,
 	type OmsaCustomer,
@@ -35,22 +34,20 @@ export async function findCustomerByNumber(
 	}
 }
 
-export const getCustomers = createServerFn({ method: "GET" })
+// Resolves the active dev-config customer for the client -- callable from the
+// browser, unlike findCustomerByNumber. Deliberately narrow (one customer
+// number in, one customer record out): there's no server fn for browsing or
+// searching OMSA's customer records, since a tester should already know the
+// customer number they want to test as, not look one up here.
+export const getActiveCustomer = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.validator((data: CustomerSearchParams) => data)
+	.validator((data: { customerNumber: string }) => data)
 	.handler(async ({ data, context }) => {
-		const omsa = createOmsaClient(context.devConfig);
-		const params: Record<string, string> = {};
-		if (data.customerId) params.customerId = data.customerId;
-		if (data.firstName) params.firstName = data.firstName;
-		if (data.lastName) params.lastName = data.lastName;
-		if (data.email) params.email = data.email;
-		if (data.phoneNumber) params.phoneNumber = data.phoneNumber;
-		const raw = await omsa.get<CustomerCollection>(
-			"/collections/customers/items",
-			params,
+		const customer = await findCustomerByNumber(
+			data.customerNumber,
+			context.devConfig,
 		);
-		return normalizeCustomerCollection(raw);
+		return customer ?? null;
 	});
 
 export const getCustomer = createServerFn({ method: "GET" })

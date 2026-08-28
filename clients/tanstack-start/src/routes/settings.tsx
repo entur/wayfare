@@ -1,4 +1,3 @@
-import { UserIcon } from "@entur/icons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import PageShell from "../components/layout/PageShell";
@@ -9,8 +8,6 @@ import Button from "../components/ui/Button";
 import ModePill from "../components/ui/ModePill";
 import SegmentedControl from "../components/ui/SegmentedControl";
 import { useDevConfig } from "../context/dev-config";
-import { useProfile } from "../context/profile";
-import { useCustomerSearch } from "../hooks/use-customers";
 import { useResolvedDevConfig } from "../hooks/use-env-mode";
 import type {
 	DevConfigOverrides,
@@ -37,244 +34,18 @@ import {
 } from "../lib/trip-filters";
 import type { OmsaRuntimeMode } from "../server/runtime-config";
 import type { ResolvedDevConfig } from "../server-functions/dev-config";
-import type { CustomerSearchParams, OmsaCustomer } from "../types/customer";
 
-type Tab = "profile" | "payment" | "favorites" | "app" | "developer";
+type Tab = "payment" | "favorites" | "app" | "developer";
 
 export const Route = createFileRoute("/settings")({
 	validateSearch: (search: Record<string, unknown>) => ({
-		tab: (search.tab as Tab | undefined) ?? "profile",
+		tab: (search.tab as Tab | undefined) ?? "developer",
 		pendingCardId: search.pendingCardId
 			? Number(search.pendingCardId)
 			: undefined,
 	}),
 	component: SettingsPage,
 });
-
-function customerDisplayName(c: OmsaCustomer): string {
-	const parts = [c.firstName, c.lastName].filter(Boolean);
-	return parts.length > 0 ? parts.join(" ") : (c.id ?? "Unknown");
-}
-
-function ProfileTab() {
-	const { customer, signIn, signOut } = useProfile();
-	const [searchInput, setSearchInput] = useState({
-		firstName: "",
-		lastName: "",
-		email: "",
-	});
-	const [searchParams, setSearchParams] = useState<CustomerSearchParams>({});
-	const [hasSearched, setHasSearched] = useState(false);
-
-	const { data, isFetching, error } = useCustomerSearch(
-		searchParams,
-		hasSearched,
-	);
-
-	function handleSearch(e: React.FormEvent) {
-		e.preventDefault();
-		const params: CustomerSearchParams = {};
-		if (searchInput.firstName.trim())
-			params.firstName = searchInput.firstName.trim();
-		if (searchInput.lastName.trim())
-			params.lastName = searchInput.lastName.trim();
-		if (searchInput.email.trim()) params.email = searchInput.email.trim();
-		if (!Object.keys(params).length) return;
-		setSearchParams(params);
-		setHasSearched(true);
-	}
-
-	return (
-		<div className="space-y-4">
-			{!customer && !hasSearched && (
-				<div className="flex flex-col items-center py-8 text-center">
-					<Illustration
-						name="ninja-turtle"
-						size="lg"
-						decorative
-						className="mb-4"
-					/>
-					<p className="text-sm font-semibold text-wayfare-text">
-						Not signed in
-					</p>
-					<p className="mt-1 max-w-xs text-xs text-wayfare-text-secondary">
-						Search to pick a customer profile, or stay incognito.
-					</p>
-				</div>
-			)}
-
-			{customer && (
-				<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
-					<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
-						Signed in as
-					</p>
-					<div className="flex items-center justify-between gap-4">
-						<div className="flex items-center gap-3">
-							<Illustration name="turtle-food-bowl" size="sm" decorative />
-							<div>
-								<p className="m-0 text-sm font-semibold text-wayfare-text">
-									{customerDisplayName(customer)}
-								</p>
-								{customer.email && (
-									<p className="m-0 text-xs text-wayfare-text-secondary">
-										{customer.email}
-									</p>
-								)}
-								{customer.id && (
-									<p className="m-0 font-mono text-xs text-wayfare-text-secondary">
-										{customer.id}
-									</p>
-								)}
-							</div>
-						</div>
-						<Button variant="secondary" onClick={signOut}>
-							Sign out
-						</Button>
-					</div>
-				</section>
-			)}
-
-			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
-				<h2 className="mb-4 text-sm font-semibold text-wayfare-text">
-					Find a customer
-				</h2>
-				<form onSubmit={handleSearch} className="space-y-3">
-					<div className="grid grid-cols-2 gap-3">
-						<div>
-							<label
-								htmlFor="settings-firstName"
-								className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
-							>
-								First name
-							</label>
-							<input
-								id="settings-firstName"
-								type="text"
-								value={searchInput.firstName}
-								onChange={(e) =>
-									setSearchInput((s) => ({ ...s, firstName: e.target.value }))
-								}
-								className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
-								placeholder="e.g. Ola"
-							/>
-						</div>
-						<div>
-							<label
-								htmlFor="settings-lastName"
-								className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
-							>
-								Last name
-							</label>
-							<input
-								id="settings-lastName"
-								type="text"
-								value={searchInput.lastName}
-								onChange={(e) =>
-									setSearchInput((s) => ({ ...s, lastName: e.target.value }))
-								}
-								className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
-								placeholder="e.g. Nordmann"
-							/>
-						</div>
-					</div>
-					<div>
-						<label
-							htmlFor="settings-email"
-							className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
-						>
-							Email
-						</label>
-						<input
-							id="settings-email"
-							type="email"
-							value={searchInput.email}
-							onChange={(e) =>
-								setSearchInput((s) => ({ ...s, email: e.target.value }))
-							}
-							className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm text-wayfare-text"
-							placeholder="e.g. ola@example.com"
-						/>
-					</div>
-					<Button
-						type="submit"
-						variant="primary"
-						disabled={
-							isFetching ||
-							(!searchInput.firstName &&
-								!searchInput.lastName &&
-								!searchInput.email)
-						}
-						loading={isFetching}
-					>
-						Search
-					</Button>
-				</form>
-			</section>
-
-			{error && (
-				<p className="rounded-xl bg-wayfare-accent-soft px-4 py-3 text-sm text-wayfare-primary">
-					{error instanceof Error ? error.message : "Search failed"}
-				</p>
-			)}
-
-			{hasSearched && !isFetching && data && (
-				<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
-					<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
-						{data.numberMatched ?? data.customers?.length ?? 0} result
-						{(data.numberMatched ?? data.customers?.length ?? 0) !== 1
-							? "s"
-							: ""}
-					</p>
-					{!data.customers?.length ? (
-						<p className="text-sm text-wayfare-text-secondary">
-							No customers found.
-						</p>
-					) : (
-						<ul className="divide-y divide-wayfare-line">
-							{data.customers.map((c) => (
-								<li
-									key={c.id}
-									className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
-								>
-									<div className="flex items-center gap-3">
-										<span
-											className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-												customer?.id === c.id
-													? "bg-wayfare-primary text-white"
-													: "bg-wayfare-accent-soft text-wayfare-primary"
-											}`}
-										>
-											{[c.firstName?.[0], c.lastName?.[0]]
-												.filter(Boolean)
-												.join("") || <UserIcon aria-hidden="true" />}
-										</span>
-										<div>
-											<p className="m-0 text-sm font-medium text-wayfare-text">
-												{customerDisplayName(c)}
-											</p>
-											{c.email && (
-												<p className="m-0 text-xs text-wayfare-text-secondary">
-													{c.email}
-												</p>
-											)}
-										</div>
-									</div>
-									<Button
-										variant={customer?.id === c.id ? "secondary" : "primary"}
-										onClick={() => signIn(c)}
-										disabled={customer?.id === c.id}
-									>
-										{customer?.id === c.id ? "Active" : "Select"}
-									</Button>
-								</li>
-							))}
-						</ul>
-					)}
-				</section>
-			)}
-		</div>
-	);
-}
 
 function PreferredOperatorSection() {
 	// Read after mount so the first client render matches SSR.
@@ -1026,7 +797,6 @@ function SettingsPage() {
 					legend="Settings section"
 					options={
 						[
-							{ value: "profile", label: "Profile" },
 							{ value: "payment", label: "Payment" },
 							{ value: "favorites", label: "Favorites" },
 							{ value: "app", label: "App" },
@@ -1038,7 +808,6 @@ function SettingsPage() {
 				/>
 			</div>
 
-			{tab === "profile" && <ProfileTab />}
 			{tab === "payment" && (
 				<PaymentMethodsTab
 					pendingCardId={pendingCardId}

@@ -91,7 +91,7 @@ export default function Header() {
 					</NavItem>
 					<Link
 						to="/settings"
-						search={{ tab: "profile", pendingCardId: undefined }}
+						search={{ tab: "developer", pendingCardId: undefined }}
 						aria-label={
 							customer ? `Profile – ${customer.firstName}` : "Profile"
 						}

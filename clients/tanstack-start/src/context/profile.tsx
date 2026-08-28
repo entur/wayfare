@@ -1,68 +1,35 @@
-import {
-	createContext,
-	useCallback,
-	useContext,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
-import {
-	clearStoredCustomer,
-	getStoredCustomer,
-	storeCustomer,
-} from "../lib/profile-storage";
+import { useQuery } from "@tanstack/react-query";
+import { createContext, useContext } from "react";
+import { getActiveCustomer } from "../server-functions/customers";
 import type { OmsaCustomer } from "../types/customer";
 import { useDevConfig } from "./dev-config";
 
 interface ProfileContextValue {
 	customer: OmsaCustomer | null;
-	signIn: (customer: OmsaCustomer) => void;
-	signOut: () => void;
 }
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
+// The "signed-in customer" isn't picked by searching OMSA's customer records
+// anymore (that let anyone browse arbitrary customers' PII) -- it's resolved
+// from the Entur customer number a tester already knows and enters in
+// Developer settings. Clear that field there and every consumer sees a guest.
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
-	const { overrides, clientFingerprint } = useDevConfig();
-	const [customer, setCustomer] = useState<OmsaCustomer | null>(null);
-	const prevEnvMode = useRef(overrides.envMode);
-	const prevFingerprint = useRef(clientFingerprint);
+	const { overrides } = useDevConfig();
+	const customerNumber = overrides.customerNumber;
 
-	useEffect(() => {
-		setCustomer(getStoredCustomer());
-	}, []);
+	const { data } = useQuery({
+		queryKey: ["active-customer", customerNumber],
+		queryFn: () =>
+			getActiveCustomer({ data: { customerNumber: customerNumber as string } }),
+		enabled: !!customerNumber,
+		staleTime: 60 * 1000,
+	});
 
-	useEffect(() => {
-		if (prevEnvMode.current === overrides.envMode) return;
-		prevEnvMode.current = overrides.envMode;
-		clearStoredCustomer();
-		setCustomer(null);
-	}, [overrides.envMode]);
-
-	// A customer created under the old OAuth client may be invisible to a new
-	// one, so isolate the signed-in customer per credential too. Only clear on a
-	// real switch (a defined fingerprint changing), not the first resolve.
-	useEffect(() => {
-		if (prevFingerprint.current === clientFingerprint) return;
-		const hadFingerprint = prevFingerprint.current !== undefined;
-		prevFingerprint.current = clientFingerprint;
-		if (!hadFingerprint) return;
-		clearStoredCustomer();
-		setCustomer(null);
-	}, [clientFingerprint]);
-
-	const signIn = useCallback((c: OmsaCustomer) => {
-		storeCustomer(c);
-		setCustomer(c);
-	}, []);
-
-	const signOut = useCallback(() => {
-		clearStoredCustomer();
-		setCustomer(null);
-	}, []);
+	const customer = customerNumber ? (data ?? null) : null;
 
 	return (
-		<ProfileContext.Provider value={{ customer, signIn, signOut }}>
+		<ProfileContext.Provider value={{ customer }}>
 			{children}
 		</ProfileContext.Provider>
 	);
