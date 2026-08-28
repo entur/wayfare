@@ -79,7 +79,7 @@ describe("access gate", () => {
 		expect(response?.headers.get("cache-control")).toBe("no-store");
 	});
 
-	it("returns a no-store 403 when Permission Store denies the capability", async () => {
+	it("redirects to /access-denied with no-store headers when Permission Store denies the capability", async () => {
 		login.getSessionSubject.mockResolvedValue("employee-subject");
 		permission.hasStagingAccess.mockResolvedValue(false);
 		const { authorizeRequest, initializeAccessGate } = await loadAccessGate();
@@ -90,8 +90,25 @@ describe("access gate", () => {
 			new Headers(),
 		);
 
-		expect(response?.status).toBe(403);
+		expect(response?.status).toBe(302);
+		expect(response?.headers.get("location")).toBe(
+			"/access-denied?reason=no-access",
+		);
 		expect(response?.headers.get("cache-control")).toBe("no-store");
+	});
+
+	it("allows an unverified/denied session to reach /access-denied itself", async () => {
+		login.getSessionSubject.mockResolvedValue("employee-subject");
+		permission.hasStagingAccess.mockResolvedValue(false);
+		const { authorizeRequest, initializeAccessGate } = await loadAccessGate();
+		await initializeAccessGate();
+
+		const response = await authorizeRequest(
+			new Request("https://wayfare.staging.entur.no/access-denied"),
+			new Headers(),
+		);
+
+		expect(response).toBeNull();
 	});
 
 	it("allows a verified session with wayfare.web", async () => {

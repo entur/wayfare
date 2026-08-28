@@ -132,7 +132,7 @@ describe("Entur login", () => {
 		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 
-	it("returns a generic error for an invalid callback", async () => {
+	it("redirects to /access-denied for an invalid callback", async () => {
 		auth0.client.completeInteractiveLogin.mockRejectedValue(
 			new Error("token endpoint returned client secret details"),
 		);
@@ -143,10 +143,11 @@ describe("Entur login", () => {
 			),
 		);
 
-		expect(response.status).toBe(400);
-		expect(await response.text()).toBe(
-			"Login could not be completed. Please try again.",
+		expect(response.status).toBe(302);
+		expect(response.headers.get("location")).toBe(
+			"/access-denied?reason=login-failed",
 		);
+		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 
 	it("returns the session subject for a valid, refreshable session", async () => {
