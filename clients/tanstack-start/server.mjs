@@ -27,9 +27,13 @@ const serveClientAssets = staticMiddleware({ dir: clientDir });
 
 await initializeAccessGate();
 
-async function withAssetCaching(request, next) {
-	const response = await serveClientAssets(request, next);
-	if (new URL(request.url).pathname.startsWith("/assets/")) {
+// Static files (JS/CSS bundles, favicons, illustrations) are public and must
+// not depend on the current session having wayfare.web access -- the
+// access-denied page needs its own assets to render for a session that just
+// failed that check. Returns null when the path isn't a static file.
+async function serveStaticAsset(request) {
+	const response = await serveClientAssets(request, () => null);
+	if (response && new URL(request.url).pathname.startsWith("/assets/")) {
 		response.headers.set("cache-control", "public, max-age=31536000, immutable");
 	}
 	return response;
@@ -62,6 +66,9 @@ serve({
 				);
 			}
 
+			const staticResponse = await serveStaticAsset(request);
+			if (staticResponse) return staticResponse;
+
 			let authResponseHeaders;
 			if (isEnturLoginRequired()) {
 				const authRouteResponse = await handleAuthRoutes(request);
@@ -72,9 +79,7 @@ serve({
 				if (denied) return denied;
 			}
 
-			const response = await withAssetCaching(request, () =>
-				serverEntry.fetch(request),
-			);
+			const response = await serverEntry.fetch(request);
 			// The gate may have refreshed the session (e.g. rotated an expiring
 			// token) while authorizing this request -- carry those Set-Cookie
 			// headers onto the response the SSR handler produced.
@@ -83,7 +88,9 @@ serve({
 					response.headers.append("set-cookie", cookie);
 				}
 			}
-			if (isEnturLoginRequired() && !pathname.startsWith("/assets/")) {
+			// Static assets already returned above, so anything reaching here is
+			// an SSR document response.
+			if (isEnturLoginRequired()) {
 				response.headers.set("cache-control", "no-store");
 			}
 			return response;

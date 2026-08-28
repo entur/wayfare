@@ -43,6 +43,10 @@ export async function handleAuthRoutes(
 	return handler ? handler(request) : null;
 }
 
+// Reachable regardless of session state, so the auth failures below can
+// redirect here without looping back through this same gate.
+const PUBLIC_PATHNAMES = new Set(["/access-denied"]);
+
 export async function authorizeRequest(
 	request: Request,
 	responseHeaders: Headers,
@@ -56,21 +60,21 @@ export async function authorizeRequest(
 			},
 		});
 	}
+	if (PUBLIC_PATHNAMES.has(new URL(request.url).pathname)) {
+		return null;
+	}
 	const subject = await getSessionSubject(request, responseHeaders);
 	if (!subject) {
 		return buildLoginRedirect(new URL(request.url));
 	}
 	if (!(await hasStagingAccess(subject))) {
-		return new Response(
-			"Your Entur account does not have wayfare.web access.",
-			{
-				status: 403,
-				headers: {
-					"cache-control": "no-store",
-					"content-type": "text/plain; charset=utf-8",
-				},
+		return new Response(null, {
+			status: 302,
+			headers: {
+				"cache-control": "no-store",
+				location: "/access-denied?reason=no-access",
 			},
-		);
+		});
 	}
 	return null;
 }

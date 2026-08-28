@@ -192,9 +192,9 @@ export async function startLogin(request: Request): Promise<Response> {
 }
 
 function loginErrorResponse(): Response {
-	return new Response("Login could not be completed. Please try again.", {
-		status: 400,
-		headers: noStoreHeaders({ "content-type": "text/plain; charset=utf-8" }),
+	return new Response(null, {
+		status: 302,
+		headers: noStoreHeaders({ location: "/access-denied?reason=login-failed" }),
 	});
 }
 
