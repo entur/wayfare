@@ -1,3 +1,4 @@
+import { PUBLIC_PATHNAMES } from "../lib/public-pathnames.ts";
 import { isEnturLoginRequired } from "./deployment-config.ts";
 import {
 	buildLoginRedirect,
@@ -5,6 +6,7 @@ import {
 	handleCallback,
 	handleLogout,
 	initializeEnturLogin,
+	noStoreHeaders,
 	startLogin,
 } from "./entur-login.ts";
 import {
@@ -43,10 +45,6 @@ export async function handleAuthRoutes(
 	return handler ? handler(request) : null;
 }
 
-// Reachable regardless of session state, so the auth failures below can
-// redirect here without looping back through this same gate.
-const PUBLIC_PATHNAMES = new Set(["/access-denied"]);
-
 export async function authorizeRequest(
 	request: Request,
 	responseHeaders: Headers,
@@ -60,6 +58,9 @@ export async function authorizeRequest(
 			},
 		});
 	}
+	// Reachable regardless of session state, so the auth failures below can
+	// redirect here without looping back through this same gate. Shared with
+	// __root.tsx's standalone-shell check so the two lists can't drift apart.
 	if (PUBLIC_PATHNAMES.has(new URL(request.url).pathname)) {
 		return null;
 	}
@@ -70,10 +71,7 @@ export async function authorizeRequest(
 	if (!(await hasStagingAccess(subject))) {
 		return new Response(null, {
 			status: 302,
-			headers: {
-				"cache-control": "no-store",
-				location: "/access-denied?reason=no-access",
-			},
+			headers: noStoreHeaders({ location: "/access-denied?reason=no-access" }),
 		});
 	}
 	return null;

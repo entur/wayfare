@@ -6,6 +6,13 @@ const login = vi.hoisted(() => ({
 	handleCallback: vi.fn(),
 	handleLogout: vi.fn(),
 	initializeEnturLogin: vi.fn(),
+	noStoreHeaders: vi.fn((initial?: HeadersInit) => {
+		const headers = new Headers(initial);
+		headers.set("cache-control", "no-store");
+		headers.set("pragma", "no-cache");
+		headers.set("x-content-type-options", "nosniff");
+		return headers;
+	}),
 	startLogin: vi.fn(),
 }));
 

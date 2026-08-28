@@ -21,6 +21,7 @@ import { ProfileProvider } from "../context/profile";
 import { SearchFormProvider } from "../context/search-form";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import TanStackQueryProvider from "../integrations/tanstack-query/root-provider";
+import { PUBLIC_PATHNAMES } from "../lib/public-pathnames";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -96,15 +97,14 @@ function RouteError({ error }: ErrorComponentProps) {
 	);
 }
 
-// Routes that render outside the app shell -- reached by a session that
-// isn't (yet) a logged-in, authorized user, so the nav/footer chrome would
-// imply access the user doesn't have.
-const STANDALONE_PATHNAMES = new Set(["/access-denied"]);
-
 function RootDocument({ children }: { children: React.ReactNode }) {
 	const { queryClient } = Route.useRouteContext();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
-	const isStandalone = STANDALONE_PATHNAMES.has(pathname);
+	// Routes that render outside the app shell -- reached by a session that
+	// isn't (yet) a logged-in, authorized user, so the nav/footer chrome
+	// would imply access the user doesn't have. Shared with the
+	// access-gate.ts bypass so the two lists can't drift apart.
+	const isStandalone = PUBLIC_PATHNAMES.has(pathname);
 
 	return (
 		<html lang="en" suppressHydrationWarning>
