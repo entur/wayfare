@@ -2,7 +2,7 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "srvx";
-import { serveStatic } from "srvx/static";
+import { staticMiddleware } from "srvx/static";
 // Runs .ts sources directly via Node's built-in type stripping (default
 // since Node 23.6; this image pins Node 24) -- only erasable syntax here,
 // no enums/decorators, so no build step is needed for these files.
@@ -23,7 +23,7 @@ const { default: serverEntry } = await import(
 	join(__dirname, "dist/server/server.js")
 );
 
-const serveClientAssets = serveStatic({ dir: clientDir });
+const serveClientAssets = staticMiddleware({ dir: clientDir });
 
 await initializeAccessGate();
 
