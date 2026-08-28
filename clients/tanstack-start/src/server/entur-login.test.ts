@@ -108,6 +108,10 @@ describe("Entur login", () => {
 			},
 		);
 
+		// The incoming request is plain http, as srvx sees it behind the
+		// TLS-terminating ingress. completeInteractiveLogin must still be
+		// called with the public https origin so its redirect_uri matches the
+		// one sent to /authorize.
 		const response = await handleCallback(
 			new Request(
 				"http://internal-service/auth/callback?code=code-123&state=state-123",
@@ -116,7 +120,7 @@ describe("Entur login", () => {
 
 		expect(auth0.client.completeInteractiveLogin).toHaveBeenCalledWith(
 			new URL(
-				"http://internal-service/auth/callback?code=code-123&state=state-123",
+				"https://wayfare.staging.entur.no/auth/callback?code=code-123&state=state-123",
 			),
 			expect.objectContaining({ responseHeaders: expect.any(Headers) }),
 		);

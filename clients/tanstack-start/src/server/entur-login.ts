@@ -223,9 +223,19 @@ function logLoginFailure(reason: string, error?: unknown): void {
 export async function handleCallback(request: Request): Promise<Response> {
 	const responseHeaders = noStoreHeaders();
 	try {
+		// request.url carries the scheme srvx sees on the raw socket, which is
+		// plain http behind the TLS-terminating ingress. The SDK derives the
+		// redirect_uri for the token exchange from this URL's origin, and it
+		// must match the https redirect_uri sent to /authorize (via
+		// buildPublicUrl below), so rebuild it against PUBLIC_ORIGIN instead of
+		// trusting the request's own origin.
+		const incomingUrl = new URL(request.url);
+		const callbackUrl = buildPublicUrl(
+			incomingUrl.pathname + incomingUrl.search,
+		);
 		const { appState } =
 			await getServerClient().completeInteractiveLogin<AppState>(
-				new URL(request.url),
+				callbackUrl,
 				{ request, responseHeaders },
 			);
 		const returnTo = sanitizeReturnTo(appState?.returnTo ?? null);
