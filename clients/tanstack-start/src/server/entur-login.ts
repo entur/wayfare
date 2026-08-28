@@ -199,9 +199,25 @@ function loginErrorResponse(): Response {
 }
 
 function logLoginFailure(reason: string, error?: unknown): void {
-	console.warn(`[auth] ${reason}`, {
+	const details: Record<string, unknown> = {
 		errorType: error instanceof Error ? error.name : typeof error,
-	});
+	};
+	if (error instanceof Error) {
+		details.message = error.message;
+		const code = (error as { code?: unknown }).code;
+		if (typeof code === "string") details.code = code;
+		// SDK API errors (TokenByCodeError, etc.) attach the raw OAuth2 error here.
+		const cause = (error as { cause?: unknown }).cause;
+		if (cause && typeof cause === "object") {
+			const { error: oauthError, error_description: oauthErrorDescription } =
+				cause as { error?: unknown; error_description?: unknown };
+			if (typeof oauthError === "string") details.oauthError = oauthError;
+			if (typeof oauthErrorDescription === "string") {
+				details.oauthErrorDescription = oauthErrorDescription;
+			}
+		}
+	}
+	console.warn(`[auth] ${reason}`, details);
 }
 
 export async function handleCallback(request: Request): Promise<Response> {
