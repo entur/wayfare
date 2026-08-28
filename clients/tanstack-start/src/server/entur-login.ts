@@ -158,7 +158,7 @@ export function sanitizeReturnTo(value: string | null): string {
 	return value;
 }
 
-function noStoreHeaders(initial?: HeadersInit): Headers {
+export function noStoreHeaders(initial?: HeadersInit): Headers {
 	const headers = new Headers(initial);
 	headers.set("cache-control", "no-store");
 	headers.set("pragma", "no-cache");
@@ -192,9 +192,9 @@ export async function startLogin(request: Request): Promise<Response> {
 }
 
 function loginErrorResponse(): Response {
-	return new Response("Login could not be completed. Please try again.", {
-		status: 400,
-		headers: noStoreHeaders({ "content-type": "text/plain; charset=utf-8" }),
+	return new Response(null, {
+		status: 302,
+		headers: noStoreHeaders({ location: "/access-denied?reason=login-failed" }),
 	});
 }
 
@@ -234,10 +234,10 @@ export async function handleCallback(request: Request): Promise<Response> {
 			incomingUrl.pathname + incomingUrl.search,
 		);
 		const { appState } =
-			await getServerClient().completeInteractiveLogin<AppState>(
-				callbackUrl,
-				{ request, responseHeaders },
-			);
+			await getServerClient().completeInteractiveLogin<AppState>(callbackUrl, {
+				request,
+				responseHeaders,
+			});
 		const returnTo = sanitizeReturnTo(appState?.returnTo ?? null);
 		responseHeaders.set("location", buildPublicUrl(returnTo).toString());
 		return new Response(null, { status: 302, headers: responseHeaders });
