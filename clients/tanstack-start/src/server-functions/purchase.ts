@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { authMiddleware } from "../server/middleware";
 import { createOmsaClient } from "../server/omsa-client";
 import type {
@@ -6,8 +7,38 @@ import type {
 	ClaimRefundRequest,
 	ConfirmedPackage,
 	ConfirmPackageRequest,
+	PurchaseOffersInputs,
 	PurchaseOffersRequest,
 } from "../types/purchase";
+import { findCustomerByNumber } from "./customers";
+
+// Checkout's own customer/contact (set when a signed-in profile checks out)
+// always wins; a dev-config default only fills in for an otherwise-anonymous
+// purchase, so leaving the defaults unset behaves exactly like today's guest
+// checkout. OMSA requires contact.id to accompany customer.id, so a contact
+// (from either source) is only resolved once a customer is present.
+export async function resolvePurchaseCustomerAndContact(
+	inputs: PurchaseOffersInputs,
+	devConfig: DevConfigOverrides | undefined,
+): Promise<Pick<PurchaseOffersInputs, "customer" | "contact">> {
+	const customer =
+		inputs.customer ??
+		(devConfig?.customerNumber
+			? await findCustomerByNumber(devConfig.customerNumber, devConfig)
+			: undefined);
+
+	const contact = customer
+		? (inputs.contact ??
+			(devConfig?.contactCustomerNumber
+				? await findCustomerByNumber(devConfig.contactCustomerNumber, devConfig)
+				: undefined))
+		: undefined;
+
+	return {
+		...(customer ? { customer } : {}),
+		...(contact ? { contact } : {}),
+	};
+}
 
 export const purchaseOffers = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
@@ -16,6 +47,13 @@ export const purchaseOffers = createServerFn({ method: "POST" })
 		const omsa = createOmsaClient(context.devConfig);
 		const body: PurchaseOffersRequest = {
 			...data,
+			inputs: {
+				...data.inputs,
+				...(await resolvePurchaseCustomerAndContact(
+					data.inputs,
+					context.devConfig,
+				)),
+			},
 			subscriber: { successUri: "https://example.com" },
 		};
 		return omsa.post<ConfirmedPackage>(

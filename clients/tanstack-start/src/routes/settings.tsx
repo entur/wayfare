@@ -597,6 +597,12 @@ function DeveloperTab() {
 		() => overrides.clientName ?? "",
 	);
 	const [formPos, setFormPos] = useState(() => overrides.pos ?? "");
+	const [formCustomerNumber, setFormCustomerNumber] = useState(
+		() => overrides.customerNumber ?? "",
+	);
+	const [formContactCustomerNumber, setFormContactCustomerNumber] = useState(
+		() => overrides.contactCustomerNumber ?? "",
+	);
 	const [formRecEnabled, setFormRecEnabled] = useState(
 		() => overrides.recommendationControl?.enabled ?? false,
 	);
@@ -619,6 +625,9 @@ function DeveloperTab() {
 		(formDistributionChannel || undefined) !== overrides.distributionChannel ||
 		(formClientName || undefined) !== overrides.clientName ||
 		(formPos || undefined) !== overrides.pos ||
+		(formCustomerNumber || undefined) !== overrides.customerNumber ||
+		(formContactCustomerNumber || undefined) !==
+			overrides.contactCustomerNumber ||
 		formRecEnabled !== (savedRec?.enabled ?? false) ||
 		JSON.stringify(formRecTypes ?? []) !==
 			JSON.stringify(savedRec?.types ?? []) ||
@@ -642,6 +651,8 @@ function DeveloperTab() {
 			distributionChannel: formDistributionChannel || undefined,
 			clientName: formClientName || undefined,
 			pos: formPos || undefined,
+			customerNumber: formCustomerNumber || undefined,
+			contactCustomerNumber: formContactCustomerNumber || undefined,
 			recommendationControl: {
 				enabled: formRecEnabled,
 				types:
@@ -663,6 +674,8 @@ function DeveloperTab() {
 		setFormDistributionChannel("");
 		setFormClientName("");
 		setFormPos("");
+		setFormCustomerNumber("");
+		setFormContactCustomerNumber("");
 		setFormRecEnabled(false);
 		setFormRecTypes([]);
 		setFormRecStripDuplicates(false);
@@ -765,6 +778,54 @@ function DeveloperTab() {
 							placeholder={resolved?.envDefaults.pos ?? "Wayfare"}
 							className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm font-mono text-wayfare-text"
 						/>
+					</div>
+				</div>
+			</section>
+
+			<section className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-5">
+				<h2 className="mb-1 text-sm font-semibold text-wayfare-text">
+					Purchase defaults
+				</h2>
+				<p className="mb-4 text-xs text-wayfare-text-secondary">
+					Entur customer numbers to attach to a purchase when checkout itself
+					doesn't supply one (e.g. a guest checkout). Leave empty to keep
+					today's behaviour.
+				</p>
+				<div className="space-y-3">
+					<div>
+						<label
+							htmlFor="dev-customer-number"
+							className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
+						>
+							Default customer number
+						</label>
+						<input
+							id="dev-customer-number"
+							type="text"
+							value={formCustomerNumber}
+							onChange={(e) => setFormCustomerNumber(e.target.value)}
+							placeholder="e.g. 12345678"
+							className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm font-mono text-wayfare-text"
+						/>
+					</div>
+					<div>
+						<label
+							htmlFor="dev-contact-customer-number"
+							className="mb-1 block text-xs font-medium text-wayfare-text-secondary"
+						>
+							Default contact customer number
+						</label>
+						<input
+							id="dev-contact-customer-number"
+							type="text"
+							value={formContactCustomerNumber}
+							onChange={(e) => setFormContactCustomerNumber(e.target.value)}
+							placeholder="e.g. 12345678"
+							className="w-full rounded-lg border border-wayfare-line bg-wayfare-surface px-3 py-2 text-sm font-mono text-wayfare-text"
+						/>
+						<p className="mt-1 text-xs text-wayfare-text-secondary">
+							Only sent when a customer is also set -- OMSA requires both.
+						</p>
 					</div>
 				</div>
 			</section>

@@ -11,6 +11,8 @@ export interface PurchaseOffersInputs {
 	type: "purchase_offers";
 	offerIds: string[];
 	customer?: OmsaCustomer;
+	// OMSA requires contact.id to accompany customer.id -- never send one without the other.
+	contact?: OmsaCustomer;
 	timestamp?: string;
 }
 

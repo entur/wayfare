@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { authMiddleware } from "../server/middleware";
 import { createOmsaClient } from "../server/omsa-client";
 import {
@@ -8,6 +9,31 @@ import {
 	normalizeCustomerCollection,
 	type OmsaCustomer,
 } from "../types/customer";
+
+// Resolves an Entur customer number to the full OMSA customer record, for
+// server-internal use (not exposed as a server fn -- callers already run
+// server-side, e.g. purchase.ts applying a dev-config default customer).
+// Returns undefined rather than throwing on a miss or lookup failure, since a
+// stale/typo'd dev-config override shouldn't break an otherwise-valid purchase.
+export async function findCustomerByNumber(
+	customerNumber: string,
+	devConfig?: DevConfigOverrides,
+): Promise<OmsaCustomer | undefined> {
+	try {
+		const omsa = createOmsaClient(devConfig);
+		const raw = await omsa.get<CustomerCollection>(
+			"/collections/customers/items",
+			{ customerId: customerNumber },
+		);
+		return normalizeCustomerCollection(raw).customers?.[0];
+	} catch (error) {
+		console.warn(
+			`[dev-config] failed to resolve customer number "${customerNumber}"`,
+			error,
+		);
+		return undefined;
+	}
+}
 
 export const getCustomers = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
