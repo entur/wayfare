@@ -42,16 +42,57 @@ function svgDimensions(
 	return width > 0 && height > 0 ? { width, height } : null;
 }
 
+const PAGE_LIMIT = 1000;
+// Sized generously above what one train's feature count could plausibly need
+// at PAGE_LIMIT per page — a hard stop so a misbehaving server (numberMatched
+// that never converges) can't spin the loop forever.
+const MAX_PAGES = 50;
+
+/**
+ * Pages through a GeoJSON feature collection until `numberMatched` features
+ * have been retrieved, or `fetchPage` stops making progress. Extracted as a
+ * pure loop over an injected `fetchPage` so it's testable without a network.
+ */
+export async function fetchAllPages(
+	fetchPage: (offset: number) => Promise<AssetFeatureCollection>,
+): Promise<AssetFeatureCollection> {
+	const first = await fetchPage(0);
+	const features = [...first.features];
+	let offset = first.features.length;
+
+	for (
+		let page = 1;
+		page < MAX_PAGES && offset < first.numberMatched && first.features.length > 0;
+		page++
+	) {
+		const next = await fetchPage(offset);
+		if (next.features.length === 0) break;
+		features.push(...next.features);
+		offset += next.features.length;
+	}
+
+	return { ...first, features, numberReturned: features.length };
+}
+
 export const listAssets = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((data: { packageId: string; serviceJourney: string }) => data)
+	.inputValidator(
+		(data: { packageId: string; serviceJourney: string; carriage?: string }) =>
+			data,
+	)
 	.handler(async ({ data, context }) => {
-		const omsa = createOmsaClient(context.devConfig);
-		return omsa.get<AssetFeatureCollection>("/collections/assets/items", {
-			packageId: data.packageId,
-			serviceJourney: data.serviceJourney,
-			limit: "10000",
+		const omsa = createOmsaClient(context.devConfig, {
+			signal: context.signal,
 		});
+		return fetchAllPages((offset) =>
+			omsa.get<AssetFeatureCollection>("/collections/assets/items", {
+				packageId: data.packageId,
+				serviceJourney: data.serviceJourney,
+				...(data.carriage ? { carriage: data.carriage } : {}),
+				limit: String(PAGE_LIMIT),
+				offset: String(offset),
+			}),
+		);
 	});
 
 export const getSeatmapImage = createServerFn({ method: "GET" })
