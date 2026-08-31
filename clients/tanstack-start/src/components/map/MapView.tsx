@@ -1,5 +1,10 @@
 import * as MapLibreGL from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+// maplibre-gl's default worker resolution (`new URL("./maplibre-gl-worker.mjs", import.meta.url)`)
+// assumes its code stays unbundled next to that file. Vite bundles it elsewhere, so the guess
+// 404s in production. `?worker&url` bundles the worker (and its own imports) into one
+// self-contained chunk with a real URL, which we point maplibre-gl at explicitly.
+import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import {
 	forwardRef,
 	type ReactNode,
@@ -15,6 +20,8 @@ import { cn } from "@/lib/utils";
 import { MapContext } from "./context";
 import type { Theme } from "./theme";
 import { defaultStyles, useResolvedTheme } from "./theme";
+
+MapLibreGL.setWorkerUrl(maplibreWorkerUrl);
 
 type MapRef = MapLibreGL.Map;
 
