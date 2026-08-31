@@ -34,10 +34,7 @@ export async function resolvePurchaseCustomerAndContact(
 				: undefined))
 		: undefined;
 
-	return {
-		...(customer ? { customer } : {}),
-		...(contact ? { contact } : {}),
-	};
+	return { customer, contact };
 }
 
 export const purchaseOffers = createServerFn({ method: "POST" })
