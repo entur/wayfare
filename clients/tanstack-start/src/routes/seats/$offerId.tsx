@@ -11,8 +11,10 @@ import ErrorBanner from "../../components/shared/ErrorBanner";
 import Button from "../../components/ui/Button";
 import { useAssignAsset } from "../../hooks/use-assets";
 import {
-	assetAvailability,
+	assetRequiredAncillaryIds,
 	assetSeatNumber,
+	isAssignableSeat,
+	isReservableAsset,
 	isSeatFeature,
 } from "../../lib/asset-features";
 import {
@@ -34,7 +36,10 @@ import {
 } from "../../lib/search-session";
 import { manualSelectionServiceJourneyGroups } from "../../lib/service-journey-groups";
 import { expandTravellerLabels, partyLabel } from "../../lib/travel-party";
-import { assetsCollectionQuery } from "../../server-functions/assets.queries";
+import {
+	assetsCollectionQuery,
+	refetchCarriageAssets,
+} from "../../server-functions/assets.queries";
 import type { AssetFeature, SelectedAssetInfo } from "../../types/assets";
 import type { ConfirmedPackage } from "../../types/purchase";
 import type { Offer } from "../../types/search";
@@ -72,6 +77,7 @@ function SeatsPage() {
 	>(new Map());
 	const [isCommitting, setIsCommitting] = useState(false);
 	const [assignError, setAssignError] = useState<string | null>(null);
+	const [conflictAssetId, setConflictAssetId] = useState<string | undefined>();
 	const confirmedAssetIdsRef = useRef<Record<string, string>>({});
 
 	useEffect(() => {
@@ -249,8 +255,18 @@ function SeatsPage() {
 	// left untouched.
 	function handleSeatClick(legId: string, feature: AssetFeature) {
 		if (!isSeatFeature(feature)) return;
-		if (assetAvailability(feature) !== "AVAILABLE") return;
+		if (!isReservableAsset(feature) || !isAssignableSeat(feature)) return;
 		if (confirmedAssetIdsRef.current[legId] === feature.id) return;
+		const requiredAncillaryIds = assetRequiredAncillaryIds(feature);
+		if (
+			requiredAncillaryIds.length > 0 &&
+			!requiredAncillaryIds.some((id) => selectedAncillaryIds.has(id))
+		) {
+			setAssignError(
+				"This seat needs an add-on you haven't selected. Go back and add it first.",
+			);
+			return;
+		}
 		if (
 			Object.entries(selectedAssets).some(
 				([selectedLegId, asset]) =>
@@ -285,6 +301,7 @@ function SeatsPage() {
 			);
 		}
 		setAssignError(null);
+		setConflictAssetId(undefined);
 	}
 
 	// Sends assign-asset only for legs whose local pick differs from what's
@@ -299,6 +316,7 @@ function SeatsPage() {
 
 		setIsCommitting(true);
 		setAssignError(null);
+		setConflictAssetId(undefined);
 		let currentPkg = pkg;
 		let failedLegId: string | undefined;
 		try {
@@ -319,10 +337,13 @@ function SeatsPage() {
 				const committedServiceJourney = serviceJourneyGroups.find((group) =>
 					group.legs.some((leg) => leg.id === legId),
 				)?.serviceJourney;
-				if (committedServiceJourney) {
-					queryClient.invalidateQueries({
-						queryKey: ["assets", currentPkg.id, committedServiceJourney],
-					});
+				if (committedServiceJourney && currentPkg.id) {
+					await refetchCarriageAssets(
+						queryClient,
+						currentPkg.id,
+						committedServiceJourney,
+						info.carriage,
+					);
 				}
 
 				const currentSession = readPackageSession();
@@ -335,6 +356,12 @@ function SeatsPage() {
 			}
 			return true;
 		} catch (err) {
+			const failedAssetId = failedLegId
+				? selectedAssets[failedLegId]?.assetId
+				: undefined;
+			const failedCarriage = failedLegId
+				? selectedAssets[failedLegId]?.carriage
+				: undefined;
 			setSelectedAssets((previous) => {
 				if (!failedLegId) return previous;
 				const next = { ...previous };
@@ -353,10 +380,14 @@ function SeatsPage() {
 				);
 			}
 			if (isAssetNotAvailable(err)) {
-				if (failedServiceJourney) {
-					queryClient.invalidateQueries({
-						queryKey: ["assets", currentPkg.id, failedServiceJourney],
-					});
+				setConflictAssetId(failedAssetId);
+				if (failedServiceJourney && currentPkg.id && failedCarriage) {
+					await refetchCarriageAssets(
+						queryClient,
+						currentPkg.id,
+						failedServiceJourney,
+						failedCarriage,
+					);
 				}
 				setAssignError("That seat was just taken. Please choose another.");
 			} else {
@@ -516,6 +547,11 @@ function SeatsPage() {
 						if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
 						return a.localeCompare(b);
 					});
+					const deckByCarriage = new Map(
+						features
+							.filter((f) => f.properties.type === "carriage")
+							.map((f) => [f.properties.carriage, f.properties.deck]),
+					);
 
 					const selectedCarriage =
 						selectedCarriageByLeg.get(serviceJourney) ?? carriages[0] ?? "";
@@ -537,7 +573,8 @@ function SeatsPage() {
 						!!selectedInfo &&
 						confirmedAssetIdsRef.current[activeLegId] === selectedInfo.assetId;
 					const hasAvailable = carriageFeatures.some(
-						(f) => isSeatFeature(f) && assetAvailability(f) === "AVAILABLE",
+						(f) =>
+							isSeatFeature(f) && isReservableAsset(f) && isAssignableSeat(f),
 					);
 
 					const representativeLeg = legs[0];
@@ -581,10 +618,9 @@ function SeatsPage() {
 											elements={carriages.map((c) => ({
 												carriageId: c,
 												carriageIdentifier: c,
-												carriageNumber: null,
+												deck: deckByCarriage.get(c),
 											}))}
 											selectedIdx={carriages.indexOf(selectedCarriage)}
-											travelDirection={null}
 											onSelect={(idx) =>
 												setSelectedCarriageByLeg((prev) =>
 													new Map(prev).set(serviceJourney, carriages[idx]),
@@ -626,6 +662,7 @@ function SeatsPage() {
 										<AssetSeatmapView
 											features={carriageFeatures}
 											selectedAssetIds={selectedAssetIds}
+											conflictAssetId={conflictAssetId}
 											onSeatClick={
 												activeLegId && !isCommitting
 													? (f) => handleSeatClick(activeLegId, f)
