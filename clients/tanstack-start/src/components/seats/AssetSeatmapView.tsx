@@ -1,10 +1,17 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
-	assetAvailability,
+	assetCompartmentLabel,
+	assetFareClass,
 	assetSeatNumber,
-	isChosenSeat,
+	assetSeatPosition,
+	assetTypeOf,
+	geometryKind,
+	isAssignableSeat,
+	isReservableAsset,
+	isSeatClosed,
 	isSeatFeature,
+	isSelectedSeat,
 } from "../../lib/asset-features";
 import { seatmapImageQuery } from "../../server-functions/assets.queries";
 import type { AssetFeature, AssetGeometry } from "../../types/assets";
@@ -12,6 +19,8 @@ import type { AssetFeature, AssetGeometry } from "../../types/assets";
 interface AssetSeatmapViewProps {
 	features: AssetFeature[];
 	selectedAssetIds?: string[];
+	/** Asset id that just failed a 409 "Asset Not Available" assign, if any. */
+	conflictAssetId?: string;
 	onSeatClick?: (feature: AssetFeature) => void;
 	loading?: boolean;
 	scale?: number;
@@ -25,33 +34,49 @@ interface Bounds {
 	maxY: number;
 }
 
-function polygonRing(coordinates: number[][][]): number[][] {
-	const ring = coordinates[0] ?? [];
-	// GeoJSON rings close with a duplicate last point — drop it
+// GeoJSON rings close with a duplicate last point — drop it
+function dedupeRing(ring: number[][]): number[][] {
 	return ring.length > 1 ? ring.slice(0, -1) : ring;
 }
 
-function polygonPoints(coordinates: number[][][]): string {
-	return polygonRing(coordinates)
-		.map(([x, y]) => `${x},${y}`)
-		.join(" ");
+/** One ring per polygon: a single ring for Polygon, one per member for MultiPolygon. */
+function polygonRings(geometry: AssetGeometry): number[][][] {
+	const kind = geometryKind(geometry);
+	if (kind === "Polygon") {
+		return [dedupeRing((geometry.coordinates as number[][][])[0] ?? [])];
+	}
+	if (kind === "MultiPolygon") {
+		return (geometry.coordinates as number[][][][]).map((polygon) =>
+			dedupeRing(polygon[0] ?? []),
+		);
+	}
+	return [];
 }
 
-function centroid(coordinates: number[][][]): [number, number] {
-	const pts = polygonRing(coordinates);
-	if (pts.length === 0) return [0, 0];
-	const sumX = pts.reduce((s, [x]) => s + x, 0);
-	const sumY = pts.reduce((s, [, y]) => s + y, 0);
-	return [sumX / pts.length, sumY / pts.length];
+function polygonPoints(ring: number[][]): string {
+	return ring.map(([x, y]) => `${x},${y}`).join(" ");
+}
+
+function centroid(points: number[][]): [number, number] {
+	if (points.length === 0) return [0, 0];
+	const sumX = points.reduce((s, [x]) => s + x, 0);
+	const sumY = points.reduce((s, [, y]) => s + y, 0);
+	return [sumX / points.length, sumY / points.length];
+}
+
+/** Every coordinate pair a geometry contributes, for bounds/centroid purposes. */
+function geometryPoints(geometry: AssetGeometry): number[][] {
+	const kind = geometryKind(geometry);
+	if (kind === "Point") return [geometry.coordinates as number[]];
+	if (kind === "LineString") return geometry.coordinates as number[][];
+	if (kind === "Polygon" || kind === "MultiPolygon")
+		return polygonRings(geometry).flat();
+	return [];
 }
 
 function extendBounds(bounds: Bounds, geometry: AssetGeometry | null): void {
 	if (!geometry) return;
-	const isPolygon = Array.isArray(geometry.coordinates[0]);
-	const points = isPolygon
-		? polygonRing(geometry.coordinates as number[][][])
-		: [geometry.coordinates as number[]];
-	for (const [x, y] of points) {
+	for (const [x, y] of geometryPoints(geometry)) {
 		if (x < bounds.minX) bounds.minX = x;
 		if (y < bounds.minY) bounds.minY = y;
 		if (x > bounds.maxX) bounds.maxX = x;
@@ -79,56 +104,89 @@ function computeViewBox(features: AssetFeature[], pad = 8) {
 	};
 }
 
-function seatAvailability(feature: AssetFeature): string | null {
-	return assetAvailability(feature);
+type SeatStatus =
+	| "non-reservable"
+	| "conflict"
+	| "confirmed"
+	| "chosen"
+	| "available"
+	| "unavailable";
+
+function seatStatus(
+	feature: AssetFeature,
+	isChosenLocally: boolean,
+	isConflict: boolean,
+): SeatStatus {
+	if (!isReservableAsset(feature)) return "non-reservable";
+	if (isConflict) return "conflict";
+	if (isSelectedSeat(feature)) return "confirmed";
+	if (isChosenLocally) return "chosen";
+	if (isSeatClosed(feature)) return "unavailable";
+	if (isAssignableSeat(feature)) return "available";
+	return "unavailable";
 }
 
 function seatFill(
-	feature: AssetFeature,
-	isSelected: boolean,
+	status: SeatStatus,
 	hasBaseImage: boolean,
 ): {
 	className: string;
 	interactive: boolean;
 } {
-	const availability = seatAvailability(feature);
-	if (isSelected) {
-		return {
-			className: hasBaseImage
-				? "fill-emerald-500/40 stroke-emerald-600"
-				: "fill-emerald-500/50 stroke-emerald-600",
-			interactive: false,
-		};
+	switch (status) {
+		case "non-reservable":
+			return {
+				className: hasBaseImage
+					? "fill-transparent stroke-transparent"
+					: "fill-black/[0.06] stroke-black/15",
+				interactive: false,
+			};
+		case "conflict":
+			return {
+				className: hasBaseImage
+					? "fill-rose-500/30 stroke-rose-600"
+					: "fill-rose-500/40 stroke-rose-600",
+				interactive: false,
+			};
+		case "confirmed":
+		case "chosen":
+			return {
+				className: hasBaseImage
+					? "fill-emerald-500/40 stroke-emerald-600"
+					: "fill-emerald-500/50 stroke-emerald-600",
+				interactive: false,
+			};
+		case "available":
+			return {
+				className: hasBaseImage
+					? "fill-sky-500/10 hover:fill-sky-500/30 stroke-sky-500/50"
+					: "fill-sky-500/25 stroke-sky-500/70",
+				interactive: true,
+			};
+		default:
+			// UNAVAILABLE, OCCUPIED, CLOSED, LAST_STOP
+			return {
+				className: hasBaseImage
+					? "fill-black/35 stroke-transparent"
+					: "fill-black/15 stroke-black/30",
+				interactive: false,
+			};
 	}
-	if (availability === "AVAILABLE") {
-		return {
-			className: hasBaseImage
-				? "fill-sky-500/10 hover:fill-sky-500/30 stroke-sky-500/50"
-				: "fill-sky-500/25 stroke-sky-500/70",
-			interactive: true,
-		};
-	}
-	// OCCUPIED, CLOSED, LAST_STOP
-	return {
-		className: hasBaseImage
-			? "fill-black/35 stroke-transparent"
-			: "fill-black/15 stroke-black/30",
-		interactive: false,
-	};
 }
 
-function iconHref(
-	feature: AssetFeature,
-	isSelected: boolean,
-): string | undefined {
-	const availability = seatAvailability(feature);
-	const preferredRel = isSelected
-		? "icon-chosen"
-		: availability === "AVAILABLE"
-			? "icon-free"
-			: isSeatFeature(feature)
-				? "icon-unavailable"
-				: "icon";
+function iconHref(feature: AssetFeature, status: SeatStatus): string | undefined {
+	const preferredRel =
+		status === "conflict"
+			? "icon-conflict"
+			: status === "confirmed"
+				? "icon-confirmed"
+				: status === "chosen"
+					? "icon-chosen"
+					: status === "available"
+						? "icon-free"
+						: isSeatFeature(feature)
+							? "icon-unavailable"
+							: "icon";
 	return (
 		feature.links?.find((link) => link.rel === preferredRel)?.href ??
 		feature.links?.find((link) => link.rel === "icon")?.href
@@ -136,8 +194,7 @@ function iconHref(
 }
 
 function geometryBounds(geometry: AssetGeometry): Bounds | null {
-	if (!Array.isArray(geometry.coordinates[0])) return null;
-	const points = polygonRing(geometry.coordinates as number[][][]);
+	const points = polygonRings(geometry).flat();
 	if (points.length === 0) return null;
 	const xs = points.map(([x]) => x);
 	const ys = points.map(([, y]) => y);
@@ -152,6 +209,7 @@ function geometryBounds(geometry: AssetGeometry): Bounds | null {
 export default function AssetSeatmapView({
 	features,
 	selectedAssetIds = [],
+	conflictAssetId,
 	onSeatClick,
 	loading,
 	scale: externalScale,
@@ -172,6 +230,14 @@ export default function AssetSeatmapView({
 	const carriageFeature = features.find(
 		(f) => f.properties.type === "carriage",
 	);
+	const carriageWidth =
+		carriageFeature?.properties.type === "carriage"
+			? carriageFeature.properties.width
+			: undefined;
+	const carriageHeight =
+		carriageFeature?.properties.type === "carriage"
+			? carriageFeature.properties.height
+			: undefined;
 	const previewHref = carriageFeature?.links?.find(
 		(l) => l.rel === "preview",
 	)?.href;
@@ -180,15 +246,19 @@ export default function AssetSeatmapView({
 	);
 	const imageQuery = useQuery(seatmapImageQuery(previewHref));
 	const hasBaseImage = !!previewHref && !!imageQuery.data?.dataUrl;
+
+	function statusOf(feature: AssetFeature): SeatStatus {
+		return seatStatus(
+			feature,
+			selectedAssetIds.includes(feature.id),
+			!!conflictAssetId && conflictAssetId === feature.id,
+		);
+	}
+
 	const iconHrefs = Array.from(
 		new Set(
 			seatAndFacilityFeatures
-				.map((feature) =>
-					iconHref(
-						feature,
-						selectedAssetIds.includes(feature.id) || isChosenSeat(feature),
-					),
-				)
+				.map((feature) => iconHref(feature, statusOf(feature)))
 				.filter((href): href is string => !!href),
 		),
 	);
@@ -202,12 +272,22 @@ export default function AssetSeatmapView({
 		}),
 	);
 
-	const imageWidth = imageQuery.data?.width;
-	const imageHeight = imageQuery.data?.height;
+	// Carriage-native dimensions take precedence — they're the coordinate
+	// space the seat/facility geometry is actually authored in. The preview
+	// image's intrinsic size is a fallback for carriages that don't report
+	// width/height; computeViewBox is the last resort when there's no base
+	// image at all.
 	const viewBox =
-		hasBaseImage && imageWidth && imageHeight
-			? { minX: 0, minY: 0, width: imageWidth, height: imageHeight }
-			: computeViewBox(seatAndFacilityFeatures);
+		carriageWidth && carriageHeight
+			? { minX: 0, minY: 0, width: carriageWidth, height: carriageHeight }
+			: hasBaseImage && imageQuery.data?.width && imageQuery.data?.height
+				? {
+						minX: 0,
+						minY: 0,
+						width: imageQuery.data.width,
+						height: imageQuery.data.height,
+					}
+				: computeViewBox(seatAndFacilityFeatures);
 	const { minX, minY, width, height } = viewBox;
 
 	const isImageLoading = !!previewHref && imageQuery.isPending;
@@ -246,36 +326,53 @@ export default function AssetSeatmapView({
 								/>
 							)}
 							{overlayFeatures.map((f) => {
+								if (!f.geometry) return null;
+
 								const isSeat = isSeatFeature(f);
+								const status = statusOf(f);
 								const isSelected =
-									selectedAssetIds.includes(f.id) || isChosenSeat(f);
-								const availability = seatAvailability(f);
-								const isOccupied =
-									availability === "OCCUPIED" ||
-									availability === "CLOSED" ||
-									availability === "LAST_STOP";
+									status === "confirmed" || status === "chosen";
+								const looksUnavailable =
+									status === "unavailable" || status === "non-reservable";
 
 								const { className, interactive: seatInteractive } = isSeat
-									? seatFill(f, isSelected, hasBaseImage)
+									? seatFill(status, hasBaseImage)
 									: {
 											className: "fill-black/[0.06] stroke-black/15",
 											interactive: false,
 										};
 								const interactive = seatInteractive && !!onSeatClick;
-								const featureIconHref = iconHref(f, isSelected);
+								const featureIconHref = iconHref(f, status);
 								const featureIcon = featureIconHref
 									? iconDataUrls.get(featureIconHref)
 									: undefined;
 
 								const seatNumber = assetSeatNumber(f);
+								const seatKind =
+									assetTypeOf(f) === "BICYCLE_SPACE" ? "Bicycle space" : "Seat";
+								const detailParts = isSeat
+									? [assetSeatPosition(f), assetFareClass(f), assetCompartmentLabel(f)]
+											.filter((part): part is string => !!part)
+											.map((part) => part.toLowerCase())
+									: [];
+								const detailSuffix =
+									detailParts.length > 0 ? ` (${detailParts.join(", ")})` : "";
+								const statusSuffix =
+									status === "conflict"
+										? " (just taken)"
+										: isSelected
+											? " (selected)"
+											: looksUnavailable
+												? " (unavailable)"
+												: " (available)";
 								const label = isSeat
-									? `Seat ${seatNumber ?? f.id}${isSelected ? " (selected)" : isOccupied ? " (occupied)" : " (available)"}`
+									? `${seatKind} ${seatNumber ?? f.id}${detailSuffix}${statusSuffix}`
 									: f.properties.type === "facility"
 										? (f.properties.name ?? f.properties.facilityType)
 										: f.id;
 								const textColor = isSelected
 									? "rgba(255,255,255,0.95)"
-									: isOccupied
+									: looksUnavailable
 										? "rgba(0,0,0,0.58)"
 										: "rgba(0,0,0,0.78)";
 
@@ -288,60 +385,11 @@ export default function AssetSeatmapView({
 										}
 									: undefined;
 
-								if (!f.geometry) return null;
+								const kind = geometryKind(f.geometry);
 
-								const bounds = geometryBounds(f.geometry);
-								if (featureIcon && bounds) {
-									const coordinates = f.geometry.coordinates as number[][][];
-									const points = polygonPoints(coordinates);
-									const [cx, cy] = centroid(coordinates);
-									return (
-										<g key={f.id}>
-											<image
-												href={featureIcon}
-												x={bounds.minX}
-												y={bounds.minY}
-												width={bounds.maxX - bounds.minX}
-												height={bounds.maxY - bounds.minY}
-												preserveAspectRatio="none"
-												style={{ pointerEvents: "none" }}
-											/>
-											{isSeat && seatNumber != null && (
-												<text
-													x={cx}
-													y={cy}
-													textAnchor="middle"
-													dominantBaseline="central"
-													fontSize={7}
-													fontWeight={700}
-													fill={textColor}
-													style={{ pointerEvents: "none", userSelect: "none" }}
-												>
-													{seatNumber}
-												</text>
-											)}
-											{/* biome-ignore lint/a11y/noStaticElementInteractions: SVG polygon uses a conditional button role */}
-											<polygon
-												points={points}
-												fill="transparent"
-												role={interactive ? "button" : undefined}
-												aria-label={label}
-												tabIndex={interactive ? 0 : undefined}
-												style={{ cursor: interactive ? "pointer" : "default" }}
-												onClick={handleClick}
-												onKeyDown={handleKeyDown}
-											>
-												<title>{label}</title>
-											</polygon>
-										</g>
-									);
-								}
-
-								const showNumber =
-									!hasBaseImage && isSeat && seatNumber != null;
-
-								if (!Array.isArray(f.geometry.coordinates[0])) {
+								if (kind === "Point") {
 									const [cx, cy] = f.geometry.coordinates as number[];
+									const showNumber = !hasBaseImage && isSeat && seatNumber != null;
 									return (
 										<g key={f.id}>
 											{/* biome-ignore lint/a11y/noStaticElementInteractions: SVG circle needs role for interactive seats */}
@@ -381,29 +429,101 @@ export default function AssetSeatmapView({
 									);
 								}
 
-								const polygonCoordinates = f.geometry
-									.coordinates as number[][][];
-								const [cx, cy] = centroid(polygonCoordinates);
+								if (kind === "LineString") {
+									// Layout markings (aisle edges, walls) — drawn for context, never interactive.
+									const linePoints = (f.geometry.coordinates as number[][])
+										.map(([x, y]) => `${x},${y}`)
+										.join(" ");
+									return (
+										<polyline
+											key={f.id}
+											points={linePoints}
+											fill="none"
+											className="stroke-black/15"
+											strokeWidth={1}
+											style={{ pointerEvents: "none" }}
+										/>
+									);
+								}
+
+								if (kind !== "Polygon" && kind !== "MultiPolygon") return null;
+
+								const rings = polygonRings(f.geometry);
+								const allPoints = rings.flat();
+								const [cx, cy] = centroid(allPoints);
+								const bounds = geometryBounds(f.geometry);
+								const showNumber = !hasBaseImage && isSeat && seatNumber != null;
+
+								if (featureIcon && bounds) {
+									return (
+										<g key={f.id}>
+											<image
+												href={featureIcon}
+												x={bounds.minX}
+												y={bounds.minY}
+												width={bounds.maxX - bounds.minX}
+												height={bounds.maxY - bounds.minY}
+												preserveAspectRatio="none"
+												style={{ pointerEvents: "none" }}
+											/>
+											{isSeat && seatNumber != null && (
+												<text
+													x={cx}
+													y={cy}
+													textAnchor="middle"
+													dominantBaseline="central"
+													fontSize={7}
+													fontWeight={700}
+													fill={textColor}
+													style={{ pointerEvents: "none", userSelect: "none" }}
+												>
+													{seatNumber}
+												</text>
+											)}
+											{rings.map((ring, index) => (
+												// biome-ignore lint/a11y/noStaticElementInteractions: SVG polygon uses a conditional button role
+												<polygon
+													// biome-ignore lint/suspicious/noArrayIndexKey: rings of one feature are stable per render
+													key={index}
+													points={polygonPoints(ring)}
+													fill="transparent"
+													role={interactive ? "button" : undefined}
+													aria-label={label}
+													tabIndex={interactive ? 0 : undefined}
+													style={{ cursor: interactive ? "pointer" : "default" }}
+													onClick={handleClick}
+													onKeyDown={handleKeyDown}
+												>
+													<title>{label}</title>
+												</polygon>
+											))}
+										</g>
+									);
+								}
 
 								return (
 									<g key={f.id}>
-										{/* biome-ignore lint/a11y/noStaticElementInteractions: SVG polygon needs role for interactive seats */}
-										<polygon
-											points={polygonPoints(polygonCoordinates)}
-											className={className}
-											strokeWidth={hasBaseImage ? 0 : 1}
-											role={interactive ? "button" : undefined}
-											aria-label={label}
-											tabIndex={interactive ? 0 : undefined}
-											style={{
-												cursor: interactive ? "pointer" : "default",
-												pointerEvents: interactive ? "all" : "none",
-											}}
-											onClick={handleClick}
-											onKeyDown={handleKeyDown}
-										>
-											<title>{label}</title>
-										</polygon>
+										{rings.map((ring, index) => (
+											// biome-ignore lint/a11y/noStaticElementInteractions: SVG polygon needs role for interactive seats
+											<polygon
+												// biome-ignore lint/suspicious/noArrayIndexKey: rings of one feature are stable per render
+												key={index}
+												points={polygonPoints(ring)}
+												className={className}
+												strokeWidth={hasBaseImage ? 0 : 1}
+												role={interactive ? "button" : undefined}
+												aria-label={label}
+												tabIndex={interactive ? 0 : undefined}
+												style={{
+													cursor: interactive ? "pointer" : "default",
+													pointerEvents: interactive ? "all" : "none",
+												}}
+												onClick={handleClick}
+												onKeyDown={handleKeyDown}
+											>
+												<title>{label}</title>
+											</polygon>
+										))}
 										{showNumber && (
 											<text
 												x={cx}

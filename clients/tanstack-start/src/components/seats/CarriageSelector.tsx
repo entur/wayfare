@@ -4,10 +4,10 @@ type CarriageSelectorProps = {
 	elements: Array<{
 		carriageId: string;
 		carriageIdentifier: string;
-		carriageNumber?: number | null;
+		/** Deck (floor) identifier, for multi-deck vehicles where it's worth distinguishing. */
+		deck?: string;
 	}>;
 	selectedIdx: number;
-	travelDirection: "FORWARDS" | "BACKWARDS" | null;
 	onSelect: (idx: number) => void;
 };
 
@@ -19,7 +19,7 @@ export function CarriageSelector({
 	return (
 		<div className="overflow-x-auto px-1 pb-2">
 			<div className="flex gap-1">
-				{elements.map(({ carriageId, carriageIdentifier }, idx) => {
+				{elements.map(({ carriageId, carriageIdentifier, deck }, idx) => {
 					const isSelected = idx === selectedIdx;
 					return (
 						<button
@@ -31,7 +31,11 @@ export function CarriageSelector({
 									? "text-wayfare-primary"
 									: "text-wayfare-text-secondary hover:text-wayfare-text"
 							}`}
-							aria-label={`Carriage ${carriageIdentifier}`}
+							aria-label={
+								deck
+									? `Carriage ${carriageIdentifier}, deck ${deck}`
+									: `Carriage ${carriageIdentifier}`
+							}
 							aria-pressed={isSelected}
 						>
 							<TrainCarIcon aria-hidden="true" className="h-6 w-6" />
@@ -43,6 +47,11 @@ export function CarriageSelector({
 							<span className="text-xs font-semibold">
 								{carriageIdentifier}
 							</span>
+							{deck && (
+								<span className="text-[10px] leading-none text-wayfare-text-secondary">
+									Deck {deck}
+								</span>
+							)}
 						</button>
 					);
 				})}
