@@ -330,7 +330,7 @@ function CheckoutScreen() {
 							</div>
 							<Link
 								to="/settings"
-								search={{ tab: "profile", pendingCardId: undefined }}
+								search={{ tab: "developer", pendingCardId: undefined }}
 								className="text-xs text-wayfare-primary no-underline"
 							>
 								Change
@@ -339,13 +339,13 @@ function CheckoutScreen() {
 					) : (
 						<div className="space-y-3">
 							<p className="text-xs text-wayfare-text-secondary">
-								No profile selected.{" "}
+								No customer configured.{" "}
 								<Link
 									to="/settings"
-									search={{ tab: "profile", pendingCardId: undefined }}
+									search={{ tab: "developer", pendingCardId: undefined }}
 									className="text-wayfare-primary no-underline"
 								>
-									Sign in
+									Developer settings
 								</Link>{" "}
 								or enter your details below.
 							</p>

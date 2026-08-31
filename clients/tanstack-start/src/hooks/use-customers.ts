@@ -1,21 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	getCustomer,
-	getCustomers,
-	updateCustomer,
-} from "../server-functions/customers";
-import type { CustomerSearchParams, OmsaCustomer } from "../types/customer";
-
-export function useCustomerSearch(
-	params: CustomerSearchParams,
-	enabled: boolean,
-) {
-	return useQuery({
-		queryKey: ["customers", params],
-		queryFn: () => getCustomers({ data: params }),
-		enabled,
-	});
-}
+import { getCustomer, updateCustomer } from "../server-functions/customers";
+import type { OmsaCustomer } from "../types/customer";
 
 export function useCustomer(customerId: string | undefined) {
 	return useQuery({
