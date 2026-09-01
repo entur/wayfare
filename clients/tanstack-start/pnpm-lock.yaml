@@ -2923,8 +2923,8 @@ snapshots:
 
   '@entur/button@5.0.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@entur/loader': 0.8.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@entur/tokens': 4.0.1
+      '@entur/loader': 0.8.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@entur/tokens': 4.1.0
       '@entur/utils': 0.15.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       classnames: 2.5.1
       react: 19.2.8
@@ -2964,9 +2964,9 @@ snapshots:
 
   '@entur/layout@4.0.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@entur/icons': 10.0.2(react@19.2.8)
-      '@entur/tokens': 4.0.1
-      '@entur/typography': 3.0.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@entur/icons': 10.0.3(react@19.2.8)
+      '@entur/tokens': 4.1.0
+      '@entur/typography': 3.0.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@entur/utils': 0.15.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       classnames: 2.5.1
       react: 19.2.8
@@ -3015,9 +3015,9 @@ snapshots:
   '@entur/tooltip@6.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@entur/button': 5.0.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@entur/icons': 10.0.2(react@19.2.8)
+      '@entur/icons': 10.0.3(react@19.2.8)
       '@entur/layout': 4.0.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@entur/tokens': 4.0.1
+      '@entur/tokens': 4.1.0
       '@entur/utils': 0.14.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@floating-ui/react': 0.26.28(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
