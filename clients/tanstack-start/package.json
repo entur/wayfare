@@ -27,7 +27,7 @@
     "@entur/layout": "3.7.5",
     "@entur/loader": "0.8.4",
     "@entur/tokens": "3.24.0",
-    "@entur/tooltip": "5.3.16",
+    "@entur/tooltip": "6.0.0",
     "@entur/travel": "7.0.4",
     "@entur/typography": "2.1.12",
     "@tailwindcss/vite": "4.3.3",
