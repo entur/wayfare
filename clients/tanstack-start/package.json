@@ -23,7 +23,7 @@
     "@entur-partner/permission-client-node": "3.6.2",
     "@entur/button": "4.0.11",
     "@entur/form": "10.0.0",
-    "@entur/icons": "9.0.4",
+    "@entur/icons": "10.0.0",
     "@entur/layout": "3.7.5",
     "@entur/loader": "0.8.4",
     "@entur/tokens": "3.24.0",
