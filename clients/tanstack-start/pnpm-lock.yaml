@@ -31,8 +31,8 @@ importers:
         specifier: 10.0.0
         version: 10.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@entur/icons':
-        specifier: 9.0.4
-        version: 9.0.4(react@19.2.8)
+        specifier: 10.0.0
+        version: 10.0.0(react@19.2.8)
       '@entur/layout':
         specifier: 3.7.5
         version: 3.7.5(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -369,6 +369,11 @@ packages:
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
+
+  '@entur/icons@10.0.0':
+    resolution: {integrity: sha512-Rz4OKyUPhuq9tDffnqMZ0SUHc8WfvS2YqDJzRao5bmn0HgfXhZFKeEH8XUiKBAQdkCFS18nK9Zf0mnWn7m5SSA==}
+    peerDependencies:
+      react: '>=18.0.0'
 
   '@entur/icons@10.0.2':
     resolution: {integrity: sha512-JGp34iHlmCsFLJa7Mqt+nJMlZu7lbgOiLjEjhx0tay7BHFMcBtqOCtWw12QQ8d8nwCrAq58zD8vonG5qVcnfIA==}
@@ -2941,7 +2946,7 @@ snapshots:
   '@entur/form@10.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@entur/button': 5.0.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@entur/icons': 10.0.2(react@19.2.8)
+      '@entur/icons': 10.0.0(react@19.2.8)
       '@entur/tokens': 4.0.1
       '@entur/tooltip': 6.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@entur/typography': 3.0.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -2949,6 +2954,11 @@ snapshots:
       classnames: 2.5.1
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
+
+  '@entur/icons@10.0.0(react@19.2.8)':
+    dependencies:
+      '@entur/tokens': 4.0.1
+      react: 19.2.8
 
   '@entur/icons@10.0.2(react@19.2.8)':
     dependencies:
@@ -3019,7 +3029,7 @@ snapshots:
   '@entur/tooltip@6.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@entur/button': 5.0.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@entur/icons': 10.0.3(react@19.2.8)
+      '@entur/icons': 10.0.0(react@19.2.8)
       '@entur/layout': 4.0.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@entur/tokens': 4.1.0
       '@entur/utils': 0.14.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -3032,7 +3042,7 @@ snapshots:
   '@entur/travel@8.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@entur/form': 10.0.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@entur/icons': 10.0.2(react@19.2.8)
+      '@entur/icons': 10.0.0(react@19.2.8)
       '@entur/layout': 4.0.3(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@entur/tokens': 4.0.1
       '@entur/utils': 0.14.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
