@@ -29,7 +29,7 @@
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.0.1",
     "@types/node": "^26.3.0",
     "eslint": "^10.7.0",
     "openapi-typescript": "^7.13.0",
