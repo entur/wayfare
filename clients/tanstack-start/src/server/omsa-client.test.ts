@@ -89,6 +89,7 @@ describe("createOmsaClient", () => {
 					"ET-Client-Name": "Boundary-Test",
 					"Entur-POS": "Test-POS",
 				},
+				signal: expect.any(AbortSignal),
 			},
 		);
 		expect(getAccessTokenMock).toHaveBeenCalledWith(
@@ -121,6 +122,7 @@ describe("createOmsaClient", () => {
 					"Content-Type": "application/json",
 				}),
 				body: JSON.stringify(body),
+				signal: expect.any(AbortSignal),
 			},
 		);
 	});
