@@ -16,6 +16,49 @@ import {
 
 process.env.NODE_ENV ??= "production";
 
+// When a browser or upstream proxy hangs up mid-response, the SSR stack throws
+// "aborted"/ECONNRESET. Nobody is waiting for the response any more, so these
+// are not actionable, but the framework logs each unhandled error verbatim and
+// floods ERROR logs. Recognise them (walking the cause chain) so we can drop
+// the noise while still surfacing genuine failures.
+function isClientAbortError(error) {
+	const abortCodes = new Set([
+		"ECONNRESET",
+		"ERR_STREAM_PREMATURE_CLOSE",
+		"ABORT_ERR",
+	]);
+	const seen = new Set();
+	let current = error;
+	while (current && typeof current === "object" && !seen.has(current)) {
+		seen.add(current);
+		if (typeof current.code === "string" && abortCodes.has(current.code)) {
+			return true;
+		}
+		if (current.name === "AbortError") {
+			return true;
+		}
+		if (
+			typeof current.message === "string" &&
+			/\baborted\b/i.test(current.message)
+		) {
+			return true;
+		}
+		current = current.cause;
+	}
+	return false;
+}
+
+// The framework reports unhandled request errors with a bare
+// console.error(error). Swallow the client-abort ones; every other call (real
+// errors, our own prefixed logs, multi-arg calls) passes through untouched.
+const baseConsoleError = console.error.bind(console);
+console.error = (...args) => {
+	if (args.length === 1 && isClientAbortError(args[0])) {
+		return;
+	}
+	baseConsoleError(...args);
+};
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const clientDir = join(__dirname, "dist/client");
 
@@ -95,7 +138,9 @@ serve({
 			}
 			return response;
 		} catch (error) {
-			console.error("[server] unhandled request error:", error);
+			if (!isClientAbortError(error)) {
+				console.error("[server] unhandled request error:", error);
+			}
 			return new Response("Internal Server Error", {
 				status: 500,
 				headers: isEnturLoginRequired()

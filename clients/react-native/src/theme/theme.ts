@@ -1,7 +1,7 @@
-import type { ColorSchemeName } from "react-native";
-
 export type ThemeMode = "system" | "light" | "dark";
 export type ResolvedTheme = "light" | "dark";
+export type SystemColorScheme =
+  "light" | "dark" | "unspecified" | null | undefined;
 
 export interface WayfareTheme {
   mode: ResolvedTheme;
@@ -28,7 +28,7 @@ export interface WayfareTheme {
 
 export function resolveTheme(
   mode: ThemeMode,
-  systemScheme: ColorSchemeName,
+  systemScheme: SystemColorScheme,
 ): ResolvedTheme {
   if (mode === "light" || mode === "dark") return mode;
   return systemScheme === "dark" ? "dark" : "light";
