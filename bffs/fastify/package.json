@@ -22,18 +22,18 @@
     "@fastify/swagger": "^9.8.1",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@sinclair/typebox": "^0.34.52",
-    "fastify": "^5.12.3",
+    "fastify": "^5.12.4",
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^26.4.1",
-    "eslint": "^10.9.1",
+    "@types/node": "^26.5.0",
+    "eslint": "^10.10.0",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.9.6",
     "tsx": "^4.23.13",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.69.0",
+    "typescript-eslint": "^8.70.0",
     "vitest": "^4.1.11"
   },
   "packageManager": "pnpm@11.13.1",
