@@ -26,7 +26,7 @@ export const autocompletePlaces = createServerFn({ method: "GET" })
 			headers: {
 				"ET-Client-Name":
 					context.devConfig.clientName ??
-					process.env.ENTUR_CLIENT_NAME ??
+					config.enturClientName ??
 					"Wayfare-Web",
 			},
 		});
