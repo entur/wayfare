@@ -1,4 +1,3 @@
-import { inspect } from "node:util";
 import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { getAccessToken } from "./auth";
 import { getRuntimeConfig, type RuntimeConfig } from "./runtime-config";
@@ -107,8 +106,23 @@ function redactHeaders(
 	return redactedHeaders;
 }
 
+// Lazy, server-only: a top-level node:util import leaks into the client bundle
+// in dev and crashes the browser. Loaded at init so inspect is ready before the
+// first request log; formatForLog falls back to JSON until then.
+let cachedInspect: typeof import("node:util").inspect | null = null;
+if (typeof window === "undefined") {
+	import("node:util")
+		.then((m) => {
+			cachedInspect = m.inspect;
+		})
+		.catch(() => {});
+}
+
 function formatForLog(value: unknown): string {
-	return inspect(value, {
+	if (!cachedInspect) {
+		return stringifyJsonLog(value);
+	}
+	return cachedInspect(value, {
 		depth: getRequestLogDepth(),
 		colors: false,
 		maxArrayLength: 100,
