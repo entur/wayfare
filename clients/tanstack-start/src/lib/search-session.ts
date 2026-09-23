@@ -15,6 +15,8 @@ export interface LegInfo {
 }
 
 export interface SearchContext {
+	/** Page that produced this offer collection. */
+	origin?: "home" | "trips" | "products";
 	/** Absent for authority product searches, which have no route. */
 	from?: PlaceReference;
 	to?: PlaceReference;

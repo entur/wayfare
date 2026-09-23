@@ -186,6 +186,7 @@ function SearchScreen() {
 
 		addRecentSearch({ from, to, timeMode, travelDate, travelers });
 		writeSearchSession(result, {
+			origin: "home",
 			from,
 			to,
 			travelDate: travelDateTime,

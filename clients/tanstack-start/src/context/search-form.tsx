@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useReducer } from "react";
+import {
+	createContext,
+	useContext,
+	useEffect,
+	useReducer,
+	useState,
+} from "react";
 import type { PlaceReference } from "../types/common";
 
 export interface TravelerIndividual {
@@ -35,6 +41,7 @@ interface SearchFormState {
 }
 
 type Action =
+	| { type: "RESTORE"; payload: SearchFormState }
 	| { type: "SET_FROM"; payload: PlaceReference | null }
 	| { type: "SET_TO"; payload: PlaceReference | null }
 	| { type: "SET_TRAVEL_DATE"; payload: string }
@@ -57,6 +64,8 @@ const defaultState: SearchFormState = {
 
 function reducer(state: SearchFormState, action: Action): SearchFormState {
 	switch (action.type) {
+		case "RESTORE":
+			return action.payload;
 		case "SET_FROM":
 			return { ...state, from: action.payload };
 		case "SET_TO":
@@ -83,13 +92,38 @@ export function SearchFormProvider({
 	children: React.ReactNode;
 }) {
 	const [state, dispatch] = useReducer(reducer, defaultState);
+	const [restored, setRestored] = useState(false);
+
+	useEffect(() => {
+		try {
+			const saved = window.sessionStorage.getItem("searchForm");
+			if (saved) {
+				const parsed = JSON.parse(saved) as SearchFormState;
+				if (Array.isArray(parsed.travelers)) {
+					dispatch({ type: "RESTORE", payload: parsed });
+				}
+			}
+		} catch {
+			// Ignore an unavailable or invalid saved form.
+		}
+		setRestored(true);
+	}, []);
+
+	useEffect(() => {
+		if (!restored) return;
+		try {
+			window.sessionStorage.setItem("searchForm", JSON.stringify(state));
+		} catch {
+			// Searching still works when session storage is unavailable.
+		}
+	}, [restored, state]);
 
 	// Initialize travelDate on the client to avoid SSR/hydration mismatch
 	useEffect(() => {
-		if (!state.travelDate) {
+		if (restored && !state.travelDate) {
 			dispatch({ type: "SET_TRAVEL_DATE", payload: todayIsoLocal() });
 		}
-	}, [state.travelDate]);
+	}, [restored, state.travelDate]);
 
 	return (
 		<SearchFormContext.Provider value={{ state, dispatch }}>

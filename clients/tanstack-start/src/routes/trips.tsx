@@ -223,6 +223,7 @@ function TripsPage() {
 				.filter((l) => l.serviceJourney != null)
 				.map((l) => ({ from: l.fromPlace.name, to: l.toPlace.name }));
 			writeSearchSession(result as OfferCollection, {
+				origin: "trips",
 				from: params.from,
 				to: params.to,
 				travelDate: params.dateTime,

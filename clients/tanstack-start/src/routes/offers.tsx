@@ -1,4 +1,4 @@
-import { LeftArrowIcon, RightArrowIcon } from "@entur/icons";
+import { BackArrowIcon, RightArrowIcon } from "@entur/icons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
 import BundleCard, {
@@ -121,6 +121,9 @@ function OffersScreen() {
 	const [hydrated, setHydrated] = useState(false);
 	const [collection, setCollection] = useState<OfferCollection | null>(null);
 	const [context, setContext] = useState<SearchContext | null>(null);
+	const returnTo = context?.origin === "trips" ? "/trips" : "/";
+	const returnLabel =
+		context?.origin === "trips" ? "Back to trips" : "Back to search";
 
 	useEffect(() => {
 		const session = readSearchSession();
@@ -254,10 +257,10 @@ function OffersScreen() {
 						No travel offers were found for your search.
 					</p>
 					<Link
-						to="/"
+						to={returnTo}
 						className="mt-6 inline-block rounded-xl bg-wayfare-primary px-5 py-2.5 text-sm font-semibold text-white no-underline"
 					>
-						Back to search
+						{returnLabel}
 					</Link>
 				</div>
 			</PageShell>
@@ -270,6 +273,14 @@ function OffersScreen() {
 			subtitle={`${bundles.length} option${bundles.length !== 1 ? "s" : ""} found`}
 			contentClassName="mx-auto max-w-xl"
 		>
+			<Button
+				variant="secondary"
+				className="mb-6"
+				onClick={() => navigate({ to: returnTo })}
+			>
+				<BackArrowIcon aria-hidden="true" />
+				{returnLabel}
+			</Button>
 			<div>
 				{context?.from && context.to && (
 					<div className="mb-5 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
@@ -355,24 +366,15 @@ function OffersScreen() {
 								Still needed: {uncoveredParties.map(partyLabel).join(", ")}
 							</p>
 						)}
-					<div className="flex gap-3">
-						<Link
-							to="/"
-							className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-wayfare-line px-5 py-2.5 text-sm font-semibold text-wayfare-text no-underline transition-colors"
-						>
-							<LeftArrowIcon aria-hidden="true" />
-							Back
-						</Link>
-						<Button
-							variant="primary"
-							className="flex-1"
-							disabled={!canContinue}
-							onClick={handleContinue}
-						>
-							Continue to checkout
-							<RightArrowIcon aria-hidden="true" />
-						</Button>
-					</div>
+					<Button
+						variant="primary"
+						className="w-full"
+						disabled={!canContinue}
+						onClick={handleContinue}
+					>
+						Continue to checkout
+						<RightArrowIcon aria-hidden="true" />
+					</Button>
 				</div>
 			</div>
 		</PageShell>

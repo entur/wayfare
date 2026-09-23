@@ -1,4 +1,4 @@
-import { CardIcon, LeftArrowIcon } from "@entur/icons";
+import { BackArrowIcon, CardIcon, LeftArrowIcon } from "@entur/icons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PurchaseProgress from "../../components/checkout/PurchaseProgress";
@@ -64,6 +64,21 @@ function CheckoutScreen() {
 	const [hydrated, setHydrated] = useState(false);
 	const [offerCollection, setOfferCollection] =
 		useState<OfferCollection | null>(null);
+	const [checkoutOrigin, setCheckoutOrigin] = useState<
+		"offers" | "products" | "home"
+	>("home");
+	const returnTo =
+		checkoutOrigin === "products"
+			? "/products"
+			: checkoutOrigin === "offers"
+				? "/offers"
+				: "/";
+	const returnLabel =
+		checkoutOrigin === "products"
+			? "Back to products"
+			: checkoutOrigin === "offers"
+				? "Back to offers"
+				: "Back to search";
 	const [guestCustomer, setGuestCustomer] = useState<{
 		firstName: string;
 		lastName: string;
@@ -98,6 +113,13 @@ function CheckoutScreen() {
 	useEffect(() => {
 		const session = readSearchSession();
 		setOfferCollection(session.collection);
+		setCheckoutOrigin(
+			session.context?.origin === "products"
+				? "products"
+				: session.collection
+					? "offers"
+					: "home",
+		);
 		setHydrated(true);
 	}, []);
 
@@ -250,6 +272,16 @@ function CheckoutScreen() {
 			subtitle="Review your order and pay"
 			contentClassName="mx-auto max-w-xl"
 		>
+			{!isProcessing && (
+				<Button
+					variant="secondary"
+					className="mb-6"
+					onClick={() => navigate({ to: returnTo })}
+				>
+					<BackArrowIcon aria-hidden="true" />
+					{returnLabel}
+				</Button>
+			)}
 			<div>
 				{isProcessing && (
 					<div className="mb-6">
@@ -433,13 +465,15 @@ function CheckoutScreen() {
 				)}
 
 				<div className="flex gap-3">
-					<Link
-						to="/offers"
-						className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-wayfare-line px-5 py-2.5 text-sm font-semibold text-wayfare-text no-underline transition-colors"
-					>
-						<LeftArrowIcon aria-hidden="true" />
-						Back
-					</Link>
+					{!isProcessing && (
+						<Link
+							to={returnTo}
+							className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-wayfare-line px-5 py-2.5 text-sm font-semibold text-wayfare-text no-underline transition-colors"
+						>
+							<LeftArrowIcon aria-hidden="true" />
+							{returnLabel}
+						</Link>
+					)}
 					<Button
 						variant="primary"
 						className="flex-1"

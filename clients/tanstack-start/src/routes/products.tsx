@@ -109,6 +109,7 @@ function ProductList({ operator }: { operator: Operator }) {
 		if (!selectedId || !data) return;
 		// Checkout reads the collection from the search session.
 		writeSearchSession(data, {
+			origin: "products",
 			authority: operator.code,
 			travelDate: new Date().toISOString(),
 		});
