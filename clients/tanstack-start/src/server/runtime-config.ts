@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import type {
 	DevConfigOverrides,
 	OmsaRuntimeMode,
@@ -6,8 +5,13 @@ import type {
 
 export type { OmsaRuntimeMode };
 
-export function fingerprintClientId(clientId: string | undefined): string {
+// Lazy import: a top-level node:crypto import leaks into the client bundle in
+// dev and crashes the browser. This runs server-side only.
+export async function fingerprintClientId(
+	clientId: string | undefined,
+): Promise<string> {
 	if (!clientId) return "none";
+	const { createHash } = await import("node:crypto");
 	return createHash("sha256").update(clientId).digest("hex").slice(0, 8);
 }
 
