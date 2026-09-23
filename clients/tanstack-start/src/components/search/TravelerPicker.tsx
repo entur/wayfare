@@ -27,12 +27,14 @@ interface TravelerPickerProps {
 	travelers: TravelerGroup[];
 	onChange: (travelers: TravelerGroup[]) => void;
 	customer?: OmsaCustomer | null;
+	hideLabel?: boolean;
 }
 
 export default function TravelerPicker({
 	travelers,
 	onChange,
 	customer,
+	hideLabel,
 }: TravelerPickerProps) {
 	const [open, setOpen] = useState(false);
 	const [expandedId, setExpandedId] = useState<
@@ -40,13 +42,16 @@ export default function TravelerPicker({
 	>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
+	// Edits stay in draft and commit to the parent only on "Done". While closed
+	// the draft mirrors the committed props (effect below); opening keeps that
+	// value, and cancelling (click outside) discards the draft on the next mirror.
+	const [draft, setDraft] = useState(travelers);
+
 	const customerIncluded =
 		!!customer?.id &&
-		travelers.some((t) =>
-			t.individuals?.some((i) => i.customerId === customer.id),
-		);
+		draft.some((t) => t.individuals?.some((i) => i.customerId === customer.id));
 
-	const total = travelers.reduce((sum, t) => sum + t.count, 0);
+	const total = draft.reduce((sum, t) => sum + t.count, 0);
 
 	const customerFirstName = customer?.firstName ?? customer?.id ?? "You";
 
@@ -76,8 +81,14 @@ export default function TravelerPicker({
 		return () => document.removeEventListener("pointerdown", onPointerDown);
 	}, []);
 
+	// While closed, keep the draft in sync with committed props; while open, let
+	// it diverge. Closing without "Done" resets it here, discarding the edits.
+	useEffect(() => {
+		if (!open) setDraft(travelers);
+	}, [travelers, open]);
+
 	function getGroup(ag: TravelerGroup["ageGroup"]) {
-		return travelers.find((t) => t.ageGroup === ag);
+		return draft.find((t) => t.ageGroup === ag);
 	}
 
 	function getCount(ag: TravelerGroup["ageGroup"]) {
@@ -88,8 +99,8 @@ export default function TravelerPicker({
 		ag: TravelerGroup["ageGroup"],
 		updates: Partial<TravelerGroup>,
 	) {
-		onChange(
-			travelers.map((t) => (t.ageGroup === ag ? { ...t, ...updates } : t)),
+		setDraft(
+			draft.map((t) => (t.ageGroup === ag ? { ...t, ...updates } : t)),
 		);
 	}
 
@@ -118,16 +129,16 @@ export default function TravelerPicker({
 
 	function setCount(ag: TravelerGroup["ageGroup"], count: number) {
 		if (count < 0) return;
-		const existing = travelers.filter((t) => t.ageGroup !== ag);
+		const existing = draft.filter((t) => t.ageGroup !== ag);
 		if (count === 0) {
 			if (expandedId === ag) setExpandedId(null);
-			onChange(existing);
+			setDraft(existing);
 			return;
 		}
 		const meta = GROUPS.find((g) => g.id === ag);
 		if (!meta) return;
 		const current = getGroup(ag);
-		onChange([
+		setDraft([
 			...existing,
 			{
 				id: ag.toLowerCase(),
@@ -155,10 +166,10 @@ export default function TravelerPicker({
 			const without =
 				adultGroup.individuals?.filter((i) => !i.customerId) ?? [];
 			if (newCount <= 0) {
-				onChange(travelers.filter((t) => t.ageGroup !== "ADULT"));
+				setDraft(draft.filter((t) => t.ageGroup !== "ADULT"));
 			} else {
-				onChange(
-					travelers.map((t) =>
+				setDraft(
+					draft.map((t) =>
 						t.ageGroup === "ADULT"
 							? {
 									...t,
@@ -179,8 +190,8 @@ export default function TravelerPicker({
 				const others = (adultGroup.individuals ?? []).filter(
 					(i) => !i.customerId,
 				);
-				onChange(
-					travelers.map((t) =>
+				setDraft(
+					draft.map((t) =>
 						t.ageGroup === "ADULT"
 							? {
 									...t,
@@ -191,8 +202,8 @@ export default function TravelerPicker({
 					),
 				);
 			} else {
-				onChange([
-					...travelers,
+				setDraft([
+					...draft,
 					{
 						id: "adult",
 						ageGroup: "ADULT" as const,
@@ -295,7 +306,9 @@ export default function TravelerPicker({
 
 	return (
 		<div ref={containerRef} className="relative w-full">
-			<p className="mb-1.5 text-sm font-medium text-wayfare-text">Who</p>
+			{!hideLabel && (
+				<p className="mb-1.5 text-sm font-medium text-wayfare-text">Who</p>
+			)}
 			<button
 				type="button"
 				onClick={() => setOpen((v) => !v)}
@@ -446,7 +459,10 @@ export default function TravelerPicker({
 
 					<button
 						type="button"
-						onClick={() => setOpen(false)}
+						onClick={() => {
+							onChange(draft);
+							setOpen(false);
+						}}
 						className="mt-3 w-full rounded-xl border border-wayfare-line bg-transparent py-2 text-sm font-medium text-wayfare-text transition-colors"
 					>
 						Done
