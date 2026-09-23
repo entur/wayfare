@@ -1,14 +1,17 @@
-import { BackArrowIcon, DateIcon, RouteIcon, UsersIcon } from "@entur/icons";
+import { BackArrowIcon, RouteIcon } from "@entur/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import PageShell from "../components/layout/PageShell";
+import DateTimePicker from "../components/search/DateTimePicker";
 import FavoriteToggle from "../components/search/FavoriteToggle";
+import TravelerPicker from "../components/search/TravelerPicker";
 import TripFilterPanel from "../components/search/TripFilterPanel";
 import TripResults from "../components/search/TripResults";
 import Button from "../components/ui/Button";
 import Spinner from "../components/ui/Spinner";
 import { useDevConfig } from "../context/dev-config";
+import { useProfile } from "../context/profile";
 import type { TimeMode, TravelerGroup } from "../context/search-form";
 import { useTripPlanner } from "../hooks/use-trip-planner";
 import { buildRequest } from "../lib/build-request";
@@ -31,6 +34,7 @@ import {
 import {
 	readTripSearchParams,
 	type TripSearchParams,
+	writeTripSearchParams,
 } from "../lib/trip-session";
 import type { OfferCollection } from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
@@ -40,49 +44,12 @@ export const Route = createFileRoute("/trips")({
 	component: TripsPage,
 });
 
-const AGE_GROUP_LABELS: Record<TravelerGroup["ageGroup"], [string, string]> = {
-	ADULT: ["adult", "adults"],
-	CHILD: ["child", "children"],
-	YOUTH: ["youth", "youths"],
-	SENIOR: ["senior", "seniors"],
-	INFANT: ["infant", "infants"],
-	STUDENT: ["student", "students"],
-	MILITARY: ["military", "military"],
-};
-
-function formatTravelers(travelers: TravelerGroup[]): string {
-	const parts = travelers
-		.filter((t) => t.count > 0)
-		.map((t) => {
-			const [singular, plural] = AGE_GROUP_LABELS[t.ageGroup];
-			return `${t.count} ${t.count === 1 ? singular : plural}`;
-		});
-	return parts.join(", ") || "1 adult";
-}
-
-function formatDateTime(dateTime: string, timeMode: TimeMode): string {
-	if (timeMode === "now") return "Now";
-	const date = new Date(dateTime);
-	const today = new Date();
-	const tomorrow = new Date(today);
-	tomorrow.setDate(tomorrow.getDate() + 1);
-	const time = date.toLocaleTimeString("no-NO", {
-		hour: "2-digit",
-		minute: "2-digit",
-		hour12: false,
-	});
-	if (date.toDateString() === today.toDateString()) return `Today ${time}`;
-	if (date.toDateString() === tomorrow.toDateString())
-		return `Tomorrow ${time}`;
-	return (
-		date.toLocaleDateString("en-GB", {
-			weekday: "short",
-			day: "numeric",
-			month: "short",
-		}) +
-		" " +
-		time
-	);
+// The stored search keeps a resolved ISO instant; the picker speaks a local
+// YYYY-MM-DDTHH:mm string. Convert to local for the picker's value.
+function isoToLocalInput(iso: string): string {
+	const d = new Date(iso);
+	d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+	return d.toISOString().slice(0, 16);
 }
 
 function SummaryChip({
@@ -96,7 +63,7 @@ function SummaryChip({
 }) {
 	return (
 		<div
-			className={`flex h-full items-center justify-between gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-4 py-3 text-sm text-wayfare-text${className ? ` ${className}` : ""}`}
+			className={`flex h-full items-center justify-between gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong px-3 py-2.5 text-sm text-wayfare-text${className ? ` ${className}` : ""}`}
 		>
 			<span>{children}</span>
 			<Icon
@@ -123,6 +90,7 @@ function TripsPage() {
 	);
 	const tripQuery = useTripPlanner(params, filters);
 	const { overrides } = useDevConfig();
+	const { customer } = useProfile();
 
 	useEffect(() => {
 		setDefaultModes(getDefaultTripModes());
@@ -145,8 +113,14 @@ function TripsPage() {
 		setParams(storedParams);
 	}, []);
 
-	// Prefetch offers for all transit patterns as soon as trip results arrive
-	// biome-ignore lint/correctness/useExhaustiveDependencies: params and queryClient are stable for the session
+	// Persist edited search params so a reload or back/forward keeps them.
+	useEffect(() => {
+		if (params) writeTripSearchParams(params);
+	}, [params]);
+
+	// Prefetch offers for all transit patterns as soon as trip results arrive,
+	// and again when the traveler mix changes (offer prices depend on it).
+	// biome-ignore lint/correctness/useExhaustiveDependencies: queryClient/overrides are stable for the session
 	useEffect(() => {
 		if (!tripQuery.patterns || !params) return;
 		const transitPatterns = tripQuery.patterns.filter((p) =>
@@ -187,7 +161,7 @@ function TripsPage() {
 					});
 				});
 		}
-	}, [tripQuery.patterns]);
+	}, [tripQuery.patterns, params?.travelers]);
 
 	if (!params) return null;
 
@@ -197,6 +171,38 @@ function TripsPage() {
 			search: searchFromFilters(next, defaultModes),
 			replace: true,
 		});
+	}
+
+	// Edits from the summary controls re-run the search: the trip query re-keys on
+	// dateTime/timeMode, travelers drive offer prefetch. Functional updates so a
+	// picker committing mode then value composes correctly.
+	function updateParams(update: (prev: TripSearchParams) => TripSearchParams) {
+		setParams((prev) => (prev ? update(prev) : prev));
+	}
+
+	function handleTravelDateChange(value: string) {
+		updateParams((prev) => ({
+			...prev,
+			dateTime:
+				prev.timeMode === "now"
+					? new Date().toISOString()
+					: new Date(value).toISOString(),
+		}));
+	}
+
+	function handleTimeModeChange(mode: TimeMode) {
+		updateParams((prev) => ({
+			...prev,
+			timeMode: mode,
+			dateTime:
+				mode === "now"
+					? new Date().toISOString()
+					: new Date(isoToLocalInput(prev.dateTime)).toISOString(),
+		}));
+	}
+
+	function handleTravelersChange(travelers: TravelerGroup[]) {
+		updateParams((prev) => ({ ...prev, travelers }));
 	}
 
 	async function handleSelectTrip(pattern: TripPattern) {
@@ -284,12 +290,20 @@ function TripsPage() {
 					<SummaryChip icon={RouteIcon} className="min-w-0">
 						{fromName} → {toName}
 					</SummaryChip>
-					<SummaryChip icon={DateIcon}>
-						{formatDateTime(params.dateTime, params.timeMode)}
-					</SummaryChip>
-					<SummaryChip icon={UsersIcon}>
-						{formatTravelers(params.travelers)}
-					</SummaryChip>
+					<DateTimePicker
+						label="When"
+						hideLabel
+						value={isoToLocalInput(params.dateTime)}
+						timeMode={params.timeMode}
+						onChange={handleTravelDateChange}
+						onModeChange={handleTimeModeChange}
+					/>
+					<TravelerPicker
+						travelers={params.travelers}
+						onChange={handleTravelersChange}
+						customer={customer}
+						hideLabel
+					/>
 				</div>
 			</div>
 
