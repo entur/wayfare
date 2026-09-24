@@ -55,6 +55,20 @@ function LegLabel({ leg, seq }: { leg?: LegInfo; seq: number }) {
 	);
 }
 
+function MissingTicketCard() {
+	return (
+		<div className="rounded-xl border-2 border-dashed border-wayfare-line bg-wayfare-surface-strong p-4">
+			<p className="m-0 text-sm font-semibold text-wayfare-text">
+				Ticket not sold by Wayfare
+			</p>
+			<p className="mb-0 mt-1 text-xs text-wayfare-text-secondary">
+				You need a separate ticket for this leg. Check the operator’s website or
+				app to buy one.
+			</p>
+		</div>
+	);
+}
+
 function Divider({ label }: { label: string }) {
 	return (
 		<div className="my-1 flex items-center gap-3">
@@ -147,9 +161,16 @@ function OffersScreen() {
 	];
 	const bundles: OfferBundle[] = buildBundles(collection?.offers ?? []);
 
-	const allSequences = [...new Set(bundles.flatMap((b) => b.sequences))].sort(
-		(a, b) => a - b,
+	const offeredSequences = [
+		...new Set(bundles.flatMap((b) => b.sequences)),
+	].sort((a, b) => a - b);
+	const allSequences = context?.legs?.length
+		? context.legs.map((_, index) => index + 1)
+		: offeredSequences;
+	const missingSequences = allSequences.filter(
+		(seq) => !offeredSequences.includes(seq),
 	);
+	const hasMissingLegs = missingSequences.length > 0;
 	const isMultiLeg = allSequences.length > 1;
 
 	const fullBundles = isMultiLeg
@@ -165,9 +186,11 @@ function OffersScreen() {
 		}
 	}
 
-	const showSections = isMultiLeg && perSeqMap.size > 0;
+	const showSections = isMultiLeg && (perSeqMap.size > 0 || hasMissingLegs);
 	const onlyCompleteChoice =
-		bundles.length > 0 && selectedKeys.size === bundles.length;
+		!hasMissingLegs &&
+		bundles.length > 0 &&
+		selectedKeys.size === bundles.length;
 
 	// Use the offer collection as the source of truth for coverage.
 	const allTravellerIds = [
@@ -185,12 +208,12 @@ function OffersScreen() {
 	const canContinue =
 		allTravellerIds.length > 0 &&
 		allTravellerIds.every((t) =>
-			allSequences.every((s) => coverage.get(t)?.has(s)),
+			offeredSequences.every((s) => coverage.get(t)?.has(s)),
 		);
 
 	const uncoveredParties = allParties.filter((p) => {
 		const partySeqs = coverage.get(p.id);
-		return allSequences.some((s) => !partySeqs?.has(s));
+		return offeredSequences.some((s) => !partySeqs?.has(s));
 	});
 
 	function handleToggle(bundle: OfferBundle) {
@@ -282,9 +305,11 @@ function OffersScreen() {
 		<PageShell
 			title="Available offers"
 			subtitle={
-				onlyCompleteChoice
-					? `${bundles.length} ticket${bundles.length !== 1 ? "s" : ""} cover your journey`
-					: `${bundles.length} option${bundles.length !== 1 ? "s" : ""} found`
+				hasMissingLegs
+					? `${bundles.length} ticket${bundles.length !== 1 ? "s" : ""} available for part of your journey`
+					: onlyCompleteChoice
+						? `${bundles.length} ticket${bundles.length !== 1 ? "s" : ""} cover your journey`
+						: `${bundles.length} option${bundles.length !== 1 ? "s" : ""} found`
 			}
 			contentClassName="mx-auto max-w-xl"
 		>
@@ -353,11 +378,12 @@ function OffersScreen() {
 							{fullBundles.length > 0 && <Divider label="or choose by leg" />}
 							{allSequences.map((seq) => {
 								const legBundles = perSeqMap.get(seq);
-								if (!legBundles?.length) return null;
+								if (!legBundles?.length && !missingSequences.includes(seq))
+									return null;
 								return (
 									<div key={seq} className="flex flex-col gap-3">
 										<LegLabel seq={seq} leg={context?.legs?.[seq - 1]} />
-										{legBundles.map((bundle) => (
+										{legBundles?.map((bundle) => (
 											<BundleCard
 												key={String(bundle.groupKey)}
 												bundle={bundle}
@@ -366,6 +392,7 @@ function OffersScreen() {
 												onSelect={() => handleToggle(bundle)}
 											/>
 										))}
+										{missingSequences.includes(seq) && <MissingTicketCard />}
 									</div>
 								);
 							})}
@@ -387,7 +414,9 @@ function OffersScreen() {
 						disabled={!canContinue}
 						onClick={handleContinue}
 					>
-						Continue to checkout
+						{hasMissingLegs
+							? "Checkout for available tickets"
+							: "Continue to checkout"}
 						<RightArrowIcon aria-hidden="true" />
 					</Button>
 				</div>

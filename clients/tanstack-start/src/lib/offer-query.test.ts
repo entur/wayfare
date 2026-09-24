@@ -92,7 +92,7 @@ describe("extractOfferPreview", () => {
 		id,
 		properties: {
 			price: { amount, currencyCode: "NOK" },
-			legs: [{ traveller: "adult", sequenceNumber }],
+			legs: [{ id: `${id}-leg`, traveller: "adult", sequenceNumber }],
 		},
 	});
 
