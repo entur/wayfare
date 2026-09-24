@@ -146,11 +146,18 @@ export interface OfferLeg {
 	state?: string;
 	price?: { amount?: number; currencyCode?: string };
 	products?: string[];
+	assets?: string[];
+	ancillaries?: string[];
 }
 
 export interface PackageOfferProperties {
 	legs?: OfferLeg[];
 	products?: OfferProduct[];
+	ancillaries?: {
+		ancillaryId?: string;
+		name?: string;
+		price?: { amount?: number; currencyCode?: string };
+	}[];
 	price?: { amount?: number; currencyCode?: string };
 	summary?: {
 		geographicalValidity?: GeographicalValidity;
