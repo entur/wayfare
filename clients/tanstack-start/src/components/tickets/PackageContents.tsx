@@ -1,9 +1,17 @@
-import { SeatIcon, TrainCarIcon } from "@entur/icons";
+import { QRIcon, SeatIcon, TrainCarIcon } from "@entur/icons";
 import { formatPrice } from "../../lib/format-price";
-import type { PackageOffer } from "../../types/documents";
+import type { PackageOffer, TravelDocumentItem } from "../../types/documents";
+import {
+	formatValidity,
+	groupProperties,
+	groupTravelDocuments,
+} from "./DocumentViewer";
 
 interface PackageContentsProps {
 	offers: PackageOffer[];
+	documents: TravelDocumentItem[];
+	documentsLoading: boolean;
+	onOpenDocument: (key: string) => void;
 }
 
 interface TravellerItem {
@@ -70,9 +78,16 @@ function buildTravellerItems(offers: PackageOffer[]): TravellerItem[] {
 	return items;
 }
 
-export default function PackageContents({ offers }: PackageContentsProps) {
+export default function PackageContents({
+	offers,
+	documents,
+	documentsLoading,
+	onOpenDocument,
+}: PackageContentsProps) {
 	const items = buildTravellerItems(offers);
-	if (items.length === 0) return null;
+	const documentGroups = groupTravelDocuments(documents);
+	if (items.length === 0 && documentGroups.length === 0 && !documentsLoading)
+		return null;
 
 	return (
 		<div className="rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4">
@@ -130,6 +145,41 @@ export default function PackageContents({ offers }: PackageContentsProps) {
 						</div>
 					);
 				})}
+				{documentGroups.map((group, index) => {
+					const props = groupProperties(group);
+					if (!props) return null;
+					const name =
+						props.travelDocumentType ??
+						(props.type === "externalTicket"
+							? "External ticket"
+							: "Travel ticket");
+					return (
+						<button
+							key={group.key}
+							type="button"
+							onClick={() => onOpenDocument(group.key)}
+							className="flex w-full items-center gap-3 border-b border-wayfare-line pb-3 text-left transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30 last:border-0 last:pb-0"
+						>
+							<div className="min-w-0 flex-1">
+								<p className="m-0 truncate text-sm font-medium text-wayfare-text">
+									{name}
+									{documentGroups.length > 1 ? ` ${index + 1}` : ""}
+								</p>
+								<p className="m-0 mt-0.5 text-xs text-wayfare-text-secondary">
+									{formatValidity(props.startvalidity, props.endvalidity)}
+								</p>
+							</div>
+							<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-wayfare-primary text-white">
+								<QRIcon size="22" aria-hidden="true" />
+							</span>
+						</button>
+					);
+				})}
+				{documentsLoading && (
+					<p className="m-0 text-xs text-wayfare-text-secondary">
+						Loading tickets…
+					</p>
+				)}
 			</div>
 		</div>
 	);

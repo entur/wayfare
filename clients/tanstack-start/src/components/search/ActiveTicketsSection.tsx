@@ -17,6 +17,10 @@ import {
 	getTravelDocuments,
 } from "../../server-functions/documents";
 import type { StoredPackage } from "../../types/documents";
+import {
+	groupProperties,
+	groupTravelDocuments,
+} from "../tickets/DocumentViewer";
 
 function remainingValidity(end: number, now: number): string {
 	const minutes = Math.ceil((end - now) / 60_000);
@@ -97,8 +101,8 @@ export default function ActiveTicketsSection() {
 			if ((item.data.status ?? props?.status ?? pkg.status) !== "CONFIRMED")
 				return [];
 			const docs = documents.data.travelDocuments ?? [];
-			const validEnds = docs.flatMap((doc) => {
-				const validity = doc.properties;
+			const validDocuments = groupTravelDocuments(docs).flatMap((group) => {
+				const validity = groupProperties(group);
 				if (
 					!validity ||
 					(validity.type === "binary_ticket" && validity.status === "EXPIRED")
@@ -110,10 +114,10 @@ export default function ActiveTicketsSection() {
 					Number.isFinite(end) &&
 					start <= now &&
 					now < end
-					? [end]
+					? [{ key: group.key, end }]
 					: [];
 			});
-			if (validEnds.length === 0) return [];
+			if (validDocuments.length === 0) return [];
 			const offer = item.data.offers?.[0]?.properties;
 			const zones = sortFareZones(
 				getEffectiveZones(offer?.summary?.geographicalValidity),
@@ -137,7 +141,8 @@ export default function ActiveTicketsSection() {
 					pkg,
 					title,
 					subtitle: subtitle === title ? null : subtitle,
-					end: Math.max(...validEnds),
+					end: Math.max(...validDocuments.map((doc) => doc.end)),
+					control: validDocuments[0].key,
 				},
 			];
 		})
@@ -151,13 +156,18 @@ export default function ActiveTicketsSection() {
 				Active tickets
 			</h2>
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-				{active.map(({ pkg, title, subtitle, end }) => (
-					<Link
+				{active.map(({ pkg, title, subtitle, end, control }) => (
+					<div
 						key={pkg.packageId}
-						to="/tickets/$packageId"
-						params={{ packageId: pkg.packageId }}
-						className="flex items-center gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 no-underline transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30"
+						className="relative flex items-center gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 transition-opacity hover:opacity-80"
 					>
+						<Link
+							to="/tickets/$packageId"
+							params={{ packageId: pkg.packageId }}
+							search={{}}
+							aria-label={`View details for ${title}`}
+							className="absolute inset-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30"
+						/>
 						<div className="min-w-0 flex-1">
 							<p className="m-0 truncate text-sm font-semibold text-wayfare-text">
 								{title}
@@ -171,10 +181,16 @@ export default function ActiveTicketsSection() {
 								{remainingValidity(end, now)}
 							</p>
 						</div>
-						<span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-wayfare-primary text-white">
+						<Link
+							to="/tickets/$packageId"
+							params={{ packageId: pkg.packageId }}
+							search={{ control }}
+							aria-label={`Show ${title} for inspection`}
+							className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-wayfare-primary text-white no-underline focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30"
+						>
 							<QRIcon size="24" aria-hidden="true" />
-						</span>
-					</Link>
+						</Link>
+					</div>
 				))}
 			</div>
 		</section>

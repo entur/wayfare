@@ -9,7 +9,10 @@ import {
 } from "../../components/map";
 import Illustration from "../../components/shared/Illustration";
 import SituationBanner from "../../components/situations/SituationBanner";
-import DocumentViewer from "../../components/tickets/DocumentViewer";
+import {
+	groupTravelDocuments,
+	TicketControl,
+} from "../../components/tickets/DocumentViewer";
 import PackageActionsMenu from "../../components/tickets/PackageActionsMenu";
 import PackageContents from "../../components/tickets/PackageContents";
 import { useDevConfig } from "../../context/dev-config";
@@ -35,6 +38,8 @@ import type {
 
 export const Route = createFileRoute("/tickets/$packageId")({
 	component: TicketDetailPage,
+	validateSearch: (search: Record<string, unknown>): { control?: string } =>
+		typeof search.control === "string" ? { control: search.control } : {},
 });
 
 function isDocExpired(
@@ -48,6 +53,7 @@ function isDocExpired(
 
 function TicketDetailPage() {
 	const { packageId } = Route.useParams();
+	const { control } = Route.useSearch();
 	const navigate = useNavigate();
 	const { clientFingerprint } = useDevConfig();
 	const { customer } = useProfile();
@@ -166,6 +172,9 @@ function TicketDetailPage() {
 	}
 
 	const documents = docCollection?.travelDocuments ?? [];
+	const selectedDocument = groupTravelDocuments(documents).find(
+		(group) => group.key === control,
+	);
 	const refundOptions = refundCollection?.options ?? [];
 	const now = new Date();
 
@@ -338,16 +347,21 @@ function TicketDetailPage() {
 							</div>
 						</div>
 					</div>
-
-					<PackageContents offers={packageItem?.offers ?? []} />
 				</div>
 
-				<div style={{ opacity: isExpired ? 0.6 : undefined }}>
-					{docsLoading ? (
-						<p className="text-sm text-wayfare-text-secondary">Loading…</p>
-					) : (
-						<DocumentViewer documents={documents} />
-					)}
+				<div>
+					<PackageContents
+						offers={packageItem?.offers ?? []}
+						documents={documents}
+						documentsLoading={docsLoading}
+						onOpenDocument={(key) =>
+							navigate({
+								to: "/tickets/$packageId",
+								params: { packageId },
+								search: { control: key },
+							})
+						}
+					/>
 				</div>
 			</div>
 
@@ -369,6 +383,21 @@ function TicketDetailPage() {
 						</MapView>
 					</div>
 				</div>
+			)}
+			{selectedDocument && (
+				<TicketControl
+					group={selectedDocument}
+					title={
+						from && to ? `${from} – ${to}` : (productName ?? "Travel ticket")
+					}
+					onClose={() =>
+						navigate({
+							to: "/tickets/$packageId",
+							params: { packageId },
+							search: {},
+						})
+					}
+				/>
 			)}
 		</PageShell>
 	);
