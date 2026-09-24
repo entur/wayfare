@@ -21,6 +21,8 @@ interface ComboboxProps<T> {
 	noMatchText?: string;
 	minQueryLength?: number;
 	autoFocus?: boolean;
+	initialOptions?: ComboboxOption<T>[];
+	initialOptionsLabel?: string;
 }
 
 export default function Combobox<T>({
@@ -33,6 +35,8 @@ export default function Combobox<T>({
 	noMatchText = "No results found",
 	minQueryLength = 1,
 	autoFocus,
+	initialOptions = [],
+	initialOptionsLabel,
 }: ComboboxProps<T>) {
 	const id = useId();
 	const listboxId = `${id}-listbox`;
@@ -111,8 +115,8 @@ export default function Combobox<T>({
 		} else {
 			abortRef.current?.abort();
 			if (debounceRef.current) clearTimeout(debounceRef.current);
-			setOptions([]);
-			setIsOpen(false);
+			setOptions(initialOptions);
+			setIsOpen(initialOptions.length > 0 && val.length === 0);
 			setLoading(false);
 		}
 	}
@@ -130,9 +134,17 @@ export default function Combobox<T>({
 		e.stopPropagation();
 		onChange(null);
 		setInputValue("");
-		setOptions([]);
-		setIsOpen(false);
+		setOptions(initialOptions);
+		setIsOpen(initialOptions.length > 0);
 		inputRef.current?.focus();
+	}
+
+	function handleFocus() {
+		if (inputValue.length === 0 && initialOptions.length > 0) {
+			setOptions(initialOptions);
+			setActiveIndex(-1);
+			setIsOpen(true);
+		}
 	}
 
 	function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -212,6 +224,7 @@ export default function Combobox<T>({
 					aria-activedescendant={activeOptionId}
 					value={inputValue}
 					onChange={handleInputChange}
+					onFocus={handleFocus}
 					onKeyDown={handleKeyDown}
 					placeholder={placeholder}
 					autoComplete="off"
@@ -244,6 +257,11 @@ export default function Combobox<T>({
 					role="listbox"
 					className="absolute z-50 mt-1 max-h-[260px] w-full overflow-auto rounded-xl border border-wayfare-line bg-wayfare-surface-strong shadow-lg"
 				>
+					{inputValue.length === 0 && initialOptionsLabel && (
+						<p className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
+							{initialOptionsLabel}
+						</p>
+					)}
 					{keyedOptions.map(({ option, key }, i) => {
 						const Icon = option.icon;
 						return (

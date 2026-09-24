@@ -9,6 +9,7 @@ import QuickRouteSection, {
 	toQuickRoute,
 } from "../components/search/QuickRouteSection";
 import RecentPurchasesSection from "../components/search/RecentPurchasesSection";
+import RecentRoutesSection from "../components/search/RecentRoutesSection";
 import TravelerPicker from "../components/search/TravelerPicker";
 import Button from "../components/ui/Button";
 import { useDevConfig } from "../context/dev-config";
@@ -26,7 +27,6 @@ import { toRecommendationControlInput } from "../lib/offer-query";
 import {
 	addRecentSearch,
 	getRecentSearches,
-	removeRecentSearch,
 } from "../lib/recent-searches-storage";
 import { writeSearchSession } from "../lib/search-session";
 import { writeTripSearchParams } from "../lib/trip-session";
@@ -110,9 +110,7 @@ function SearchScreen() {
 	const { focus } = Route.useSearch();
 
 	const [favorites, setFavorites] = useState(() => getFavorites());
-	const [recentSearches, setRecentSearches] = useState(() =>
-		getRecentSearches(),
-	);
+	const [recentSearches] = useState(() => getRecentSearches());
 	const [showSearchOptions, setShowSearchOptions] = useState(
 		Boolean(state.from && state.to),
 	);
@@ -239,11 +237,6 @@ function SearchScreen() {
 		setFavorites(getFavorites());
 	}
 
-	function handleRemoveRecent(id: string) {
-		removeRecentSearch(id);
-		setRecentSearches(getRecentSearches());
-	}
-
 	const canSearch = useMemo(
 		() => Boolean(state.from && state.to && state.travelers.length > 0),
 		[state.from, state.to, state.travelers],
@@ -267,6 +260,24 @@ function SearchScreen() {
 			.filter((r) => !favIds.has(`${r.from.placeId}|${r.to.placeId}`))
 			.map((r) => toQuickRoute(r, false, state.travelers));
 	}, [recentSearches, favorites, state.travelers]);
+	const recentFromPlaces = useMemo(
+		() =>
+			Array.from(
+				new Map(
+					recentSearches.map((search) => [search.from.placeId, search.from]),
+				).values(),
+			),
+		[recentSearches],
+	);
+	const recentToPlaces = useMemo(
+		() =>
+			Array.from(
+				new Map(
+					recentSearches.map((search) => [search.to.placeId, search.to]),
+				).values(),
+			),
+		[recentSearches],
+	);
 
 	return (
 		<PageShell
@@ -284,6 +295,7 @@ function SearchScreen() {
 								label="From"
 								value={state.from}
 								placeholder="Departure"
+								recentPlaces={recentFromPlaces}
 								onChange={(p) => dispatch({ type: "SET_FROM", payload: p })}
 								autoFocus={focus === "from"}
 							/>
@@ -325,6 +337,7 @@ function SearchScreen() {
 								label="To"
 								value={state.to}
 								placeholder="Destination"
+								recentPlaces={recentToPlaces}
 								onChange={(p) => dispatch({ type: "SET_TO", payload: p })}
 								autoFocus={focus === "to"}
 							/>
@@ -378,8 +391,6 @@ function SearchScreen() {
 					</div>
 				</form>
 
-				<QuickActionsRow />
-
 				<QuickRouteSection
 					title="Favorites"
 					routes={favoriteRoutes}
@@ -388,12 +399,12 @@ function SearchScreen() {
 					onRemove={handleRemoveFavorite}
 				/>
 
-				<QuickRouteSection
-					title="Recent searches"
+				<RecentRoutesSection
 					routes={recentRoutes}
 					onSelect={(r: QuickRoute) => handleQuickSearch(r)}
-					onRemove={handleRemoveRecent}
 				/>
+
+				<QuickActionsRow />
 
 				<RecentPurchasesSection onRebook={handleRebook} />
 			</div>
