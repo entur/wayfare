@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import PageShell from "../components/layout/PageShell";
+import ActiveTicketsSection from "../components/search/ActiveTicketsSection";
 import DateTimePicker from "../components/search/DateTimePicker";
 import PlaceSearch from "../components/search/PlaceSearch";
 import QuickActionsRow from "../components/search/QuickActionsRow";
@@ -8,7 +9,6 @@ import QuickRouteSection, {
 	type QuickRoute,
 	toQuickRoute,
 } from "../components/search/QuickRouteSection";
-import RecentPurchasesSection from "../components/search/RecentPurchasesSection";
 import RecentRoutesSection from "../components/search/RecentRoutesSection";
 import TravelerPicker from "../components/search/TravelerPicker";
 import Button from "../components/ui/Button";
@@ -222,16 +222,6 @@ function SearchScreen() {
 		runSearch(params);
 	}
 
-	function handleRebook(route: { from: PlaceReference; to: PlaceReference }) {
-		handleQuickSearch({
-			from: route.from as PlaceReference,
-			to: route.to as PlaceReference,
-			timeMode: "now",
-			travelDate: new Date().toISOString().slice(0, 16),
-			travelers: state.travelers,
-		});
-	}
-
 	function handleRemoveFavorite(id: string) {
 		removeFavorite(id);
 		setFavorites(getFavorites());
@@ -406,7 +396,7 @@ function SearchScreen() {
 
 				<QuickActionsRow />
 
-				<RecentPurchasesSection onRebook={handleRebook} />
+				<ActiveTicketsSection />
 			</div>
 		</PageShell>
 	);
