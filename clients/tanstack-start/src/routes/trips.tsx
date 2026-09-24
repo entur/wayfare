@@ -291,20 +291,24 @@ function TripsPage() {
 					<SummaryChip icon={RouteIcon} className="min-w-0">
 						{fromName} → {toName}
 					</SummaryChip>
-					<DateTimePicker
-						label="When"
-						hideLabel
-						value={isoToLocalInput(params.dateTime)}
-						timeMode={params.timeMode}
-						onChange={handleTravelDateChange}
-						onModeChange={handleTimeModeChange}
-					/>
-					<TravelerPicker
-						travelers={params.travelers}
-						onChange={handleTravelersChange}
-						customer={customer}
-						hideLabel
-					/>
+					<div className="min-w-0 [&>div]:h-full [&>div>button]:h-full">
+						<DateTimePicker
+							label="When"
+							hideLabel
+							value={isoToLocalInput(params.dateTime)}
+							timeMode={params.timeMode}
+							onChange={handleTravelDateChange}
+							onModeChange={handleTimeModeChange}
+						/>
+					</div>
+					<div className="min-w-0 [&>div]:h-full [&>div>button]:h-full">
+						<TravelerPicker
+							travelers={params.travelers}
+							onChange={handleTravelersChange}
+							customer={customer}
+							hideLabel
+						/>
+					</div>
 				</div>
 			</div>
 
