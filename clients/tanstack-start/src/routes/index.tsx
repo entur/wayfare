@@ -113,6 +113,13 @@ function SearchScreen() {
 	const [recentSearches, setRecentSearches] = useState(() =>
 		getRecentSearches(),
 	);
+	const [showSearchOptions, setShowSearchOptions] = useState(
+		Boolean(state.from && state.to),
+	);
+
+	useEffect(() => {
+		if (state.from && state.to) setShowSearchOptions(true);
+	}, [state.from, state.to]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: state.travelers intentionally omitted — including it causes dispatch→state→effect infinite loop
 	useEffect(() => {
@@ -272,7 +279,7 @@ function SearchScreen() {
 					className="relative z-10 rise-in rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4 sm:p-6"
 				>
 					<div className="flex flex-col gap-4">
-						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_1fr_1fr_10rem] lg:items-end">
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-end">
 							<PlaceSearch
 								label="From"
 								value={state.from}
@@ -321,43 +328,47 @@ function SearchScreen() {
 								onChange={(p) => dispatch({ type: "SET_TO", payload: p })}
 								autoFocus={focus === "to"}
 							/>
-
-							<div className="lg:col-span-1">
-								<DateTimePicker
-									label="When"
-									value={state.travelDate}
-									timeMode={state.timeMode}
-									onChange={(v) =>
-										dispatch({ type: "SET_TRAVEL_DATE", payload: v })
-									}
-									onModeChange={(m) =>
-										dispatch({ type: "SET_TIME_MODE", payload: m })
-									}
-								/>
-							</div>
-
-							<div className="lg:col-span-1">
-								<TravelerPicker
-									travelers={state.travelers}
-									onChange={(t) =>
-										dispatch({ type: "SET_TRAVELERS", payload: t })
-									}
-									customer={customer}
-								/>
-							</div>
-
-							<div className="sm:col-span-2 lg:col-span-1">
-								<Button
-									type="submit"
-									variant="primary"
-									fluid
-									disabled={!canSearch}
-									loading={isPending}
-								>
-									Search
-								</Button>
-							</div>
 						</div>
+
+						{showSearchOptions && (
+							<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem] lg:items-end">
+								<div>
+									<DateTimePicker
+										label="When"
+										value={state.travelDate}
+										timeMode={state.timeMode}
+										onChange={(v) =>
+											dispatch({ type: "SET_TRAVEL_DATE", payload: v })
+										}
+										onModeChange={(m) =>
+											dispatch({ type: "SET_TIME_MODE", payload: m })
+										}
+									/>
+								</div>
+
+								<div>
+									<TravelerPicker
+										travelers={state.travelers}
+										onChange={(t) =>
+											dispatch({ type: "SET_TRAVELERS", payload: t })
+										}
+										customer={customer}
+									/>
+								</div>
+
+								<div className="sm:col-span-2 lg:col-span-1">
+									<Button
+										type="submit"
+										variant="primary"
+										fluid
+										disabled={!canSearch}
+										loading={isPending}
+									>
+										Search
+									</Button>
+								</div>
+							</div>
+						)}
 
 						{error && (
 							<p className="rounded-lg bg-wayfare-accent-soft px-3 py-2 text-sm text-wayfare-primary">
