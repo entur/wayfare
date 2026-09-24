@@ -10,6 +10,7 @@ import type {
 import type { TripPattern } from "../types/trip-planner";
 import { buildRequest } from "./build-request";
 import type { RecommendationControlOverride } from "./dev-config-storage";
+import { cheapestCompleteBundles } from "./offer-coverage";
 
 export interface OfferPreview {
 	minPrice: number;
@@ -187,13 +188,14 @@ export function extractOfferPreview(
 	const minBundle = bundles.reduce((best, b) =>
 		b.totalPrice < best.totalPrice ? b : best,
 	);
-
-	const coveredSequences = new Set(minBundle.sequences);
-	const partial = legCount > 0 && coveredSequences.size < legCount;
+	const complete = cheapestCompleteBundles(bundles, legCount);
+	const partial = complete === null;
 
 	return {
-		minPrice: minBundle.totalPrice,
-		currency: minBundle.currency,
+		minPrice: complete
+			? complete.reduce((sum, b) => sum + b.totalPrice, 0)
+			: minBundle.totalPrice,
+		currency: complete?.[0]?.currency ?? minBundle.currency,
 		partial,
 	};
 }

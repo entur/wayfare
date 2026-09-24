@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { TravelerGroup } from "../context/search-form";
+import type { Offer } from "../types/search";
 import type { TripPattern } from "../types/trip-planner";
-import { buildOfferSearchRequest } from "./offer-query";
+import { buildOfferSearchRequest, extractOfferPreview } from "./offer-query";
 
 const pattern = {
 	legs: [
@@ -79,5 +80,40 @@ describe("buildOfferSearchRequest", () => {
 				stripDuplicates: false,
 			},
 		});
+	});
+});
+
+describe("extractOfferPreview", () => {
+	const offer = (
+		id: string,
+		sequenceNumber: number,
+		amount: number,
+	): Offer => ({
+		id,
+		properties: {
+			price: { amount, currencyCode: "NOK" },
+			legs: [{ traveller: "adult", sequenceNumber }],
+		},
+	});
+
+	it("adds the only two leg bundles for a full journey price", () => {
+		expect(
+			extractOfferPreview(
+				{
+					type: "offer_collection",
+					offers: [offer("first", 1, 525), offer("second", 2, 525)],
+				},
+				2,
+			),
+		).toEqual({ minPrice: 1050, currency: "NOK", partial: false });
+	});
+
+	it("keeps the partial label when a leg has no ticket", () => {
+		expect(
+			extractOfferPreview(
+				{ type: "offer_collection", offers: [offer("first", 1, 525)] },
+				2,
+			)?.partial,
+		).toBe(true);
 	});
 });

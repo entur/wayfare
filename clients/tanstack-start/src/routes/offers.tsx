@@ -10,6 +10,7 @@ import FavoriteToggle from "../components/search/FavoriteToggle";
 import Illustration from "../components/shared/Illustration";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
+import { cheapestCompleteBundles } from "../lib/offer-coverage";
 import {
 	type LegInfo,
 	readSearchSession,
@@ -129,6 +130,14 @@ function OffersScreen() {
 		const session = readSearchSession();
 		setCollection(session.collection);
 		setContext(session.context);
+		const initialBundles = buildBundles(session.collection?.offers ?? []);
+		const legCount =
+			session.context?.legs?.length ??
+			Math.max(0, ...initialBundles.flatMap((b) => b.sequences));
+		const complete = cheapestCompleteBundles(initialBundles, legCount);
+		if (complete && complete.length === initialBundles.length) {
+			setSelectedKeys(new Set(complete.map((b) => b.groupKey)));
+		}
 		setHydrated(true);
 	}, []);
 
@@ -157,6 +166,8 @@ function OffersScreen() {
 	}
 
 	const showSections = isMultiLeg && perSeqMap.size > 0;
+	const onlyCompleteChoice =
+		bundles.length > 0 && selectedKeys.size === bundles.length;
 
 	// Use the offer collection as the source of truth for coverage.
 	const allTravellerIds = [
@@ -270,7 +281,11 @@ function OffersScreen() {
 	return (
 		<PageShell
 			title="Available offers"
-			subtitle={`${bundles.length} option${bundles.length !== 1 ? "s" : ""} found`}
+			subtitle={
+				onlyCompleteChoice
+					? `${bundles.length} ticket${bundles.length !== 1 ? "s" : ""} cover your journey`
+					: `${bundles.length} option${bundles.length !== 1 ? "s" : ""} found`
+			}
 			contentClassName="mx-auto max-w-xl"
 		>
 			<Button
@@ -335,7 +350,7 @@ function OffersScreen() {
 
 					{showSections && (
 						<>
-							<Divider label="or choose by leg" />
+							{fullBundles.length > 0 && <Divider label="or choose by leg" />}
 							{allSequences.map((seq) => {
 								const legBundles = perSeqMap.get(seq);
 								if (!legBundles?.length) return null;
