@@ -44,6 +44,8 @@ export default function Combobox<T>({
 
 	const [inputValue, setInputValue] = useState(selected?.label ?? "");
 	const [options, setOptions] = useState<ComboboxOption<T>[]>([]);
+	// Whether `options` currently holds the initial (recent) list rather than search results.
+	const [showingInitial, setShowingInitial] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [activeIndex, setActiveIndex] = useState(-1);
@@ -85,13 +87,14 @@ export default function Combobox<T>({
 		const signal = abortRef.current.signal;
 
 		if (debounceRef.current) clearTimeout(debounceRef.current);
+		setLoading(true);
 
 		debounceRef.current = setTimeout(async () => {
-			setLoading(true);
 			try {
 				const results = await getOptions(query, signal);
 				if (!signal.aborted) {
 					setOptions(results);
+					setShowingInitial(false);
 					setIsOpen(true);
 				}
 			} catch (err: unknown) {
@@ -111,12 +114,15 @@ export default function Combobox<T>({
 		if (selected) onChange(null);
 
 		if (val.length >= minQueryLength) {
+			// Keep the current list visible while the search debounces and resolves.
 			triggerSearch(val);
+			setIsOpen(options.length > 0 || isOpen);
 		} else {
 			abortRef.current?.abort();
 			if (debounceRef.current) clearTimeout(debounceRef.current);
 			setOptions(initialOptions);
-			setIsOpen(initialOptions.length > 0 && val.length === 0);
+			setShowingInitial(true);
+			setIsOpen(initialOptions.length > 0);
 			setLoading(false);
 		}
 	}
@@ -126,6 +132,7 @@ export default function Combobox<T>({
 		setInputValue(option.label);
 		setIsOpen(false);
 		setOptions([]);
+		setShowingInitial(false);
 		setActiveIndex(-1);
 	}
 
@@ -135,6 +142,7 @@ export default function Combobox<T>({
 		onChange(null);
 		setInputValue("");
 		setOptions(initialOptions);
+		setShowingInitial(true);
 		setIsOpen(initialOptions.length > 0);
 		inputRef.current?.focus();
 	}
@@ -142,6 +150,7 @@ export default function Combobox<T>({
 	function handleFocus() {
 		if (inputValue.length === 0 && initialOptions.length > 0) {
 			setOptions(initialOptions);
+			setShowingInitial(true);
 			setActiveIndex(-1);
 			setIsOpen(true);
 		}
@@ -257,7 +266,7 @@ export default function Combobox<T>({
 					role="listbox"
 					className="absolute z-50 mt-1 max-h-[260px] w-full overflow-auto rounded-xl border border-wayfare-line bg-wayfare-surface-strong shadow-lg"
 				>
-					{inputValue.length === 0 && initialOptionsLabel && (
+					{showingInitial && initialOptionsLabel && (
 						<p className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
 							{initialOptionsLabel}
 						</p>

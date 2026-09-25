@@ -159,7 +159,7 @@ export default function ActiveTicketsSection() {
 				{active.map(({ pkg, title, subtitle, end, control }) => (
 					<div
 						key={pkg.packageId}
-						className="relative flex items-center gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 transition-opacity hover:opacity-80"
+						className="relative isolate flex items-center gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 transition-opacity hover:opacity-80"
 					>
 						<Link
 							to="/tickets/$packageId"
