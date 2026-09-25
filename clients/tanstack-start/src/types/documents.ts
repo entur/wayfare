@@ -58,7 +58,11 @@ export interface FinancialDetail {
 	amount?: AmountBreakdown;
 	currencyCode?: string;
 	description?: string;
+	/** "REFUND" for money back, "FEE" for what is deducted. */
 	category?: string;
+	/** Id of the package offer this line applies to. */
+	offer?: string;
+	expirationDate?: string;
 }
 
 export interface RefundOption {

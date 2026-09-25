@@ -13,8 +13,8 @@ import {
 	groupTravelDocuments,
 	TicketControl,
 } from "../../components/tickets/DocumentViewer";
-import PackageActionsMenu from "../../components/tickets/PackageActionsMenu";
 import PackageContents from "../../components/tickets/PackageContents";
+import TicketActionsSection from "../../components/tickets/TicketActionsSection";
 import { useDevConfig } from "../../context/dev-config";
 import { useProfile } from "../../context/profile";
 import {
@@ -24,7 +24,12 @@ import {
 } from "../../hooks/use-documents";
 import { useJourneySituations } from "../../hooks/use-journey-situations";
 import { useCancelPackage, useClaimRefund } from "../../hooks/use-purchase";
+import { formatPrice } from "../../lib/format-price";
 import { isPackageNotFound } from "../../lib/omsa-error";
+import {
+	type RefundOptionSummary,
+	summarizeRefundOptions,
+} from "../../lib/refund-options";
 import { getPackage, removePackage } from "../../lib/ticket-storage";
 import {
 	formatZoneList,
@@ -118,9 +123,11 @@ function TicketDetailPage() {
 		navigate({ to: "/tickets" });
 	}
 
-	async function handleClaimRefund(optionId: string) {
+	async function handleClaimRefund(option: RefundOptionSummary) {
+		const amount = formatPrice(option.refund, option.currency);
+		if (!confirm(`Refund ${amount} for ${option.title}?`)) return;
 		await claimRefundMutation.mutateAsync({
-			inputs: { type: "claim_refund_option", optionId },
+			inputs: { type: "claim_refund_option", optionId: option.id },
 		});
 	}
 
@@ -175,7 +182,10 @@ function TicketDetailPage() {
 	const selectedDocument = groupTravelDocuments(documents).find(
 		(group) => group.key === control,
 	);
-	const refundOptions = refundCollection?.options ?? [];
+	const refundOptions = summarizeRefundOptions(
+		refundCollection?.options ?? [],
+		packageItem?.offers ?? [],
+	);
 	const now = new Date();
 
 	const itemProps = packageItem?.properties;
@@ -224,20 +234,13 @@ function TicketDetailPage() {
 
 	return (
 		<PageShell title="Ticket details">
-			<div className="mb-6 flex items-center justify-between gap-3">
+			<div className="mb-6">
 				<Link
 					to="/tickets"
 					className="inline-block text-sm font-medium text-wayfare-text-secondary no-underline"
 				>
 					← My tickets
 				</Link>
-				<PackageActionsMenu
-					refundOptions={refundOptions}
-					onClaimRefund={handleClaimRefund}
-					claimingRefund={claimRefundMutation.isPending}
-					onCancel={handleCancel}
-					cancelling={cancelMutation.isPending}
-				/>
 			</div>
 
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
@@ -347,9 +350,16 @@ function TicketDetailPage() {
 							</div>
 						</div>
 					</div>
+					<TicketActionsSection
+						refundOptions={refundOptions}
+						onClaimRefund={handleClaimRefund}
+						claimingRefund={claimRefundMutation.isPending}
+						onCancel={handleCancel}
+						cancelling={cancelMutation.isPending}
+					/>
 				</div>
 
-				<div>
+				<div className="flex flex-col gap-4">
 					<PackageContents
 						offers={packageItem?.offers ?? []}
 						documents={documents}
