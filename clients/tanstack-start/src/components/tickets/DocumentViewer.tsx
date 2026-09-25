@@ -1,6 +1,9 @@
 import QRCode from "qrcode";
 import { useEffect, useRef, useState } from "react";
-import type { TravelDocumentItem } from "../../types/documents";
+import type {
+	TravelDocumentItem,
+	TravelDocumentProperties,
+} from "../../types/documents";
 
 export interface TicketDocumentGroup {
 	key: string;
@@ -26,6 +29,33 @@ export function groupTravelDocuments(
 
 export function groupProperties(group: TicketDocumentGroup) {
 	return (group.primary ?? group.animation)?.properties;
+}
+
+/**
+ * Whether the group carries something an inspector can actually be shown.
+ * Gate on content, not on type or status: a pending_ticket is ACTIVE and has a
+ * validity window but no barcode, and unknown future types would otherwise
+ * open an empty control view.
+ */
+export function isGroupInspectable(group: TicketDocumentGroup): boolean {
+	const doc = group.primary ?? group.animation;
+	const props = doc?.properties;
+	if (!props) return false;
+	if (props.type === "binary_ticket") return props.base64.length > 0;
+	if (props.type === "externalTicket") return (doc?.links?.length ?? 0) > 0;
+	return false;
+}
+
+/**
+ * A pending ticket gets its barcode when validity starts, not from a job that
+ * is about to finish — so before that point say when, and don't imply waiting.
+ */
+export function hasStarted(
+	props: TravelDocumentProperties,
+	now: number,
+): boolean {
+	const start = Date.parse(props.startvalidity);
+	return !Number.isFinite(start) || now >= start;
 }
 
 export function formatValidity(start: string, end: string): string {
@@ -75,6 +105,7 @@ export function TicketControl({ group, title, onClose }: TicketControlProps) {
 	}, []);
 	if (!props) return null;
 	const animation = group.animation?.properties;
+	const started = hasStarted(props, Date.now());
 	return (
 		<dialog
 			ref={dialogRef}
@@ -104,7 +135,18 @@ export function TicketControl({ group, title, onClose }: TicketControlProps) {
 				<p className="mb-4 text-sm text-wayfare-text-secondary">
 					Valid {formatValidity(props.startvalidity, props.endvalidity)}
 				</p>
-				{props.type === "binary_ticket" ? (
+				{!isGroupInspectable(group) ? (
+					<div className="flex flex-col items-center gap-2 rounded-xl bg-wayfare-surface px-4 py-8 text-center">
+						<p className="m-0 text-sm font-medium text-wayfare-text">
+							{started ? "This ticket can't be shown" : "Not active yet"}
+						</p>
+						<p className="m-0 max-w-sm text-sm text-wayfare-text-secondary">
+							{started
+								? "The ticket is valid, but no QR code was issued for it. Contact support if an inspector asks to see it."
+								: "The QR code is issued when the ticket becomes valid."}
+						</p>
+					</div>
+				) : props.type === "binary_ticket" ? (
 					<div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-center">
 						<div className="flex w-full flex-1 flex-col items-center gap-2 rounded-xl bg-wayfare-surface p-4">
 							{props.contentType.startsWith("image/") ? (

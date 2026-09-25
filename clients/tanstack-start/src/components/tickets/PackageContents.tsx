@@ -5,6 +5,8 @@ import {
 	formatValidity,
 	groupProperties,
 	groupTravelDocuments,
+	hasStarted,
+	isGroupInspectable,
 } from "./DocumentViewer";
 
 interface PackageContentsProps {
@@ -153,22 +155,41 @@ export default function PackageContents({
 						(props.type === "externalTicket"
 							? "External ticket"
 							: "Travel ticket");
+					const rowClass =
+						"flex w-full items-center gap-3 border-b border-wayfare-line pb-3 text-left last:border-0 last:pb-0";
+					const body = (
+						<div className="min-w-0 flex-1">
+							<p className="m-0 truncate text-sm font-medium text-wayfare-text">
+								{name}
+								{documentGroups.length > 1 ? ` ${index + 1}` : ""}
+							</p>
+							<p className="m-0 mt-0.5 text-xs text-wayfare-text-secondary">
+								{formatValidity(props.startvalidity, props.endvalidity)}
+							</p>
+						</div>
+					);
+
+					if (!isGroupInspectable(group)) {
+						return (
+							<div key={group.key} className={rowClass}>
+								{body}
+								<span className="shrink-0 rounded-full bg-wayfare-surface px-2.5 py-1 text-xs text-wayfare-text-secondary">
+									{hasStarted(props, Date.now())
+										? "No QR code"
+										: "Not active yet"}
+								</span>
+							</div>
+						);
+					}
+
 					return (
 						<button
 							key={group.key}
 							type="button"
 							onClick={() => onOpenDocument(group.key)}
-							className="flex w-full items-center gap-3 border-b border-wayfare-line pb-3 text-left transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30 last:border-0 last:pb-0"
+							className={`${rowClass} transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30`}
 						>
-							<div className="min-w-0 flex-1">
-								<p className="m-0 truncate text-sm font-medium text-wayfare-text">
-									{name}
-									{documentGroups.length > 1 ? ` ${index + 1}` : ""}
-								</p>
-								<p className="m-0 mt-0.5 text-xs text-wayfare-text-secondary">
-									{formatValidity(props.startvalidity, props.endvalidity)}
-								</p>
-							</div>
+							{body}
 							<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-wayfare-primary text-white">
 								<QRIcon size="22" aria-hidden="true" />
 							</span>

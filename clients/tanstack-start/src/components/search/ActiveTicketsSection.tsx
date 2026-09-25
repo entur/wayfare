@@ -4,7 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useDevConfig } from "../../context/dev-config";
 import { useProfile } from "../../context/profile";
-import { useCustomerPackages } from "../../hooks/use-documents";
+import {
+	pendingDocumentPollMs,
+	useCustomerPackages,
+} from "../../hooks/use-documents";
 import { isPackageNotFound } from "../../lib/omsa-error";
 import { getPackages } from "../../lib/ticket-storage";
 import {
@@ -16,10 +19,14 @@ import {
 	getPackageItem,
 	getTravelDocuments,
 } from "../../server-functions/documents";
-import type { StoredPackage } from "../../types/documents";
+import type {
+	StoredPackage,
+	TravelDocumentCollection,
+} from "../../types/documents";
 import {
 	groupProperties,
 	groupTravelDocuments,
+	isGroupInspectable,
 } from "../tickets/DocumentViewer";
 
 function remainingValidity(end: number, now: number): string {
@@ -86,6 +93,9 @@ export default function ActiveTicketsSection() {
 			queryKey: ["travel-documents", pkg.packageId],
 			queryFn: () => getTravelDocuments({ data: pkg.packageId }),
 			staleTime: 60_000,
+			refetchInterval: (query: {
+				state: { data?: TravelDocumentCollection };
+			}) => pendingDocumentPollMs(query.state.data),
 			retry: (count: number, error: Error) =>
 				!isPackageNotFound(error) && count < 3,
 		})),
@@ -114,7 +124,7 @@ export default function ActiveTicketsSection() {
 					Number.isFinite(end) &&
 					start <= now &&
 					now < end
-					? [{ key: group.key, end }]
+					? [{ key: group.key, end, inspectable: isGroupInspectable(group) }]
 					: [];
 			});
 			if (validDocuments.length === 0) return [];
@@ -142,7 +152,7 @@ export default function ActiveTicketsSection() {
 					title,
 					subtitle: subtitle === title ? null : subtitle,
 					end: Math.max(...validDocuments.map((doc) => doc.end)),
-					control: validDocuments[0].key,
+					control: validDocuments.find((doc) => doc.inspectable)?.key ?? null,
 				},
 			];
 		})
@@ -181,15 +191,19 @@ export default function ActiveTicketsSection() {
 								{remainingValidity(end, now)}
 							</p>
 						</div>
-						<Link
-							to="/tickets/$packageId"
-							params={{ packageId: pkg.packageId }}
-							search={{ control }}
-							aria-label={`Show ${title} for inspection`}
-							className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-wayfare-primary text-white no-underline focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30"
-						>
-							<QRIcon size="24" aria-hidden="true" />
-						</Link>
+						{/* No inspectable document: the card still opens the details page,
+						    which explains why there is nothing to show. */}
+						{control && (
+							<Link
+								to="/tickets/$packageId"
+								params={{ packageId: pkg.packageId }}
+								search={{ control }}
+								aria-label={`Show ${title} for inspection`}
+								className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-wayfare-primary text-white no-underline focus:outline-none focus:ring-2 focus:ring-wayfare-primary/30"
+							>
+								<QRIcon size="24" aria-hidden="true" />
+							</Link>
+						)}
 					</div>
 				))}
 			</div>

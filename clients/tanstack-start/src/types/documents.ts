@@ -20,9 +20,20 @@ export interface ExternalTicketDocument {
 	travelDocumentType?: string;
 }
 
+/** Placeholder issued before the barcode payload exists. Carries no inspectable content. */
+export interface PendingTicketDocument {
+	type: "pending_ticket";
+	startvalidity: string;
+	endvalidity: string;
+	format?: string;
+	status?: string;
+	travelDocumentType?: string;
+}
+
 export type TravelDocumentProperties =
 	| BinaryTicketDocument
-	| ExternalTicketDocument;
+	| ExternalTicketDocument
+	| PendingTicketDocument;
 
 export interface TravelDocumentItem {
 	id?: string;
