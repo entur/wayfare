@@ -9,6 +9,8 @@ import type {
 	ConfirmPackageRequest,
 	PurchaseOffersInputs,
 	PurchaseOffersRequest,
+	UpdatedValidity,
+	UpdateValidityRequest,
 } from "../types/purchase";
 import { findCustomerByNumber } from "./customers";
 
@@ -88,6 +90,30 @@ export const claimRefund = createServerFn({ method: "POST" })
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.post<{ status?: string }>(
 			"/processes/claim-refund-option/execute",
+			data,
+		);
+	});
+
+// Optional today (claiming already refunds), but OMSA asks clients to confirm
+// so it can start validating at confirm time without breaking them.
+export const confirmRefund = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator((data: ClaimRefundRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.post<ConfirmedPackage>(
+			"/processes/confirm-refund-option/execute",
+			data,
+		);
+	});
+
+export const updateTravelDocumentValidity = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator((data: UpdateValidityRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.post<UpdatedValidity>(
+			"/processes/update-travel-document-validity/execute",
 			data,
 		);
 	});

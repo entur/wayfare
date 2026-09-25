@@ -86,10 +86,24 @@ export interface RefundOptionCollection {
 	numberReturned?: number;
 }
 
+export type ChangeType =
+	| "REMOVE_TRAVELLER"
+	| "ADD_TRAVELLER"
+	| "UPDATE_TRAVELLER"
+	| "ASSIGN_ASSET"
+	| "REMOVE_ASSET"
+	| "ASSIGN_ANCILLARY"
+	| "REMOVE_ANCILLARY"
+	| "CANCEL_PACKAGE"
+	| "UPDATE_VALIDITY"
+	| "UPDATE_TRAVEL_SPECIFICATION"
+	| "TRANSFER_TICKET";
+
 export interface ChangeOption {
-	type?: string;
+	type?: "change_option";
 	id?: string;
-	description?: string;
+	changeType?: ChangeType;
+	consequences?: FinancialDetail[];
 }
 
 export interface ChangeOptionItem {

@@ -1,13 +1,13 @@
 import { QRIcon, SeatIcon, TrainCarIcon } from "@entur/icons";
 import { formatPrice } from "../../lib/format-price";
-import type { PackageOffer, TravelDocumentItem } from "../../types/documents";
 import {
 	formatValidity,
 	groupProperties,
 	groupTravelDocuments,
 	hasStarted,
 	isGroupInspectable,
-} from "./DocumentViewer";
+} from "../../lib/travel-documents";
+import type { PackageOffer, TravelDocumentItem } from "../../types/documents";
 
 interface PackageContentsProps {
 	offers: PackageOffer[];

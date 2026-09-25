@@ -11,6 +11,11 @@ import {
 import { isPackageNotFound } from "../../lib/omsa-error";
 import { getPackages } from "../../lib/ticket-storage";
 import {
+	groupProperties,
+	groupTravelDocuments,
+	isGroupInspectable,
+} from "../../lib/travel-documents";
+import {
 	formatZoneList,
 	getEffectiveZones,
 	sortFareZones,
@@ -23,11 +28,6 @@ import type {
 	StoredPackage,
 	TravelDocumentCollection,
 } from "../../types/documents";
-import {
-	groupProperties,
-	groupTravelDocuments,
-	isGroupInspectable,
-} from "../tickets/DocumentViewer";
 
 function remainingValidity(end: number, now: number): string {
 	const minutes = Math.ceil((end - now) / 60_000);

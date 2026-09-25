@@ -46,6 +46,25 @@ export interface ClaimRefundRequest {
 	subscriber?: Subscriber;
 }
 
+export interface UpdateValidityInput {
+	type: "update_travel_document_validity";
+	packageId: string;
+	travelDocumentId: string;
+	// RFC3339, or the literal "NOW" for a server-side immediate start.
+	newStartTime: string;
+}
+
+export interface UpdateValidityRequest {
+	inputs: UpdateValidityInput;
+	subscriber?: Subscriber;
+}
+
+// The document is replaced rather than mutated, so its id changes.
+export interface UpdatedValidity {
+	previousTravelDocumentId: string;
+	newTravelDocumentId: string;
+}
+
 export type PackageStatus =
 	| "OFFER"
 	| "CONFIRMED"
