@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	cancelPackage,
 	claimRefund,
@@ -35,8 +35,14 @@ export function useCancelPackage() {
 }
 
 export function useClaimRefund() {
+	const queryClient = useQueryClient();
 	return useMutation<Record<string, unknown>, Error, ClaimRefundRequest>({
 		mutationFn: (req) =>
 			claimRefund({ data: req }) as Promise<Record<string, unknown>>,
+		// A claimed option is gone from the list and the package total changes.
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["refund-options"] });
+			queryClient.invalidateQueries({ queryKey: ["package-item"] });
+		},
 	});
 }
