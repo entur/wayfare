@@ -99,9 +99,7 @@ export default function TravelerPicker({
 		ag: TravelerGroup["ageGroup"],
 		updates: Partial<TravelerGroup>,
 	) {
-		setDraft(
-			draft.map((t) => (t.ageGroup === ag ? { ...t, ...updates } : t)),
-		);
+		setDraft(draft.map((t) => (t.ageGroup === ag ? { ...t, ...updates } : t)));
 	}
 
 	function syncIndividuals(
