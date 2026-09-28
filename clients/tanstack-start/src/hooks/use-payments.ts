@@ -1,10 +1,12 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+	AddTransactionRequest,
 	AppClaimRequest,
 	CaptureRequest,
 	TerminalSessionRequest,
 } from "../server-functions/payments";
 import {
+	addTransaction,
 	captureTransaction,
 	createPayment,
 	getTransaction,
@@ -12,6 +14,7 @@ import {
 	startTerminalSession,
 } from "../server-functions/payments";
 import type {
+	AddTransactionResult,
 	PaymentRequest,
 	PaymentSessionResult,
 	TerminalSessionResult,
@@ -21,6 +24,12 @@ import type {
 export function useCreatePayment() {
 	return useMutation<PaymentSessionResult, Error, PaymentRequest>({
 		mutationFn: (req) => createPayment({ data: req }),
+	});
+}
+
+export function useAddTransaction() {
+	return useMutation<AddTransactionResult, Error, AddTransactionRequest>({
+		mutationFn: (req) => addTransaction({ data: req }),
 	});
 }
 

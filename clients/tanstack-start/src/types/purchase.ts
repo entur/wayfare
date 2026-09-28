@@ -31,6 +31,10 @@ export interface ConfirmPackageRequest {
 	inputs: PackageInput;
 }
 
+export interface ReleasePackageRequest {
+	inputs: { type: "package"; packageId: string };
+}
+
 export interface CancelPackageRequest {
 	inputs: PackageInput;
 	subscriber?: Subscriber;
@@ -89,6 +93,7 @@ export interface ConfirmedPackage {
 	status: PackageStatus;
 	price: AmountOfMoney;
 	orderVersion?: number;
+	expiryTime?: string;
 	links?: Link[];
 }
 
@@ -147,6 +152,11 @@ export interface PaymentSessionResult {
 	currency?: string;
 	status?: string;
 	transactionHistory?: TransactionHistoryItem[];
+}
+
+export interface AddTransactionResult {
+	transactionId?: number;
+	status?: TransactionStatusValue;
 }
 
 export interface TerminalSessionResult {

@@ -12,6 +12,7 @@ import {
 	usePurchaseFlow,
 } from "../../context/purchase-flow";
 import {
+	useAddTransaction,
 	useCreatePayment,
 	useStartAppClaim,
 	useStartTerminalSession,
@@ -19,6 +20,13 @@ import {
 import { usePurchaseOffers } from "../../hooks/use-purchase";
 import { useAuthorizeCard } from "../../hooks/use-recurring-payments";
 import { formatPrice } from "../../lib/format-price";
+import {
+	abandonPendingCheckout,
+	cancelOpenTransaction,
+	getPendingCheckout,
+	isPackageExpired,
+	setPendingCheckout,
+} from "../../lib/pending-checkout";
 import { buildPurchaseOffersRequest } from "../../lib/purchase-request";
 import { readSearchSession } from "../../lib/search-session";
 import { setPendingGuestContact } from "../../lib/ticket-storage";
@@ -36,6 +44,11 @@ export const Route = createFileRoute("/checkout/$offerId")({
 			? Number(search.pendingCardId)
 			: undefined,
 	}),
+	// Leaving checkout for another route before paying means the user abandoned
+	// the purchase, so free the package's holds instead of waiting for expiry.
+	// The redirect to the payment terminal is a full page load, not a route
+	// change, so it never triggers this.
+	onLeave: () => abandonPendingCheckout(),
 	component: CheckoutPage,
 });
 
@@ -87,6 +100,7 @@ function CheckoutScreen() {
 
 	const purchaseMutation = usePurchaseOffers();
 	const createPaymentMutation = useCreatePayment();
+	const addTransactionMutation = useAddTransaction();
 	const startTerminalMutation = useStartTerminalSession();
 	const startAppClaimMutation = useStartAppClaim();
 	const authorizeCard = useAuthorizeCard(profileCustomer?.id ?? "");
@@ -149,11 +163,31 @@ function CheckoutScreen() {
 			return;
 		dispatch({ type: "START_PURCHASE" });
 		try {
-			// Step 1: OMSA purchase-offers
-			const purchased = await purchaseMutation.mutateAsync(
-				buildPurchaseOffersRequest(offerIds, activeCustomer),
-			);
-			const packageId = purchased.id ?? "";
+			// Step 1: reuse the package from a failed attempt at this offer, or
+			// create one with OMSA purchase-offers
+			let pending = getPendingCheckout();
+			if (
+				pending &&
+				(pending.offerId !== offerId || isPackageExpired(pending))
+			) {
+				abandonPendingCheckout();
+				pending = null;
+			}
+			if (!pending) {
+				const purchased = await purchaseMutation.mutateAsync(
+					buildPurchaseOffersRequest(offerIds, activeCustomer),
+				);
+				pending = {
+					packageId: purchased.id ?? "",
+					offerId,
+					amount: purchased.price?.amount?.toFixed(2) ?? "0.00",
+					currency: purchased.price?.currencyCode ?? "NOK",
+					orderVersion: purchased.orderVersion ?? 1,
+					expiryTime: purchased.expiryTime,
+				};
+				if (pending.packageId) setPendingCheckout(pending);
+			}
+			const { packageId, amount, currency: purchasedCurrency } = pending;
 			dispatch({ type: "PURCHASE_DONE", packageId });
 
 			// Stash any guest contact details so payment-return can attach them to the saved package
@@ -169,9 +203,6 @@ function CheckoutScreen() {
 			}
 
 			// Step 2: Build transaction based on payment selection
-			const amount = purchased.price?.amount?.toFixed(2) ?? "0.00";
-			const purchasedCurrency = purchased.price?.currencyCode ?? "NOK";
-
 			let transaction: CardPaymentTransaction | RecurringPaymentTransaction;
 			if (paymentMethod.kind === "recurring") {
 				const t: RecurringPaymentTransaction = {
@@ -200,20 +231,56 @@ function CheckoutScreen() {
 				transaction = t;
 			}
 
-			const payment = await createPaymentMutation.mutateAsync({
-				orderId: packageId,
-				orderVersion: purchased.orderVersion ?? 1,
-				totalAmount: amount,
-				transaction,
-			});
-			const paymentId = String(payment.paymentId ?? "");
-			const transactionId = String(
-				payment.transactionHistory?.[0]?.transactionId ?? "",
-			);
+			// A retry keeps the payment: cancel the failed transaction and add a
+			// new one, so the package and order version stay the same
+			let paymentId: string;
+			let transactionId: string;
+			if (pending.paymentId) {
+				paymentId = pending.paymentId;
+				const previous = await cancelOpenTransaction(pending);
+				if (previous === "captured") {
+					// The earlier attempt went through after all (e.g. a late Vipps
+					// approval); finish that purchase. The polling path only reads the
+					// transaction, so it never tries to capture it again.
+					window.location.href = paymentReturnUrl(
+						packageId,
+						paymentId,
+						pending.transactionId ?? "",
+						true,
+					);
+					return;
+				}
+				if (previous === "unknown")
+					throw new Error(
+						"Could not cancel the previous payment attempt. Please try again.",
+					);
+				const added = await addTransactionMutation.mutateAsync({
+					paymentId,
+					transaction,
+				});
+				transactionId = String(added.transactionId ?? "");
+			} else {
+				const payment = await createPaymentMutation.mutateAsync({
+					orderId: packageId,
+					orderVersion: pending.orderVersion,
+					totalAmount: amount,
+					transaction,
+				});
+				paymentId = String(payment.paymentId ?? "");
+				transactionId = String(
+					payment.transactionHistory?.[0]?.transactionId ?? "",
+				);
+			}
+			setPendingCheckout({ ...pending, paymentId, transactionId });
 
 			// Step 3: Initiate payment via terminal (card) or app-claim (Vipps)
 			if (paymentMethod.kind === "vipps") {
-				const returnUrl = `${window.location.origin}/payment-return?packageId=${packageId}&enturPaymentId=${paymentId}&enturTransactionId=${transactionId}&paymentType=VIPPS`;
+				const returnUrl = paymentReturnUrl(
+					packageId,
+					paymentId,
+					transactionId,
+					true,
+				);
 				const description =
 					selectedOffers[0]?.properties?.products?.[0]?.productName ??
 					"Entur ticket";
@@ -226,7 +293,12 @@ function CheckoutScreen() {
 				});
 				window.location.href = appClaim.appClaimUrl ?? "";
 			} else {
-				const returnUrl = `${window.location.origin}/payment-return?packageId=${packageId}&enturPaymentId=${paymentId}&enturTransactionId=${transactionId}`;
+				const returnUrl = paymentReturnUrl(
+					packageId,
+					paymentId,
+					transactionId,
+					false,
+				);
 				const terminal = await startTerminalMutation.mutateAsync({
 					paymentId,
 					transactionId,
@@ -241,6 +313,15 @@ function CheckoutScreen() {
 				error: err instanceof Error ? err.message : "Purchase failed",
 			});
 		}
+	}
+
+	function paymentReturnUrl(
+		packageId: string,
+		paymentId: string,
+		transactionId: string,
+		vipps: boolean,
+	) {
+		return `${window.location.origin}/payment-return?packageId=${packageId}&offerId=${encodeURIComponent(offerId)}&enturPaymentId=${paymentId}&enturTransactionId=${transactionId}${vipps ? "&paymentType=VIPPS" : ""}`;
 	}
 
 	if (state.flowState === "success" && state.packageId) {

@@ -9,6 +9,7 @@ import type {
 	ConfirmPackageRequest,
 	PurchaseOffersInputs,
 	PurchaseOffersRequest,
+	ReleasePackageRequest,
 	UpdatedValidity,
 	UpdateValidityRequest,
 } from "../types/purchase";
@@ -79,6 +80,20 @@ export const cancelPackage = createServerFn({ method: "POST" })
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.post<ConfirmedPackage>(
 			"/processes/cancel-package/execute",
+			data,
+		);
+	});
+
+// Releases the holds of a package that was never paid for. OMSA also drops the
+// package at its expiryTime, so this only needs calling when we know the user
+// abandoned the purchase.
+export const releasePackage = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator((data: ReleasePackageRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.post<ConfirmedPackage>(
+			"/processes/release-package/execute",
 			data,
 		);
 	});
