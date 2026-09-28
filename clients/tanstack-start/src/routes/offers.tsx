@@ -10,7 +10,9 @@ import FavoriteToggle from "../components/search/FavoriteToggle";
 import Illustration from "../components/shared/Illustration";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
+import { formatPrice } from "../lib/format-price";
 import { cheapestCompleteBundles } from "../lib/offer-coverage";
+import { groupBundlesByDuration } from "../lib/offer-durations";
 import {
 	type LegInfo,
 	readSearchSession,
@@ -136,6 +138,7 @@ function OffersScreen() {
 	const [hydrated, setHydrated] = useState(false);
 	const [collection, setCollection] = useState<OfferCollection | null>(null);
 	const [context, setContext] = useState<SearchContext | null>(null);
+	const [durationKey, setDurationKey] = useState<string | null>(null);
 	const returnTo = context?.origin === "trips" ? "/trips" : "/";
 	const returnLabel =
 		context?.origin === "trips" ? "Back to trips" : "Back to search";
@@ -148,9 +151,11 @@ function OffersScreen() {
 		const legCount =
 			session.context?.legs?.length ??
 			Math.max(0, ...initialBundles.flatMap((b) => b.sequences));
-		const complete = cheapestCompleteBundles(initialBundles, legCount);
-		if (complete && complete.length === initialBundles.length) {
-			setSelectedKeys(new Set(complete.map((b) => b.groupKey)));
+		const first = groupBundlesByDuration(initialBundles)[0];
+		if (first) {
+			setDurationKey(first.key);
+			const complete = cheapestCompleteBundles(first.bundles, legCount);
+			if (complete) setSelectedKeys(new Set(complete.map((b) => b.groupKey)));
 		}
 		setHydrated(true);
 	}, []);
@@ -160,6 +165,10 @@ function OffersScreen() {
 		...(context?.travellers ?? []),
 	];
 	const bundles: OfferBundle[] = buildBundles(collection?.offers ?? []);
+	const durationGroups = groupBundlesByDuration(bundles);
+	const activeGroup =
+		durationGroups.find((g) => g.key === durationKey) ?? durationGroups[0];
+	const visibleBundles = activeGroup?.bundles ?? [];
 
 	const offeredSequences = [
 		...new Set(bundles.flatMap((b) => b.sequences)),
@@ -174,12 +183,14 @@ function OffersScreen() {
 	const isMultiLeg = allSequences.length > 1;
 
 	const fullBundles = isMultiLeg
-		? bundles.filter((b) => allSequences.every((s) => b.sequences.includes(s)))
-		: bundles;
+		? visibleBundles.filter((b) =>
+				allSequences.every((s) => b.sequences.includes(s)),
+			)
+		: visibleBundles;
 
 	const perSeqMap = new Map<number, OfferBundle[]>();
 	if (isMultiLeg) {
-		const partial = bundles.filter((b) => !fullBundles.includes(b));
+		const partial = visibleBundles.filter((b) => !fullBundles.includes(b));
 		for (const seq of allSequences) {
 			const seqBundles = partial.filter((b) => b.sequences.includes(seq));
 			if (seqBundles.length > 0) perSeqMap.set(seq, seqBundles);
@@ -189,8 +200,17 @@ function OffersScreen() {
 	const showSections = isMultiLeg && (perSeqMap.size > 0 || hasMissingLegs);
 	const onlyCompleteChoice =
 		!hasMissingLegs &&
-		bundles.length > 0 &&
-		selectedKeys.size === bundles.length;
+		visibleBundles.length > 0 &&
+		selectedKeys.size === visibleBundles.length;
+
+	const cheapestForGroup = cheapestCompleteBundles(
+		visibleBundles,
+		allSequences.length,
+	);
+	const cheapestSelected =
+		!!cheapestForGroup &&
+		cheapestForGroup.length === selectedKeys.size &&
+		cheapestForGroup.every((b) => selectedKeys.has(b.groupKey));
 
 	// Use the offer collection as the source of truth for coverage.
 	const allTravellerIds = [
@@ -229,6 +249,19 @@ function OffersScreen() {
 			}
 			return next;
 		});
+	}
+
+	function selectCheapest(group = activeGroup) {
+		const complete = group
+			? cheapestCompleteBundles(group.bundles, allSequences.length)
+			: null;
+		setSelectedKeys(new Set(complete?.map((b) => b.groupKey) ?? []));
+	}
+
+	function handleDurationChange(key: string) {
+		const group = durationGroups.find((g) => g.key === key);
+		setDurationKey(key);
+		selectCheapest(group);
 	}
 
 	function handleContinue() {
@@ -306,10 +339,10 @@ function OffersScreen() {
 			title="Available offers"
 			subtitle={
 				hasMissingLegs
-					? `${bundles.length} ticket${bundles.length !== 1 ? "s" : ""} available for part of your journey`
+					? `${visibleBundles.length} ticket${visibleBundles.length !== 1 ? "s" : ""} available for part of your journey`
 					: onlyCompleteChoice
-						? `${bundles.length} ticket${bundles.length !== 1 ? "s" : ""} cover your journey`
-						: `${bundles.length} option${bundles.length !== 1 ? "s" : ""} found`
+						? `${visibleBundles.length} ticket${visibleBundles.length !== 1 ? "s" : ""} cover your journey`
+						: `${visibleBundles.length} option${visibleBundles.length !== 1 ? "s" : ""} found`
 			}
 			contentClassName="mx-auto max-w-xl"
 		>
@@ -356,6 +389,54 @@ function OffersScreen() {
 								))}
 							</div>
 						)}
+					</div>
+				)}
+
+				{durationGroups.length > 1 && (
+					<div
+						role="tablist"
+						aria-label="Ticket duration"
+						className="mb-4 flex flex-wrap gap-2"
+					>
+						{durationGroups.map((group) => {
+							const active = group.key === activeGroup?.key;
+							return (
+								<button
+									key={group.key}
+									type="button"
+									role="tab"
+									aria-selected={active}
+									onClick={() => handleDurationChange(group.key)}
+									className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${active ? "border-wayfare-primary bg-wayfare-accent-soft text-wayfare-primary" : "border-wayfare-line bg-transparent text-wayfare-text-secondary"}`}
+								>
+									{group.label}
+								</button>
+							);
+						})}
+					</div>
+				)}
+
+				{cheapestForGroup && cheapestForGroup.length > 1 && (
+					<div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4">
+						<div className="min-w-0">
+							<p className="m-0 text-sm font-semibold text-wayfare-text">
+								Cheapest for everyone
+							</p>
+							<p className="m-0 mt-0.5 text-xs text-wayfare-text-secondary">
+								{cheapestForGroup.length} tickets,{" "}
+								{formatPrice(
+									cheapestForGroup.reduce((sum, b) => sum + b.totalPrice, 0),
+									cheapestForGroup[0].currency,
+								)}
+							</p>
+						</div>
+						<Button
+							variant="secondary"
+							disabled={cheapestSelected}
+							onClick={() => selectCheapest()}
+						>
+							{cheapestSelected ? "Selected" : "Select"}
+						</Button>
 					</div>
 				)}
 

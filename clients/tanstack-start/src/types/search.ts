@@ -95,6 +95,16 @@ export interface OfferProduct {
 	type?: "product";
 	productId?: OfferProductId | string;
 	productName?: string;
+	service?: { type?: "service"; class?: string }[];
+}
+
+/** Not in the OMSA spec yet; typed from live search-offers responses. */
+export interface UsageValidityPeriod {
+	id?: string;
+	type?: "usage_validity_period";
+	validityPeriodType?: string;
+	/** ISO 8601 duration, e.g. "PT720H". */
+	standardDuration?: string;
 }
 
 export interface TravellerMapping {
@@ -145,6 +155,7 @@ export interface OfferProperties {
 	price?: AmountOfMoney;
 	expiryTime?: string;
 	summary?: OfferSummary;
+	usageValidityPeriods?: UsageValidityPeriod[];
 }
 
 export interface Offer {
