@@ -1,21 +1,14 @@
 import { useState } from "react";
+import { travelerCategory } from "../../lib/traveler-categories";
 import type { QuickRoute } from "./QuickRouteSection";
-
-const travelerLabels = {
-	ADULT: "adult",
-	CHILD: "child",
-	YOUTH: "youth",
-	SENIOR: "senior",
-	INFANT: "infant",
-	STUDENT: "student",
-	MILITARY: "military",
-} as const;
 
 function travelerSummary(route: QuickRoute): string {
 	return route.travelers
 		.filter((group) => group.count > 0)
 		.map((group) => {
-			const label = travelerLabels[group.ageGroup];
+			const label = (
+				travelerCategory(group.ageGroup)?.label ?? group.ageGroup
+			).toLowerCase();
 			const plural = label === "child" ? "children" : `${label}s`;
 			return `${group.count} ${group.count === 1 ? label : plural}`;
 		})

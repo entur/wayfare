@@ -5,7 +5,7 @@ import { buildRequest } from "./build-request";
 describe("buildRequest", () => {
 	it("builds an anonymous profile for an unnamed traveller group", () => {
 		const travelers: TravelerGroup[] = [
-			{ id: "adult", ageGroup: "ADULT", count: 2, minAge: 18 },
+			{ id: "adult", ageGroup: "ADULT", count: 2 },
 		];
 
 		expect(buildRequest(travelers)).toEqual({
@@ -15,7 +15,6 @@ describe("buildRequest", () => {
 					type: "user_profile",
 					count: 2,
 					ageGroup: "ADULT",
-					minimumAge: 18,
 				},
 			],
 			travellers: [],
@@ -28,7 +27,6 @@ describe("buildRequest", () => {
 				id: "adult",
 				ageGroup: "ADULT",
 				count: 2,
-				minAge: 18,
 				individuals: [{ name: "Ada", age: 34, customerId: "customer-1" }],
 			},
 		];
@@ -40,7 +38,6 @@ describe("buildRequest", () => {
 					type: "user_profile",
 					count: 1,
 					ageGroup: "ADULT",
-					minimumAge: 18,
 				},
 			],
 			travellers: [
@@ -66,7 +63,6 @@ describe("buildRequest", () => {
 					id: ageGroup.toLowerCase(),
 					ageGroup,
 					count: 1,
-					minAge: 20,
 				},
 			];
 
@@ -79,7 +75,6 @@ describe("buildRequest", () => {
 					type: "user_profile",
 					count: 1,
 					...(profileAgeGroup ? { ageGroup: profileAgeGroup } : {}),
-					minimumAge: 20,
 					entitlements: {
 						entitlementsGiven: [{ type: "entitlement", entitlementType }],
 					},
@@ -87,4 +82,68 @@ describe("buildRequest", () => {
 			]);
 		},
 	);
+
+	it("sends each child as an individual traveller with their age", () => {
+		const travelers: TravelerGroup[] = [
+			{
+				id: "child",
+				ageGroup: "CHILD",
+				count: 2,
+				individuals: [{ age: 7 }, { age: 12, name: "Kari" }],
+			},
+		];
+
+		expect(buildRequest(travelers)).toEqual({
+			profiles: [],
+			travellers: [
+				{ id: "child_0", type: "individual_traveller", age: 7 },
+				{
+					id: "child_1",
+					type: "individual_traveller",
+					age: 12,
+					fullName: "Kari",
+				},
+			],
+		});
+	});
+
+	it("sends seniors as a profile without an entered age", () => {
+		const travelers: TravelerGroup[] = [
+			{ id: "senior", ageGroup: "SENIOR", count: 1 },
+		];
+
+		expect(buildRequest(travelers).profiles).toEqual([
+			{
+				id: "senior",
+				type: "user_profile",
+				count: 1,
+				ageGroup: "SENIOR",
+			},
+		]);
+	});
+
+	it("sends named adults with an age as individuals and the rest as an adult profile", () => {
+		const travelers: TravelerGroup[] = [
+			{
+				id: "adult",
+				ageGroup: "ADULT",
+				count: 2,
+				individuals: [{ name: "Ada", age: 40 }, {}],
+			},
+		];
+
+		expect(buildRequest(travelers)).toEqual({
+			profiles: [
+				{ id: "adult_anon", type: "user_profile", count: 1, ageGroup: "ADULT" },
+			],
+			travellers: [
+				{
+					id: "adult_0",
+					type: "individual_traveller",
+					age: 40,
+					fullName: "Ada",
+				},
+			],
+		});
+	});
 });

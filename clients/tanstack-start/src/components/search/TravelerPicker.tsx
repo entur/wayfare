@@ -4,21 +4,46 @@ import type {
 	TravelerGroup,
 	TravelerIndividual,
 } from "../../context/search-form";
+import {
+	hasMissingAges,
+	needsAge,
+	TRAVELER_CATEGORIES,
+	travelerCategory,
+} from "../../lib/traveler-categories";
 import type { OmsaCustomer } from "../../types/customer";
 
-const GROUPS: {
-	id: TravelerGroup["ageGroup"];
-	label: string;
-	subtitle?: string;
-	perPerson?: boolean;
-}[] = [
-	{ id: "ADULT", label: "Adult", subtitle: "18+ yrs" },
-	{ id: "YOUTH", label: "Youth", subtitle: "16–17 yrs" },
-	{ id: "CHILD", label: "Child", subtitle: "6–15 yrs" },
-	{ id: "SENIOR", label: "Senior", subtitle: "67+ yrs", perPerson: true },
-	{ id: "STUDENT", label: "Student", perPerson: true },
-	{ id: "MILITARY", label: "Military" },
-];
+function syncIndividuals(
+	existing: TravelerIndividual[] | undefined,
+	count: number,
+	requiresAge: boolean,
+): TravelerIndividual[] | undefined {
+	if (!requiresAge && existing === undefined) return undefined;
+	const base = (existing ?? []).map((individual) =>
+		individual.id ? individual : { ...individual, id: crypto.randomUUID() },
+	);
+	if (count > base.length) {
+		return [
+			...base,
+			...Array.from(
+				{ length: count - base.length },
+				(): TravelerIndividual => ({ id: crypto.randomUUID() }),
+			),
+		];
+	}
+	return base.slice(0, count);
+}
+
+// Drops categories the picker no longer offers and gives age-required groups
+// one row per traveller, so saved searches from before this still open cleanly.
+function withAgeRows(travelers: TravelerGroup[]): TravelerGroup[] {
+	return travelers.flatMap((t) => {
+		const category = travelerCategory(t.ageGroup);
+		if (!category) return [];
+		return category.requiresAge
+			? [{ ...t, individuals: syncIndividuals(t.individuals, t.count, true) }]
+			: [t];
+	});
+}
 
 const inputCls =
 	"rounded-lg border border-wayfare-line bg-wayfare-bg px-2 py-1.5 text-xs text-wayfare-text outline-none focus:ring-1 focus:ring-wayfare-primary/30";
@@ -45,13 +70,14 @@ export default function TravelerPicker({
 	// Edits stay in draft and commit to the parent only on "Done". While closed
 	// the draft mirrors the committed props (effect below); opening keeps that
 	// value, and cancelling (click outside) discards the draft on the next mirror.
-	const [draft, setDraft] = useState(travelers);
+	const [draft, setDraft] = useState(() => withAgeRows(travelers));
 
 	const customerIncluded =
 		!!customer?.id &&
 		draft.some((t) => t.individuals?.some((i) => i.customerId === customer.id));
 
 	const total = draft.reduce((sum, t) => sum + t.count, 0);
+	const missingAges = hasMissingAges(draft);
 
 	const customerFirstName = customer?.firstName ?? customer?.id ?? "You";
 
@@ -84,7 +110,7 @@ export default function TravelerPicker({
 	// While closed, keep the draft in sync with committed props; while open, let
 	// it diverge. Closing without "Done" resets it here, discarding the edits.
 	useEffect(() => {
-		if (!open) setDraft(travelers);
+		if (!open) setDraft(withAgeRows(travelers));
 	}, [travelers, open]);
 
 	function getGroup(ag: TravelerGroup["ageGroup"]) {
@@ -102,29 +128,6 @@ export default function TravelerPicker({
 		setDraft(draft.map((t) => (t.ageGroup === ag ? { ...t, ...updates } : t)));
 	}
 
-	function syncIndividuals(
-		existing: TravelerIndividual[] | undefined,
-		count: number,
-		perPerson: boolean,
-	): TravelerIndividual[] | undefined {
-		if (!perPerson && existing === undefined) return undefined;
-		const base = (existing ?? []).map((individual) =>
-			individual.id ? individual : { ...individual, id: crypto.randomUUID() },
-		);
-		if (count > base.length) {
-			return [
-				...base,
-				...Array.from(
-					{ length: count - base.length },
-					(): TravelerIndividual => ({
-						id: crypto.randomUUID(),
-					}),
-				),
-			];
-		}
-		return base.slice(0, count);
-	}
-
 	function setCount(ag: TravelerGroup["ageGroup"], count: number) {
 		if (count < 0) return;
 		const existing = draft.filter((t) => t.ageGroup !== ag);
@@ -133,8 +136,8 @@ export default function TravelerPicker({
 			setDraft(existing);
 			return;
 		}
-		const meta = GROUPS.find((g) => g.id === ag);
-		if (!meta) return;
+		const category = travelerCategory(ag);
+		if (!category) return;
 		const current = getGroup(ag);
 		setDraft([
 			...existing,
@@ -142,14 +145,10 @@ export default function TravelerPicker({
 				id: ag.toLowerCase(),
 				ageGroup: ag,
 				count,
-				...(ag === "ADULT" ? { minAge: 18 } : {}),
-				...(ag === "YOUTH" ? { minAge: 16, maxAge: 17 } : {}),
-				...(ag === "CHILD" ? { minAge: 6, maxAge: 15 } : {}),
-				...(ag === "SENIOR" ? { minAge: 67 } : {}),
 				individuals: syncIndividuals(
 					current?.individuals,
 					count,
-					!!meta.perPerson,
+					category.requiresAge,
 				),
 			},
 		]);
@@ -206,7 +205,6 @@ export default function TravelerPicker({
 						id: "adult",
 						ageGroup: "ADULT" as const,
 						count: 1,
-						minAge: 18,
 						individuals: [customerInd],
 					},
 				]);
@@ -214,20 +212,17 @@ export default function TravelerPicker({
 		}
 	}
 
-	function toggleNamedMode(ag: TravelerGroup["ageGroup"]) {
+	function toggleExpanded(ag: TravelerGroup["ageGroup"]) {
+		if (expandedId === ag) {
+			setExpandedId(null);
+			return;
+		}
 		const group = getGroup(ag);
 		if (!group) return;
-		updateGroup(
-			ag,
-			group.individuals !== undefined
-				? { individuals: undefined }
-				: {
-						individuals: Array.from(
-							{ length: group.count },
-							(): TravelerIndividual => ({ id: crypto.randomUUID() }),
-						),
-					},
-		);
+		updateGroup(ag, {
+			individuals: syncIndividuals(group.individuals, group.count, true),
+		});
+		setExpandedId(ag);
 	}
 
 	function updateIndividual(
@@ -244,11 +239,9 @@ export default function TravelerPicker({
 		});
 	}
 
-	function renderIndividualRows(
-		ag: TravelerGroup["ageGroup"],
-		showAge: boolean,
-	) {
+	function renderIndividualRows(ag: TravelerGroup["ageGroup"]) {
 		const group = getGroup(ag);
+		const label = travelerCategory(ag)?.label ?? ag;
 		if (!group?.individuals) return null;
 		return (
 			<div className="flex flex-col gap-2 pb-3 pl-1">
@@ -261,26 +254,25 @@ export default function TravelerPicker({
 						className="flex items-center gap-2"
 					>
 						<span className="w-16 shrink-0 text-xs text-wayfare-text-secondary">
-							{group.count === 1 ? "" : `Person ${i + 1}`}
+							{group.count === 1 ? "" : `${label} ${i + 1}`}
 						</span>
-						{showAge && (
-							<input
-								type="number"
-								placeholder="Age"
-								min={1}
-								max={130}
-								value={person.age ?? ""}
-								onChange={(e) =>
-									updateIndividual(ag, i, {
-										age:
-											e.target.value === ""
-												? undefined
-												: Number(e.target.value),
-									})
-								}
-								className={`w-20 shrink-0 ${inputCls}`}
-							/>
-						)}
+						<input
+							type="number"
+							placeholder="Age"
+							aria-label={`Age, ${label} ${i + 1}`}
+							required={needsAge(group, person)}
+							aria-invalid={needsAge(group, person)}
+							min={0}
+							max={130}
+							value={person.age ?? ""}
+							onChange={(e) =>
+								updateIndividual(ag, i, {
+									age:
+										e.target.value === "" ? undefined : Number(e.target.value),
+								})
+							}
+							className={`w-20 shrink-0 ${inputCls}`}
+						/>
 						<input
 							type="text"
 							placeholder="Name (optional)"
@@ -369,25 +361,17 @@ export default function TravelerPicker({
 						</div>
 					)}
 
-					{GROUPS.map((group) => {
+					{TRAVELER_CATEGORIES.map((group) => {
 						const count = getCount(group.id);
-						const current = getGroup(group.id);
 						const isExpanded = expandedId === group.id;
 
 						return (
 							<div key={group.id} className="border-b border-wayfare-line">
 								{/* Count row */}
 								<div className="flex items-center justify-between py-2.5">
-									<div>
-										<span className="text-sm font-medium text-wayfare-text">
-											{group.label}
-										</span>
-										{group.subtitle && (
-											<span className="ml-2 text-xs text-wayfare-text-secondary">
-												{group.subtitle}
-											</span>
-										)}
-									</div>
+									<span className="text-sm font-medium text-wayfare-text">
+										{group.label}
+									</span>
 									<div className="flex items-center gap-2">
 										<button
 											type="button"
@@ -409,14 +393,12 @@ export default function TravelerPicker({
 										>
 											+
 										</button>
-										{/* Expand toggle — only for non-perPerson groups */}
-										{!group.perPerson && count > 0 && (
+										{/* Age-required groups always show their rows, so no toggle */}
+										{!group.requiresAge && count > 0 && (
 											<button
 												type="button"
-												onClick={() =>
-													setExpandedId(isExpanded ? null : group.id)
-												}
-												aria-label={`${isExpanded ? "Collapse" : "Expand"} ${group.label} options`}
+												onClick={() => toggleExpanded(group.id)}
+												aria-label={`${isExpanded ? "Hide" : "Add"} ${group.label} names and ages`}
 												className={`flex h-7 w-7 items-center justify-center rounded-lg border bg-transparent text-xs transition-colors ${isExpanded ? "border-wayfare-primary text-wayfare-primary" : "border-wayfare-line text-wayfare-text-secondary"}`}
 											>
 												{isExpanded ? "▴" : "▾"}
@@ -425,43 +407,26 @@ export default function TravelerPicker({
 									</div>
 								</div>
 
-								{/* perPerson groups: always-visible individual rows */}
-								{group.perPerson &&
+								{(group.requiresAge || isExpanded) &&
 									count > 0 &&
-									renderIndividualRows(group.id, true)}
-
-								{/* Non-perPerson groups: collapsible names panel */}
-								{!group.perPerson && isExpanded && count > 0 && (
-									<div className="mb-3 flex flex-col gap-3 pl-1">
-										<div className="flex items-center gap-3">
-											<span className="w-16 shrink-0 text-xs text-wayfare-text-secondary">
-												Names
-											</span>
-											<button
-												type="button"
-												onClick={() => toggleNamedMode(group.id)}
-												className={`rounded-lg border bg-transparent px-2.5 py-1 text-xs font-medium transition-colors ${current?.individuals !== undefined ? "border-wayfare-primary text-wayfare-primary" : "border-wayfare-line text-wayfare-text-secondary"}`}
-											>
-												{current?.individuals !== undefined
-													? "Remove names"
-													: "Add names"}
-											</button>
-										</div>
-										{current?.individuals !== undefined &&
-											renderIndividualRows(group.id, false)}
-									</div>
-								)}
+									renderIndividualRows(group.id)}
 							</div>
 						);
 					})}
 
+					{missingAges && (
+						<p className="mt-3 text-xs text-wayfare-text-secondary">
+							Enter an age for each child, student and named traveller.
+						</p>
+					)}
 					<button
 						type="button"
 						onClick={() => {
 							onChange(draft);
 							setOpen(false);
 						}}
-						className="mt-3 w-full rounded-xl border border-wayfare-line bg-transparent py-2 text-sm font-medium text-wayfare-text transition-colors"
+						disabled={missingAges}
+						className="mt-3 w-full rounded-xl border border-wayfare-line bg-transparent py-2 text-sm font-medium text-wayfare-text transition-colors disabled:cursor-not-allowed disabled:opacity-40"
 					>
 						Done
 					</button>

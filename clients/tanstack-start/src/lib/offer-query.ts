@@ -29,7 +29,12 @@ function patternKey(pattern: TripPattern): string {
 function travelerKey(travelers: TravelerGroup[]): string {
 	return travelers
 		.filter((t) => t.count > 0)
-		.map((t) => `${t.ageGroup}:${t.count}`)
+		.map((t) => {
+			const ages = t.individuals?.map((i) => i.age ?? "").join("/");
+			return ages
+				? `${t.ageGroup}:${t.count}:${ages}`
+				: `${t.ageGroup}:${t.count}`;
+		})
 		.join(",");
 }
 

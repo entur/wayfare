@@ -28,7 +28,7 @@ const pattern = {
 } as TripPattern;
 
 const travelers: TravelerGroup[] = [
-	{ id: "adult", ageGroup: "ADULT", count: 1, minAge: 18 },
+	{ id: "adult", ageGroup: "ADULT", count: 1 },
 ];
 
 describe("buildOfferSearchRequest", () => {
@@ -42,7 +42,6 @@ describe("buildOfferSearchRequest", () => {
 						type: "user_profile",
 						count: 1,
 						ageGroup: "ADULT",
-						minimumAge: 18,
 					},
 				],
 				pattern: [

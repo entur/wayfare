@@ -29,6 +29,7 @@ import {
 	getRecentSearches,
 } from "../lib/recent-searches-storage";
 import { writeSearchSession } from "../lib/search-session";
+import { hasMissingAges } from "../lib/traveler-categories";
 import { writeTripSearchParams } from "../lib/trip-session";
 import type { PlaceReference } from "../types/common";
 import type { OmsaCustomer } from "../types/customer";
@@ -56,7 +57,6 @@ function syncCustomerIntoTravelers(
 			id: "adult",
 			ageGroup: "ADULT" as const,
 			count: 1,
-			minAge: 18,
 			individuals: [customerInd],
 		},
 	];
@@ -228,7 +228,13 @@ function SearchScreen() {
 	}
 
 	const canSearch = useMemo(
-		() => Boolean(state.from && state.to && state.travelers.length > 0),
+		() =>
+			Boolean(
+				state.from &&
+					state.to &&
+					state.travelers.length > 0 &&
+					!hasMissingAges(state.travelers),
+			),
 		[state.from, state.to, state.travelers],
 	);
 

@@ -5,6 +5,7 @@ import {
 	useReducer,
 	useState,
 } from "react";
+import type { TravelerCategory } from "../lib/traveler-categories";
 import type { PlaceReference } from "../types/common";
 
 export interface TravelerIndividual {
@@ -16,17 +17,8 @@ export interface TravelerIndividual {
 
 export interface TravelerGroup {
 	id: string;
-	ageGroup:
-		| "ADULT"
-		| "CHILD"
-		| "YOUTH"
-		| "SENIOR"
-		| "INFANT"
-		| "STUDENT"
-		| "MILITARY";
+	ageGroup: TravelerCategory;
 	count: number;
-	minAge?: number;
-	maxAge?: number;
 	individuals?: TravelerIndividual[];
 }
 
@@ -59,7 +51,7 @@ const defaultState: SearchFormState = {
 	to: null,
 	travelDate: "", // set on client after mount to avoid SSR/hydration mismatch
 	timeMode: "depart",
-	travelers: [{ id: "adult", ageGroup: "ADULT", count: 1, minAge: 18 }],
+	travelers: [{ id: "adult", ageGroup: "ADULT", count: 1 }],
 };
 
 function reducer(state: SearchFormState, action: Action): SearchFormState {
