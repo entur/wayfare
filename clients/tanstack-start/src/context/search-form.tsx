@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useReducer } from "react";
+import {
+	createContext,
+	useContext,
+	useEffect,
+	useReducer,
+	useState,
+} from "react";
+import type { TravelerCategory } from "../lib/traveler-categories";
 import type { PlaceReference } from "../types/common";
 
 export interface TravelerIndividual {
@@ -10,17 +17,8 @@ export interface TravelerIndividual {
 
 export interface TravelerGroup {
 	id: string;
-	ageGroup:
-		| "ADULT"
-		| "CHILD"
-		| "YOUTH"
-		| "SENIOR"
-		| "INFANT"
-		| "STUDENT"
-		| "MILITARY";
+	ageGroup: TravelerCategory;
 	count: number;
-	minAge?: number;
-	maxAge?: number;
 	individuals?: TravelerIndividual[];
 }
 
@@ -35,6 +33,7 @@ interface SearchFormState {
 }
 
 type Action =
+	| { type: "RESTORE"; payload: SearchFormState }
 	| { type: "SET_FROM"; payload: PlaceReference | null }
 	| { type: "SET_TO"; payload: PlaceReference | null }
 	| { type: "SET_TRAVEL_DATE"; payload: string }
@@ -52,11 +51,13 @@ const defaultState: SearchFormState = {
 	to: null,
 	travelDate: "", // set on client after mount to avoid SSR/hydration mismatch
 	timeMode: "depart",
-	travelers: [{ id: "adult", ageGroup: "ADULT", count: 1, minAge: 18 }],
+	travelers: [{ id: "adult", ageGroup: "ADULT", count: 1 }],
 };
 
 function reducer(state: SearchFormState, action: Action): SearchFormState {
 	switch (action.type) {
+		case "RESTORE":
+			return action.payload;
 		case "SET_FROM":
 			return { ...state, from: action.payload };
 		case "SET_TO":
@@ -83,13 +84,38 @@ export function SearchFormProvider({
 	children: React.ReactNode;
 }) {
 	const [state, dispatch] = useReducer(reducer, defaultState);
+	const [restored, setRestored] = useState(false);
+
+	useEffect(() => {
+		try {
+			const saved = window.sessionStorage.getItem("searchForm");
+			if (saved) {
+				const parsed = JSON.parse(saved) as SearchFormState;
+				if (Array.isArray(parsed.travelers)) {
+					dispatch({ type: "RESTORE", payload: parsed });
+				}
+			}
+		} catch {
+			// Ignore an unavailable or invalid saved form.
+		}
+		setRestored(true);
+	}, []);
+
+	useEffect(() => {
+		if (!restored) return;
+		try {
+			window.sessionStorage.setItem("searchForm", JSON.stringify(state));
+		} catch {
+			// Searching still works when session storage is unavailable.
+		}
+	}, [restored, state]);
 
 	// Initialize travelDate on the client to avoid SSR/hydration mismatch
 	useEffect(() => {
-		if (!state.travelDate) {
+		if (restored && !state.travelDate) {
 			dispatch({ type: "SET_TRAVEL_DATE", payload: todayIsoLocal() });
 		}
-	}, [state.travelDate]);
+	}, [restored, state.travelDate]);
 
 	return (
 		<SearchFormContext.Provider value={{ state, dispatch }}>

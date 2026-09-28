@@ -160,7 +160,12 @@ export function toQuickRoute(
 		};
 	}
 	const recent = item as RecentSearch;
-	return { ...recent, isSavedFavorite: false };
+	return {
+		...recent,
+		timeMode: "now",
+		travelDate: new Date().toISOString().slice(0, 16),
+		isSavedFavorite: false,
+	};
 }
 
 export default function QuickRouteSection({

@@ -1,4 +1,4 @@
-import { LeftArrowIcon, RightArrowIcon } from "@entur/icons";
+import { BackArrowIcon, RightArrowIcon } from "@entur/icons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
 import BundleCard, {
@@ -6,12 +6,14 @@ import BundleCard, {
 	type OfferBundle,
 } from "../components/checkout/BundleCard";
 import { JourneyStepper } from "../components/layout/JourneyStepper";
-import { JourneySummary } from "../components/layout/JourneySummary";
 import PageShell from "../components/layout/PageShell";
 import FavoriteToggle from "../components/search/FavoriteToggle";
 import Illustration from "../components/shared/Illustration";
 import Button from "../components/ui/Button";
 import { PurchaseFlowProvider } from "../context/purchase-flow";
+import { formatPrice } from "../lib/format-price";
+import { cheapestCompleteBundles } from "../lib/offer-coverage";
+import { groupBundlesByDuration } from "../lib/offer-durations";
 import { useSelectOffers } from "../hooks/use-purchase";
 import { writePackageSession } from "../lib/package-session";
 import { clearPurchaseOptionsSession } from "../lib/purchase-options-session";
@@ -55,6 +57,20 @@ function LegLabel({ leg, seq }: { leg?: LegInfo; seq: number }) {
 				className="shrink-0 text-wayfare-text-secondary"
 			/>
 			<span className="font-semibold text-wayfare-text">{leg.to}</span>
+		</div>
+	);
+}
+
+function MissingTicketCard() {
+	return (
+		<div className="rounded-xl border-2 border-dashed border-wayfare-line bg-wayfare-surface-strong p-4">
+			<p className="m-0 text-sm font-semibold text-wayfare-text">
+				Ticket not sold by Wayfare
+			</p>
+			<p className="mb-0 mt-1 text-xs text-wayfare-text-secondary">
+				You need a separate ticket for this leg. Check the operator’s website or
+				app to buy one.
+			</p>
 		</div>
 	);
 }
@@ -128,11 +144,25 @@ function OffersScreen() {
 	const [context, setContext] = useState<SearchContext | null>(null);
 	const [continueError, setContinueError] = useState<string | null>(null);
 	const selectOffersMutation = useSelectOffers();
+	const [durationKey, setDurationKey] = useState<string | null>(null);
+	const returnTo = context?.origin === "trips" ? "/trips" : "/";
+	const returnLabel =
+		context?.origin === "trips" ? "Back to trips" : "Back to search";
 
 	useEffect(() => {
 		const session = readSearchSession();
 		setCollection(session.collection);
 		setContext(session.context);
+		const initialBundles = buildBundles(session.collection?.offers ?? []);
+		const legCount =
+			session.context?.legs?.length ??
+			Math.max(0, ...initialBundles.flatMap((b) => b.sequences));
+		const first = groupBundlesByDuration(initialBundles)[0];
+		if (first) {
+			setDurationKey(first.key);
+			const complete = cheapestCompleteBundles(first.bundles, legCount);
+			if (complete) setSelectedKeys(new Set(complete.map((b) => b.groupKey)));
+		}
 		setHydrated(true);
 	}, []);
 
@@ -141,26 +171,52 @@ function OffersScreen() {
 		...(context?.travellers ?? []),
 	];
 	const bundles: OfferBundle[] = buildBundles(collection?.offers ?? []);
+	const durationGroups = groupBundlesByDuration(bundles);
+	const activeGroup =
+		durationGroups.find((g) => g.key === durationKey) ?? durationGroups[0];
+	const visibleBundles = activeGroup?.bundles ?? [];
 
-	const allSequences = [...new Set(bundles.flatMap((b) => b.sequences))].sort(
-		(a, b) => a - b,
+	const offeredSequences = [
+		...new Set(bundles.flatMap((b) => b.sequences)),
+	].sort((a, b) => a - b);
+	const allSequences = context?.legs?.length
+		? context.legs.map((_, index) => index + 1)
+		: offeredSequences;
+	const missingSequences = allSequences.filter(
+		(seq) => !offeredSequences.includes(seq),
 	);
+	const hasMissingLegs = missingSequences.length > 0;
 	const isMultiLeg = allSequences.length > 1;
 
 	const fullBundles = isMultiLeg
-		? bundles.filter((b) => allSequences.every((s) => b.sequences.includes(s)))
-		: bundles;
+		? visibleBundles.filter((b) =>
+				allSequences.every((s) => b.sequences.includes(s)),
+			)
+		: visibleBundles;
 
 	const perSeqMap = new Map<number, OfferBundle[]>();
 	if (isMultiLeg) {
-		const partial = bundles.filter((b) => !fullBundles.includes(b));
+		const partial = visibleBundles.filter((b) => !fullBundles.includes(b));
 		for (const seq of allSequences) {
 			const seqBundles = partial.filter((b) => b.sequences.includes(seq));
 			if (seqBundles.length > 0) perSeqMap.set(seq, seqBundles);
 		}
 	}
 
-	const showSections = isMultiLeg && perSeqMap.size > 0;
+	const showSections = isMultiLeg && (perSeqMap.size > 0 || hasMissingLegs);
+	const onlyCompleteChoice =
+		!hasMissingLegs &&
+		visibleBundles.length > 0 &&
+		selectedKeys.size === visibleBundles.length;
+
+	const cheapestForGroup = cheapestCompleteBundles(
+		visibleBundles,
+		allSequences.length,
+	);
+	const cheapestSelected =
+		!!cheapestForGroup &&
+		cheapestForGroup.length === selectedKeys.size &&
+		cheapestForGroup.every((b) => selectedKeys.has(b.groupKey));
 
 	// Use the offer collection as the source of truth for coverage.
 	const allTravellerIds = [
@@ -178,18 +234,12 @@ function OffersScreen() {
 	const canContinue =
 		allTravellerIds.length > 0 &&
 		allTravellerIds.every((t) =>
-			allSequences.every((s) => coverage.get(t)?.has(s)),
+			offeredSequences.every((s) => coverage.get(t)?.has(s)),
 		);
 
-	const selectedOffers = bundles
-		.filter((b) => selectedKeys.has(b.groupKey))
-		.flatMap((b) => b.offers);
-	const continueLabel = "Continue to checkout";
-
-	// Parties that still lack full coverage across all sequences.
 	const uncoveredParties = allParties.filter((p) => {
 		const partySeqs = coverage.get(p.id);
-		return allSequences.some((s) => !partySeqs?.has(s));
+		return offeredSequences.some((s) => !partySeqs?.has(s));
 	});
 
 	function handleToggle(bundle: OfferBundle) {
@@ -207,10 +257,25 @@ function OffersScreen() {
 		});
 	}
 
+	function selectCheapest(group = activeGroup) {
+		const complete = group
+			? cheapestCompleteBundles(group.bundles, allSequences.length)
+			: null;
+		setSelectedKeys(new Set(complete?.map((b) => b.groupKey) ?? []));
+	}
+
+	function handleDurationChange(key: string) {
+		const group = durationGroups.find((g) => g.key === key);
+		setDurationKey(key);
+		selectCheapest(group);
+	}
+
 	async function handleContinue() {
-		const offerIds = selectedOffers
-			.map((o) => o.id)
-			.filter((id): id is string => Boolean(id));
+		const offerIds = bundles
+			.filter((b) => selectedKeys.has(b.groupKey))
+			.flatMap((b) =>
+				b.offers.map((o) => o.id).filter((id): id is string => Boolean(id)),
+			);
 		if (offerIds.length === 0) return;
 		setContinueError(null);
 		clearPurchaseOptionsSession();
@@ -236,10 +301,15 @@ function OffersScreen() {
 		}
 	}
 
-	const partyStr =
-		allParties.length > 0
-			? allParties.map((p) => partyLabel(p)).join(", ")
-			: undefined;
+	const formattedDate = context?.travelDate
+		? new Date(context.travelDate).toLocaleString("no-NO", {
+				weekday: "short",
+				day: "numeric",
+				month: "short",
+				hour: "2-digit",
+				minute: "2-digit",
+			})
+		: null;
 
 	if (!hydrated) {
 		return (
@@ -277,42 +347,123 @@ function OffersScreen() {
 						No travel offers were found for your search.
 					</p>
 					<Link
-						to="/"
+						to={returnTo}
 						className="mt-6 inline-block rounded-xl bg-wayfare-primary px-5 py-2.5 text-sm font-semibold text-white no-underline"
 					>
-						Back to search
+						{returnLabel}
 					</Link>
 				</div>
 			</PageShell>
 		);
 	}
 
-	const { from: contextFrom, to: contextTo } = context ?? {};
-	const rightRail =
-		context && contextFrom && contextTo ? (
-			<div className="flex flex-col gap-3">
-				<JourneySummary
-					variant="rail"
-					from={contextFrom.name ?? contextFrom.placeId}
-					to={contextTo.name ?? contextTo.placeId}
-					startTime={context.pattern?.expectedStartTime ?? context.travelDate}
-					endTime={context.pattern?.expectedEndTime}
-					durationSeconds={context.pattern?.duration}
-					partyLabel={partyStr}
-					onChangeJourney={() => navigate({ to: "/" })}
-				/>
-				<FavoriteToggle from={contextFrom} to={contextTo} variant="text" />
-			</div>
-		) : null;
-
 	return (
 		<PageShell
 			title="Available offers"
-			subtitle={`${bundles.length} option${bundles.length !== 1 ? "s" : ""} found`}
+			subtitle={
+				hasMissingLegs
+					? `${visibleBundles.length} ticket${visibleBundles.length !== 1 ? "s" : ""} available for part of your journey`
+					: onlyCompleteChoice
+						? `${visibleBundles.length} ticket${visibleBundles.length !== 1 ? "s" : ""} cover your journey`
+						: `${visibleBundles.length} option${visibleBundles.length !== 1 ? "s" : ""} found`
+			}
+			contentClassName="mx-auto max-w-xl"
 			stepper={<JourneyStepper />}
-			rightRail={rightRail}
 		>
+			<Button
+				variant="secondary"
+				className="mb-6"
+				onClick={() => navigate({ to: returnTo })}
+			>
+				<BackArrowIcon aria-hidden="true" />
+				{returnLabel}
+			</Button>
 			<div>
+				{context?.from && context.to && (
+					<div className="mb-5 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
+						<div className="flex items-center justify-between gap-2">
+							<div className="flex min-w-0 items-center gap-2">
+								<span className="truncate text-sm font-semibold text-wayfare-text">
+									{context.from.name ?? context.from.placeId}
+								</span>
+								<RightArrowIcon
+									aria-hidden="true"
+									className="shrink-0 text-wayfare-text-secondary"
+								/>
+								<span className="truncate text-sm font-semibold text-wayfare-text">
+									{context.to.name ?? context.to.placeId}
+								</span>
+							</div>
+							<FavoriteToggle from={context.from} to={context.to} />
+						</div>
+						{formattedDate && (
+							<p className="m-0 mt-1 text-xs text-wayfare-text-secondary">
+								{formattedDate}
+							</p>
+						)}
+						{allParties.length > 0 && (
+							<div className="mt-2 flex flex-wrap gap-1.5">
+								{allParties.map((p) => (
+									<span
+										key={p.id}
+										className="inline-flex items-center rounded-full border border-wayfare-line bg-wayfare-bg px-2 py-0.5 text-xs text-wayfare-text-secondary"
+									>
+										{partyLabel(p)}
+									</span>
+								))}
+							</div>
+						)}
+					</div>
+				)}
+
+				{durationGroups.length > 1 && (
+					<div
+						role="tablist"
+						aria-label="Ticket duration"
+						className="mb-4 flex flex-wrap gap-2"
+					>
+						{durationGroups.map((group) => {
+							const active = group.key === activeGroup?.key;
+							return (
+								<button
+									key={group.key}
+									type="button"
+									role="tab"
+									aria-selected={active}
+									onClick={() => handleDurationChange(group.key)}
+									className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${active ? "border-wayfare-primary bg-wayfare-accent-soft text-wayfare-primary" : "border-wayfare-line bg-transparent text-wayfare-text-secondary"}`}
+								>
+									{group.label}
+								</button>
+							);
+						})}
+					</div>
+				)}
+
+				{cheapestForGroup && cheapestForGroup.length > 1 && (
+					<div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4">
+						<div className="min-w-0">
+							<p className="m-0 text-sm font-semibold text-wayfare-text">
+								Cheapest for everyone
+							</p>
+							<p className="m-0 mt-0.5 text-xs text-wayfare-text-secondary">
+								{cheapestForGroup.length} tickets,{" "}
+								{formatPrice(
+									cheapestForGroup.reduce((sum, b) => sum + b.totalPrice, 0),
+									cheapestForGroup[0].currency,
+								)}
+							</p>
+						</div>
+						<Button
+							variant="secondary"
+							disabled={cheapestSelected}
+							onClick={() => selectCheapest()}
+						>
+							{cheapestSelected ? "Selected" : "Select"}
+						</Button>
+					</div>
+				)}
+
 				<div className="flex flex-col gap-3">
 					{showSections && fullBundles.length > 0 && (
 						<SectionLabel>Full journey</SectionLabel>
@@ -329,14 +480,15 @@ function OffersScreen() {
 
 					{showSections && (
 						<>
-							<Divider label="or choose by leg" />
+							{fullBundles.length > 0 && <Divider label="or choose by leg" />}
 							{allSequences.map((seq) => {
 								const legBundles = perSeqMap.get(seq);
-								if (!legBundles?.length) return null;
+								if (!legBundles?.length && !missingSequences.includes(seq))
+									return null;
 								return (
 									<div key={seq} className="flex flex-col gap-3">
 										<LegLabel seq={seq} leg={context?.legs?.[seq - 1]} />
-										{legBundles.map((bundle) => (
+										{legBundles?.map((bundle) => (
 											<BundleCard
 												key={String(bundle.groupKey)}
 												bundle={bundle}
@@ -345,6 +497,7 @@ function OffersScreen() {
 												onSelect={() => handleToggle(bundle)}
 											/>
 										))}
+										{missingSequences.includes(seq) && <MissingTicketCard />}
 									</div>
 								);
 							})}
@@ -365,25 +518,18 @@ function OffersScreen() {
 							{continueError}
 						</p>
 					)}
-					<div className="flex gap-3">
-						<Link
-							to="/"
-							className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-wayfare-line px-5 py-2.5 text-sm font-semibold text-wayfare-text no-underline transition-colors"
-						>
-							<LeftArrowIcon aria-hidden="true" />
-							Back
-						</Link>
-						<Button
-							variant="primary"
-							className="flex-1"
-							disabled={!canContinue || selectOffersMutation.isPending}
-							loading={selectOffersMutation.isPending}
-							onClick={handleContinue}
-						>
-							{continueLabel}
-							<RightArrowIcon aria-hidden="true" />
-						</Button>
-					</div>
+					<Button
+						variant="primary"
+						className="w-full"
+						disabled={!canContinue || selectOffersMutation.isPending}
+						loading={selectOffersMutation.isPending}
+						onClick={handleContinue}
+					>
+						{hasMissingLegs
+							? "Checkout for available tickets"
+							: "Continue to checkout"}
+						<RightArrowIcon aria-hidden="true" />
+					</Button>
 				</div>
 			</div>
 		</PageShell>

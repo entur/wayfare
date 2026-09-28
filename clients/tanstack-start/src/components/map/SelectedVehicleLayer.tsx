@@ -1,4 +1,4 @@
-import MapLibreGL from "maplibre-gl";
+import * as MapLibreGL from "maplibre-gl";
 import { useEffect, useId, useMemo, useState } from "react";
 
 function projectPointOnSegment(

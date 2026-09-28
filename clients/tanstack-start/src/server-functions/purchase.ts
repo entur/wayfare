@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { authMiddleware } from "../server/middleware";
 import { createOmsaClient } from "../server/omsa-client";
 import type {
@@ -9,14 +10,44 @@ import type {
 	ConfirmedPackage,
 	ConfirmPackageRequest,
 	ListAncillariesRequest,
+	PurchaseOffersInputs,
 	PurchaseOffersRequest,
 	PurchasePackageRequest,
+	ReleasePackageRequest,
 	SelectOffersRequest,
+	UpdatedValidity,
+	UpdateValidityRequest,
 } from "../types/purchase";
+import { findCustomerByNumber } from "./customers";
+
+// Checkout's own customer/contact (set when a signed-in profile checks out)
+// always wins; a dev-config default only fills in for an otherwise-anonymous
+// purchase, so leaving the defaults unset behaves exactly like today's guest
+// checkout. OMSA requires contact.id to accompany customer.id, so a contact
+// (from either source) is only resolved once a customer is present.
+export async function resolvePurchaseCustomerAndContact(
+	inputs: PurchaseOffersInputs,
+	devConfig: DevConfigOverrides | undefined,
+): Promise<Pick<PurchaseOffersInputs, "customer" | "contact">> {
+	const customer =
+		inputs.customer ??
+		(devConfig?.customerNumber
+			? await findCustomerByNumber(devConfig.customerNumber, devConfig)
+			: undefined);
+
+	const contact = customer
+		? (inputs.contact ??
+			(devConfig?.contactCustomerNumber
+				? await findCustomerByNumber(devConfig.contactCustomerNumber, devConfig)
+				: undefined))
+		: undefined;
+
+	return { customer, contact };
+}
 
 export const selectOffers = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: SelectOffersRequest) => data)
+	.validator((data: SelectOffersRequest) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		const body: SelectOffersRequest = {
@@ -36,6 +67,13 @@ export const purchaseOffers = createServerFn({ method: "POST" })
 		const omsa = createOmsaClient(context.devConfig);
 		const body: PurchaseOffersRequest = {
 			...data,
+			inputs: {
+				...data.inputs,
+				...(await resolvePurchaseCustomerAndContact(
+					data.inputs,
+					context.devConfig,
+				)),
+			},
 			subscriber: { successUri: "https://example.com" },
 		};
 		return omsa.post<ConfirmedPackage>(
@@ -46,7 +84,7 @@ export const purchaseOffers = createServerFn({ method: "POST" })
 
 export const purchasePackage = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: PurchasePackageRequest) => data)
+	.validator((data: PurchasePackageRequest) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.post<ConfirmedPackage>(
@@ -68,7 +106,7 @@ export const confirmPackage = createServerFn({ method: "POST" })
 
 export const listAncillaries = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((data: ListAncillariesRequest) => data)
+	.validator((data: ListAncillariesRequest) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.get<AncillaryCollection>("/collections/ancillaries/items", {
@@ -81,7 +119,7 @@ export const listAncillaries = createServerFn({ method: "GET" })
 
 export const assignAncillary = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: AssignAncillaryRequest) => data)
+	.validator((data: AssignAncillaryRequest) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.post<ConfirmedPackage>(
@@ -101,6 +139,20 @@ export const cancelPackage = createServerFn({ method: "POST" })
 		);
 	});
 
+// Releases the holds of a package that was never paid for. OMSA also drops the
+// package at its expiryTime, so this only needs calling when we know the user
+// abandoned the purchase.
+export const releasePackage = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator((data: ReleasePackageRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.post<ConfirmedPackage>(
+			"/processes/release-package/execute",
+			data,
+		);
+	});
+
 export const claimRefund = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.validator((data: ClaimRefundRequest) => data)
@@ -108,6 +160,30 @@ export const claimRefund = createServerFn({ method: "POST" })
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.post<{ status?: string }>(
 			"/processes/claim-refund-option/execute",
+			data,
+		);
+	});
+
+// Optional today (claiming already refunds), but OMSA asks clients to confirm
+// so it can start validating at confirm time without breaking them.
+export const confirmRefund = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator((data: ClaimRefundRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.post<ConfirmedPackage>(
+			"/processes/confirm-refund-option/execute",
+			data,
+		);
+	});
+
+export const updateTravelDocumentValidity = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator((data: UpdateValidityRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.post<UpdatedValidity>(
+			"/processes/update-travel-document-validity/execute",
 			data,
 		);
 	});

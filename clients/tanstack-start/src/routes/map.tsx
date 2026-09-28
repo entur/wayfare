@@ -3,7 +3,7 @@ import {
 	createFileRoute,
 	useNavigate,
 } from "@tanstack/react-router";
-import type MapLibreGL from "maplibre-gl";
+import type * as MapLibreGL from "maplibre-gl";
 import {
 	useCallback,
 	useEffect,

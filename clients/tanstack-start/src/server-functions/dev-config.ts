@@ -45,7 +45,7 @@ export const getResolvedDevConfig = createServerFn({ method: "GET" })
 			effectiveSalesBaseUrl: config.salesBaseUrl,
 			effectiveJourneyPlannerUrl: config.journeyPlannerUrl,
 			effectiveGeocoderUrl: config.geocoderUrl,
-			clientFingerprint: fingerprintClientId(config.clientId),
+			clientFingerprint: await fingerprintClientId(config.clientId),
 			overridesEnabled,
 			allowedEnvModes: overridesEnabled ? ALL_ENV_MODES : [config.mode],
 			enturLoginEnabled: isEnturLoginRequired(),

@@ -22,7 +22,7 @@ import type { Offer } from "../types/search";
 export const Route = createFileRoute("/products")({ component: ProductsPage });
 
 const DEFAULT_TRAVELERS: TravelerGroup[] = [
-	{ id: "adult", ageGroup: "ADULT", count: 1, minAge: 18 },
+	{ id: "adult", ageGroup: "ADULT", count: 1 },
 ];
 
 function offerName(offer: Offer): string {
@@ -109,6 +109,7 @@ function ProductList({ operator }: { operator: Operator }) {
 		if (!selectedId || !data) return;
 		// Checkout reads the collection from the search session.
 		writeSearchSession(data, {
+			origin: "products",
 			authority: operator.code,
 			travelDate: new Date().toISOString(),
 		});

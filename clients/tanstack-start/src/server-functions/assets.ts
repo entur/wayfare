@@ -76,7 +76,7 @@ export async function fetchAllPages(
 
 export const listAssets = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator(
+	.validator(
 		(data: { packageId: string; serviceJourney: string; carriage?: string }) =>
 			data,
 	)
@@ -97,7 +97,7 @@ export const listAssets = createServerFn({ method: "GET" })
 
 export const getSeatmapImage = createServerFn({ method: "GET" })
 	.middleware([authMiddleware])
-	.inputValidator((data: { href: string }) => data)
+	.validator((data: { href: string }) => data)
 	.handler(async ({ data, context }) => {
 		const config = getRuntimeConfig(context.devConfig);
 		const url = new URL(data.href, config.omsaBaseUrl);
@@ -145,7 +145,7 @@ export const getSeatmapImage = createServerFn({ method: "GET" })
 
 export const assignAsset = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
-	.inputValidator((data: AssignAssetRequest) => data)
+	.validator((data: AssignAssetRequest) => data)
 	.handler(async ({ data, context }) => {
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.post<ConfirmedPackage>("/processes/assign-asset/execute", data);

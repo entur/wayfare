@@ -1,41 +1,45 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { JourneyStepper } from "../../components/layout/JourneyStepper";
-import PageShell from "../../components/layout/PageShell";
+import PageShell from "../../../components/layout/PageShell";
 import {
 	JourneyLegLabels,
 	JourneyStopMarkers,
 	MapView,
 	SelectedJourneyLayer,
-} from "../../components/map";
-import Illustration from "../../components/shared/Illustration";
-import SituationBanner from "../../components/situations/SituationBanner";
-import DocumentViewer from "../../components/tickets/DocumentViewer";
-import PackageActionsMenu from "../../components/tickets/PackageActionsMenu";
-import PackageContents from "../../components/tickets/PackageContents";
-import { useDevConfig } from "../../context/dev-config";
-import { useProfile } from "../../context/profile";
+} from "../../../components/map";
+import Illustration from "../../../components/shared/Illustration";
+import SituationBanner from "../../../components/situations/SituationBanner";
+import { TicketControl } from "../../../components/tickets/DocumentViewer";
+import PackageContents from "../../../components/tickets/PackageContents";
+import TicketActionsSection from "../../../components/tickets/TicketActionsSection";
+import { useDevConfig } from "../../../context/dev-config";
+import { useProfile } from "../../../context/profile";
 import {
+	useChangeOptions,
 	usePackageItem,
 	useRefundOptions,
 	useTravelDocuments,
-} from "../../hooks/use-documents";
-import { useJourneySituations } from "../../hooks/use-journey-situations";
-import { useCancelPackage, useClaimRefund } from "../../hooks/use-purchase";
-import { isPackageNotFound } from "../../lib/omsa-error";
-import { getPackage, removePackage } from "../../lib/ticket-storage";
+} from "../../../hooks/use-documents";
+import { useJourneySituations } from "../../../hooks/use-journey-situations";
+import { isPackageNotFound } from "../../../lib/omsa-error";
+import { summarizeRefundOptions } from "../../../lib/refund-options";
+import { getTicketActions } from "../../../lib/ticket-actions";
+import { getPackage, removePackage } from "../../../lib/ticket-storage";
+import { groupTravelDocuments } from "../../../lib/travel-documents";
 import {
 	formatZoneList,
 	getEffectiveZones,
 	sortFareZones,
-} from "../../lib/zone-utils";
+} from "../../../lib/zone-utils";
 import type {
 	StoredPackage,
 	TravelDocumentProperties,
-} from "../../types/documents";
+} from "../../../types/documents";
 
-export const Route = createFileRoute("/tickets/$packageId")({
+export const Route = createFileRoute("/tickets/$packageId/")({
 	component: TicketDetailPage,
+	validateSearch: (search: Record<string, unknown>): { control?: string } =>
+		typeof search.control === "string" ? { control: search.control } : {},
 });
 
 function isDocExpired(
@@ -49,6 +53,7 @@ function isDocExpired(
 
 function TicketDetailPage() {
 	const { packageId } = Route.useParams();
+	const { control } = Route.useSearch();
 	const navigate = useNavigate();
 	const { clientFingerprint } = useDevConfig();
 	const { customer } = useProfile();
@@ -92,8 +97,7 @@ function TicketDetailPage() {
 	const { data: docCollection, isLoading: docsLoading } =
 		useTravelDocuments(packageId);
 	const { data: refundCollection } = useRefundOptions(packageId);
-	const cancelMutation = useCancelPackage();
-	const claimRefundMutation = useClaimRefund();
+	const { data: changeCollection } = useChangeOptions(packageId);
 
 	// Collect serviceJourney ids from the stored pattern (may be undefined until
 	// the effect above runs). useJourneySituations is disabled when ids is empty.
@@ -103,21 +107,6 @@ function TicketDetailPage() {
 			.filter((id): id is string => !!id) ?? [];
 	const { data: journeySituations = [] } =
 		useJourneySituations(serviceJourneyIds);
-
-	async function handleCancel() {
-		if (!confirm("Are you sure you want to cancel this ticket?")) return;
-		await cancelMutation.mutateAsync({
-			inputs: { type: "package_input", packageId },
-		});
-		removePackage(packageId);
-		navigate({ to: "/tickets" });
-	}
-
-	async function handleClaimRefund(optionId: string) {
-		await claimRefundMutation.mutateAsync({
-			inputs: { type: "claim_refund_option", optionId },
-		});
-	}
 
 	if (isPackageNotFound(packageError)) {
 		return (
@@ -167,8 +156,20 @@ function TicketDetailPage() {
 	}
 
 	const documents = docCollection?.travelDocuments ?? [];
-	const refundOptions = refundCollection?.options ?? [];
+	const documentGroups = groupTravelDocuments(documents);
+	const selectedDocument = documentGroups.find(
+		(group) => group.key === control,
+	);
+	const refundOptions = summarizeRefundOptions(
+		refundCollection?.options ?? [],
+		packageItem?.offers ?? [],
+	);
 	const now = new Date();
+	const { movableDocuments, canCancel } = getTicketActions(
+		changeCollection?.options ?? [],
+		documents,
+		now,
+	);
 
 	const itemProps = packageItem?.properties;
 	// The package-item endpoint doesn't return place names, only the route
@@ -215,21 +216,14 @@ function TicketDetailPage() {
 		});
 
 	return (
-		<PageShell title="Ticket details" stepper={<JourneyStepper />}>
-			<div className="mb-6 flex items-center justify-between gap-3">
+		<PageShell title="Ticket details">
+			<div className="mb-6">
 				<Link
 					to="/tickets"
 					className="inline-block text-sm font-medium text-wayfare-text-secondary no-underline"
 				>
 					← My tickets
 				</Link>
-				<PackageActionsMenu
-					refundOptions={refundOptions}
-					onClaimRefund={handleClaimRefund}
-					claimingRefund={claimRefundMutation.isPending}
-					onCancel={handleCancel}
-					cancelling={cancelMutation.isPending}
-				/>
 			</div>
 
 			<div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-start">
@@ -339,16 +333,27 @@ function TicketDetailPage() {
 							</div>
 						</div>
 					</div>
-
-					<PackageContents offers={packageItem?.offers ?? []} />
+					<TicketActionsSection
+						packageId={packageId}
+						movableDocuments={movableDocuments}
+						refundOptions={refundOptions}
+						canCancel={canCancel}
+					/>
 				</div>
 
-				<div style={{ opacity: isExpired ? 0.6 : undefined }}>
-					{docsLoading ? (
-						<p className="text-sm text-wayfare-text-secondary">Loading…</p>
-					) : (
-						<DocumentViewer documents={documents} />
-					)}
+				<div className="flex flex-col gap-4">
+					<PackageContents
+						offers={packageItem?.offers ?? []}
+						documents={documents}
+						documentsLoading={docsLoading}
+						onOpenDocument={(key) =>
+							navigate({
+								to: "/tickets/$packageId",
+								params: { packageId },
+								search: { control: key },
+							})
+						}
+					/>
 				</div>
 			</div>
 
@@ -370,6 +375,21 @@ function TicketDetailPage() {
 						</MapView>
 					</div>
 				</div>
+			)}
+			{selectedDocument && (
+				<TicketControl
+					group={selectedDocument}
+					title={
+						from && to ? `${from} – ${to}` : (productName ?? "Travel ticket")
+					}
+					onClose={() =>
+						navigate({
+							to: "/tickets/$packageId",
+							params: { packageId },
+							search: {},
+						})
+					}
+				/>
 			)}
 		</PageShell>
 	);

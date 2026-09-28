@@ -158,7 +158,7 @@ export function sanitizeReturnTo(value: string | null): string {
 	return value;
 }
 
-function noStoreHeaders(initial?: HeadersInit): Headers {
+export function noStoreHeaders(initial?: HeadersInit): Headers {
 	const headers = new Headers(initial);
 	headers.set("cache-control", "no-store");
 	headers.set("pragma", "no-cache");
@@ -192,26 +192,52 @@ export async function startLogin(request: Request): Promise<Response> {
 }
 
 function loginErrorResponse(): Response {
-	return new Response("Login could not be completed. Please try again.", {
-		status: 400,
-		headers: noStoreHeaders({ "content-type": "text/plain; charset=utf-8" }),
+	return new Response(null, {
+		status: 302,
+		headers: noStoreHeaders({ location: "/access-denied?reason=login-failed" }),
 	});
 }
 
 function logLoginFailure(reason: string, error?: unknown): void {
-	console.warn(`[auth] ${reason}`, {
+	const details: Record<string, unknown> = {
 		errorType: error instanceof Error ? error.name : typeof error,
-	});
+	};
+	if (error instanceof Error) {
+		details.message = error.message;
+		const code = (error as { code?: unknown }).code;
+		if (typeof code === "string") details.code = code;
+		// SDK API errors (TokenByCodeError, etc.) attach the raw OAuth2 error here.
+		const cause = (error as { cause?: unknown }).cause;
+		if (cause && typeof cause === "object") {
+			const { error: oauthError, error_description: oauthErrorDescription } =
+				cause as { error?: unknown; error_description?: unknown };
+			if (typeof oauthError === "string") details.oauthError = oauthError;
+			if (typeof oauthErrorDescription === "string") {
+				details.oauthErrorDescription = oauthErrorDescription;
+			}
+		}
+	}
+	console.warn(`[auth] ${reason}`, details);
 }
 
 export async function handleCallback(request: Request): Promise<Response> {
 	const responseHeaders = noStoreHeaders();
 	try {
+		// request.url carries the scheme srvx sees on the raw socket, which is
+		// plain http behind the TLS-terminating ingress. The SDK derives the
+		// redirect_uri for the token exchange from this URL's origin, and it
+		// must match the https redirect_uri sent to /authorize (via
+		// buildPublicUrl below), so rebuild it against PUBLIC_ORIGIN instead of
+		// trusting the request's own origin.
+		const incomingUrl = new URL(request.url);
+		const callbackUrl = buildPublicUrl(
+			incomingUrl.pathname + incomingUrl.search,
+		);
 		const { appState } =
-			await getServerClient().completeInteractiveLogin<AppState>(
-				new URL(request.url),
-				{ request, responseHeaders },
-			);
+			await getServerClient().completeInteractiveLogin<AppState>(callbackUrl, {
+				request,
+				responseHeaders,
+			});
 		const returnTo = sanitizeReturnTo(appState?.returnTo ?? null);
 		responseHeaders.set("location", buildPublicUrl(returnTo).toString());
 		return new Response(null, { status: 302, headers: responseHeaders });

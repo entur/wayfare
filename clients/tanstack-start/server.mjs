@@ -2,7 +2,7 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "srvx";
-import { serveStatic } from "srvx/static";
+import { staticMiddleware } from "srvx/static";
 // Runs .ts sources directly via Node's built-in type stripping (default
 // since Node 23.6; this image pins Node 24) -- only erasable syntax here,
 // no enums/decorators, so no build step is needed for these files.
@@ -16,6 +16,49 @@ import {
 
 process.env.NODE_ENV ??= "production";
 
+// When a browser or upstream proxy hangs up mid-response, the SSR stack throws
+// "aborted"/ECONNRESET. Nobody is waiting for the response any more, so these
+// are not actionable, but the framework logs each unhandled error verbatim and
+// floods ERROR logs. Recognise them (walking the cause chain) so we can drop
+// the noise while still surfacing genuine failures.
+function isClientAbortError(error) {
+	const abortCodes = new Set([
+		"ECONNRESET",
+		"ERR_STREAM_PREMATURE_CLOSE",
+		"ABORT_ERR",
+	]);
+	const seen = new Set();
+	let current = error;
+	while (current && typeof current === "object" && !seen.has(current)) {
+		seen.add(current);
+		if (typeof current.code === "string" && abortCodes.has(current.code)) {
+			return true;
+		}
+		if (current.name === "AbortError") {
+			return true;
+		}
+		if (
+			typeof current.message === "string" &&
+			/\baborted\b/i.test(current.message)
+		) {
+			return true;
+		}
+		current = current.cause;
+	}
+	return false;
+}
+
+// The framework reports unhandled request errors with a bare
+// console.error(error). Swallow the client-abort ones; every other call (real
+// errors, our own prefixed logs, multi-arg calls) passes through untouched.
+const baseConsoleError = console.error.bind(console);
+console.error = (...args) => {
+	if (args.length === 1 && isClientAbortError(args[0])) {
+		return;
+	}
+	baseConsoleError(...args);
+};
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const clientDir = join(__dirname, "dist/client");
 
@@ -23,13 +66,17 @@ const { default: serverEntry } = await import(
 	join(__dirname, "dist/server/server.js")
 );
 
-const serveClientAssets = serveStatic({ dir: clientDir });
+const serveClientAssets = staticMiddleware({ dir: clientDir });
 
 await initializeAccessGate();
 
-async function withAssetCaching(request, next) {
-	const response = await serveClientAssets(request, next);
-	if (new URL(request.url).pathname.startsWith("/assets/")) {
+// Static files (JS/CSS bundles, favicons, illustrations) are public and must
+// not depend on the current session having wayfare.web access -- the
+// access-denied page needs its own assets to render for a session that just
+// failed that check. Returns null when the path isn't a static file.
+async function serveStaticAsset(request) {
+	const response = await serveClientAssets(request, () => null);
+	if (response && new URL(request.url).pathname.startsWith("/assets/")) {
 		response.headers.set("cache-control", "public, max-age=31536000, immutable");
 	}
 	return response;
@@ -62,6 +109,9 @@ serve({
 				);
 			}
 
+			const staticResponse = await serveStaticAsset(request);
+			if (staticResponse) return staticResponse;
+
 			let authResponseHeaders;
 			if (isEnturLoginRequired()) {
 				const authRouteResponse = await handleAuthRoutes(request);
@@ -72,9 +122,7 @@ serve({
 				if (denied) return denied;
 			}
 
-			const response = await withAssetCaching(request, () =>
-				serverEntry.fetch(request),
-			);
+			const response = await serverEntry.fetch(request);
 			// The gate may have refreshed the session (e.g. rotated an expiring
 			// token) while authorizing this request -- carry those Set-Cookie
 			// headers onto the response the SSR handler produced.
@@ -83,12 +131,16 @@ serve({
 					response.headers.append("set-cookie", cookie);
 				}
 			}
-			if (isEnturLoginRequired() && !pathname.startsWith("/assets/")) {
+			// Static assets already returned above, so anything reaching here is
+			// an SSR document response.
+			if (isEnturLoginRequired()) {
 				response.headers.set("cache-control", "no-store");
 			}
 			return response;
 		} catch (error) {
-			console.error("[server] unhandled request error:", error);
+			if (!isClientAbortError(error)) {
+				console.error("[server] unhandled request error:", error);
+			}
 			return new Response("Internal Server Error", {
 				status: 500,
 				headers: isEnturLoginRequired()

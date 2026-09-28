@@ -1,7 +1,7 @@
-# React Native and reisefrihet local development
+# React Native and Fastify local development
 
-The rider prototype has three parts: reisefrihet, the Fastify BFF in
-`bffs/reisefrihet-fastify`, and the Expo app in `clients/react-native`.
+The mobile setup has three parts: reisefrihet, the Fastify BFF in
+`bffs/fastify`, and the Expo app in `clients/react-native`.
 reisefrihet remains authoritative for rider profiles, journey state, history,
 and failed payments. The BFF holds OAuth credentials and converts Kotlin
 objects into a small mobile contract.
@@ -12,7 +12,7 @@ This setup does not require a local reisefrihet process. Authenticate with
 gcloud, then run:
 
 ```sh
-cd bffs/reisefrihet-fastify
+cd bffs/fastify
 pnpm install
 gcloud auth login
 pnpm dev:staging
@@ -38,7 +38,7 @@ Springdoc contract must be available at `/v3/api-docs`. The BFF defaults to
 ## 2. Start the BFF
 
 ```sh
-cd bffs/reisefrihet-fastify
+cd bffs/fastify
 cp .env.example .env
 pnpm install
 pnpm dev
@@ -85,7 +85,7 @@ The BFF generates downstream types from
 types after a Reisefrihet contract change:
 
 ```sh
-cd bffs/reisefrihet-fastify
+cd bffs/fastify
 pnpm contract:generate
 pnpm openapi:generate
 pnpm check

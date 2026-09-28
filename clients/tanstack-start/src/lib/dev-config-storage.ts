@@ -18,6 +18,10 @@ export interface DevConfigOverrides {
 	clientName?: string;
 	pos?: string;
 	recommendationControl?: RecommendationControlOverride;
+	/** Entur customer number attached as the purchase's `customer`, when checkout itself didn't supply one. */
+	customerNumber?: string;
+	/** Entur customer number attached as the purchase's `contact`. Only sent when a customer (from here or checkout) is also present. */
+	contactCustomerNumber?: string;
 }
 
 const STORAGE_KEY = "wayfare_dev_config";
@@ -64,6 +68,14 @@ export function sanitizeDevConfigOverrides(raw: unknown): DevConfigOverrides {
 
 	const pos = sanitizeToken(input.pos);
 	if (pos) cleaned.pos = pos;
+
+	const customerNumber = sanitizeToken(input.customerNumber);
+	if (customerNumber) cleaned.customerNumber = customerNumber;
+
+	const contactCustomerNumber = sanitizeToken(input.contactCustomerNumber);
+	if (contactCustomerNumber) {
+		cleaned.contactCustomerNumber = contactCustomerNumber;
+	}
 
 	if (
 		typeof input.recommendationControl === "object" &&

@@ -1,4 +1,5 @@
 import { AmericanExpressIcon, MastercardIcon, VisaIcon } from "@entur/icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useProfile } from "../../context/profile";
 import { useUpdateCustomer } from "../../hooks/use-customers";
@@ -129,7 +130,7 @@ function GuestPaymentPrefsForm() {
 interface VippsPhoneEditorProps {
 	customerId: string;
 	currentPhone: string | undefined;
-	onSaved: (phone: string) => void;
+	onSaved: () => void;
 }
 
 function VippsPhoneEditor({
@@ -145,7 +146,7 @@ function VippsPhoneEditor({
 		const trimmed = phone.trim();
 		if (!trimmed) return;
 		await updateCustomer.mutateAsync({ phoneNumber: trimmed });
-		onSaved(trimmed);
+		onSaved();
 		setEditing(false);
 	}
 
@@ -290,7 +291,8 @@ function SignedInPaymentMethods({
 	pendingCardId,
 	onCardAuthorized,
 }: SignedInPaymentMethodsProps) {
-	const { customer, signIn } = useProfile();
+	const { customer } = useProfile();
+	const queryClient = useQueryClient();
 	const customerId = customer?.id ?? "";
 	const customerNumber = customer?.customerNumber;
 
@@ -442,8 +444,8 @@ function SignedInPaymentMethods({
 							</Button>
 							{!customerNumber && (
 								<p className="mt-1 text-sm text-wayfare-text-secondary">
-									Customer number missing — sign out and sign in again to manage
-									saved cards.
+									Customer number missing — check the customer number in
+									Developer settings.
 								</p>
 							)}
 						</div>
@@ -456,8 +458,8 @@ function SignedInPaymentMethods({
 				<VippsPhoneEditor
 					customerId={customerId}
 					currentPhone={phone}
-					onSaved={(newPhone) => {
-						if (customer) signIn({ ...customer, phoneNumber: newPhone });
+					onSaved={() => {
+						queryClient.invalidateQueries({ queryKey: ["active-customer"] });
 					}}
 				/>
 			</section>

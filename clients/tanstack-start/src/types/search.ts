@@ -156,6 +156,15 @@ export interface OfferAncillary {
 	links?: Link[];
 }
 
+/** Not in the OMSA spec yet; typed from live search-offers responses. */
+export interface UsageValidityPeriod {
+	id?: string;
+	type?: "usage_validity_period";
+	validityPeriodType?: string;
+	/** ISO 8601 duration, e.g. "PT720H". */
+	standardDuration?: string;
+}
+
 export interface TravellerMapping {
 	travellerIds: string[];
 	minNumberOfTravellers?: number;
@@ -213,6 +222,7 @@ export interface OfferProperties {
 	price?: AmountOfMoney;
 	expiryTime?: string;
 	summary?: OfferSummary;
+	usageValidityPeriods?: UsageValidityPeriod[];
 }
 
 export interface Offer {

@@ -44,7 +44,7 @@ export default function MobileTabBar() {
 			</Link>
 			<Link
 				to="/settings"
-				search={{ tab: "profile", pendingCardId: undefined }}
+				search={{ tab: "developer", pendingCardId: undefined }}
 				className={tabClass(settingsActive)}
 			>
 				<span className="flex items-center" aria-hidden="true">

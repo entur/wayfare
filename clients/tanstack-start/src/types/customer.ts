@@ -40,11 +40,3 @@ export function normalizeCustomerCollection(
 		customers: raw.customers?.map(normalizeCustomer),
 	};
 }
-
-export interface CustomerSearchParams {
-	customerId?: string;
-	firstName?: string;
-	lastName?: string;
-	email?: string;
-	phoneNumber?: string;
-}

@@ -1,18 +1,18 @@
 {
   "expo": {
     "name": "Wayfare",
-    "slug": "wayfare-reisefrihet",
+    "slug": "wayfare",
     "scheme": "wayfare",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "icon": "../flutter/assets/wayfare_launcher_icon_512x512.png",
     "ios": {
-      "bundleIdentifier": "no.entur.wayfare.reisefrihet",
+      "bundleIdentifier": "no.entur.wayfare",
       "supportsTablet": false
     },
     "android": {
-      "package": "no.entur.wayfare.reisefrihet",
+      "package": "no.entur.wayfare",
       "predictiveBackGestureEnabled": true
     },
     "web": {

@@ -6,7 +6,7 @@ import {
 } from "./offer-query";
 
 const ONE_ADULT: TravelerGroup[] = [
-	{ id: "adult", ageGroup: "ADULT", count: 1, minAge: 18 },
+	{ id: "adult", ageGroup: "ADULT", count: 1 },
 ];
 
 describe("buildAuthorityOfferSearchRequest", () => {

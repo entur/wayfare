@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import MapLibreGL, { type MarkerOptions, type PopupOptions } from "maplibre-gl";
+import * as MapLibreGL from "maplibre-gl";
 import {
 	createContext,
 	type ReactNode,
@@ -47,7 +47,7 @@ type MapMarkerProps = {
 	onDrag?: (lngLat: { lng: number; lat: number }) => void;
 	/** Callback when marker drag ends (requires draggable: true) */
 	onDragEnd?: (lngLat: { lng: number; lat: number }) => void;
-} & Omit<MarkerOptions, "element">;
+} & Omit<MapLibreGL.MarkerOptions, "element">;
 
 function MapMarker({
 	longitude,
@@ -216,7 +216,7 @@ type MarkerPopupProps = {
 	closeButton?: boolean;
 	/** Open the popup on hover instead of click (default: false) */
 	openOnHover?: boolean;
-} & Omit<PopupOptions, "className" | "closeButton">;
+} & Omit<MapLibreGL.PopupOptions, "className" | "closeButton">;
 
 function MarkerPopup({
 	children,
@@ -304,7 +304,7 @@ type MarkerTooltipProps = {
 	children: ReactNode;
 	/** Additional CSS classes for the tooltip container */
 	className?: string;
-} & Omit<PopupOptions, "className" | "closeButton" | "closeOnClick">;
+} & Omit<MapLibreGL.PopupOptions, "className" | "closeButton" | "closeOnClick">;
 
 function MarkerTooltip({
 	children,

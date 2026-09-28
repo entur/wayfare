@@ -11,6 +11,9 @@ updates:
       github-actions:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: npm
     directory: /clients/tanstack-start
@@ -26,6 +29,14 @@ updates:
       npm-dependencies:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
+      entur-design-system-majors:
+        patterns:
+          - "@entur/*"
+        update-types:
+          - major
 
   - package-ecosystem: docker
     directory: /clients/tanstack-start
@@ -34,10 +45,17 @@ updates:
       day: monday
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: "node"
+        update-types:
+          - "version-update:semver-major"
     groups:
       tanstack-start-container:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: npm
     directory: /clients/react-native
@@ -49,6 +67,44 @@ updates:
       semver-major-days: 30
       semver-minor-days: 7
       semver-patch-days: 3
+    # Expo SDK packages and React Native versions must move together during a
+    # deliberate SDK migration. Keep routine version updates off this stack.
+    ignore:
+      - dependency-name: "expo*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+      - dependency-name: "@expo/*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+      - dependency-name: "react"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+      - dependency-name: "react-dom"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+      - dependency-name: "react-native*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+      - dependency-name: "@react-native/*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
+      - dependency-name: "@types/react*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+          - "version-update:semver-patch"
     groups:
       react-native-dependencies:
         patterns:
@@ -58,7 +114,7 @@ updates:
           - patch
 
   - package-ecosystem: npm
-    directory: /bffs/reisefrihet-fastify
+    directory: /bffs/fastify
     schedule:
       interval: weekly
       day: monday
@@ -68,7 +124,7 @@ updates:
       semver-minor-days: 7
       semver-patch-days: 3
     groups:
-      reisefrihet-bff-dependencies:
+      fastify-bff-dependencies:
         patterns:
           - "*"
         update-types:
@@ -89,3 +145,6 @@ updates:
       python-dependencies:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch

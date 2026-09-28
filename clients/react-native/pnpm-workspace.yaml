@@ -1,0 +1,16 @@
+packages:
+  - .
+
+allowBuilds:
+  # Native resolver used by eslint-import-resolver-typescript.
+  unrs-resolver: true
+
+overrides:
+  # Expo SDK 57 compatibility pin, not security-related.
+  "@expo/metro-runtime": 57.0.15
+  # GHSA-w5hq-g745-h8pq: missing buffer bounds check in v3/v5/v6 below 11.1.1.
+  "uuid@<11.1.1": 11.1.1
+  # GHSA-52cp-r559-cp3m / GHSA-5p4m-2wfm-xmqj: quadratic CPU consumption below 4.3.1.
+  js-yaml: ">=4.3.1 <5"
+  # GHSA-vcc3-ghjq-m6fr: exponential decoding DoS below 0.5.0.
+  "decode-uri-component@<0.5.0": 0.5.0

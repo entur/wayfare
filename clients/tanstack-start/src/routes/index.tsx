@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import PageShell from "../components/layout/PageShell";
+import ActiveTicketsSection from "../components/search/ActiveTicketsSection";
 import DateTimePicker from "../components/search/DateTimePicker";
 import PlaceSearch from "../components/search/PlaceSearch";
 import QuickActionsRow from "../components/search/QuickActionsRow";
@@ -8,7 +9,7 @@ import QuickRouteSection, {
 	type QuickRoute,
 	toQuickRoute,
 } from "../components/search/QuickRouteSection";
-import RecentPurchasesSection from "../components/search/RecentPurchasesSection";
+import RecentRoutesSection from "../components/search/RecentRoutesSection";
 import TravelerPicker from "../components/search/TravelerPicker";
 import Button from "../components/ui/Button";
 import { useDevConfig } from "../context/dev-config";
@@ -26,9 +27,9 @@ import { toRecommendationControlInput } from "../lib/offer-query";
 import {
 	addRecentSearch,
 	getRecentSearches,
-	removeRecentSearch,
 } from "../lib/recent-searches-storage";
 import { writeSearchSession } from "../lib/search-session";
+import { hasMissingAges } from "../lib/traveler-categories";
 import { writeTripSearchParams } from "../lib/trip-session";
 import type { PlaceReference } from "../types/common";
 import type { OmsaCustomer } from "../types/customer";
@@ -56,7 +57,6 @@ function syncCustomerIntoTravelers(
 			id: "adult",
 			ageGroup: "ADULT" as const,
 			count: 1,
-			minAge: 18,
 			individuals: [customerInd],
 		},
 	];
@@ -110,9 +110,14 @@ function SearchScreen() {
 	const { focus } = Route.useSearch();
 
 	const [favorites, setFavorites] = useState(() => getFavorites());
-	const [recentSearches, setRecentSearches] = useState(() =>
-		getRecentSearches(),
+	const [recentSearches] = useState(() => getRecentSearches());
+	const [showSearchOptions, setShowSearchOptions] = useState(
+		Boolean(state.from && state.to),
 	);
+
+	useEffect(() => {
+		if (state.from && state.to) setShowSearchOptions(true);
+	}, [state.from, state.to]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: state.travelers intentionally omitted — including it causes dispatch→state→effect infinite loop
 	useEffect(() => {
@@ -186,6 +191,7 @@ function SearchScreen() {
 
 		addRecentSearch({ from, to, timeMode, travelDate, travelers });
 		writeSearchSession(result, {
+			origin: "home",
 			from,
 			to,
 			travelDate: travelDateTime,
@@ -216,28 +222,19 @@ function SearchScreen() {
 		runSearch(params);
 	}
 
-	function handleRebook(route: { from: PlaceReference; to: PlaceReference }) {
-		handleQuickSearch({
-			from: route.from as PlaceReference,
-			to: route.to as PlaceReference,
-			timeMode: "now",
-			travelDate: new Date().toISOString().slice(0, 16),
-			travelers: state.travelers,
-		});
-	}
-
 	function handleRemoveFavorite(id: string) {
 		removeFavorite(id);
 		setFavorites(getFavorites());
 	}
 
-	function handleRemoveRecent(id: string) {
-		removeRecentSearch(id);
-		setRecentSearches(getRecentSearches());
-	}
-
 	const canSearch = useMemo(
-		() => Boolean(state.from && state.to && state.travelers.length > 0),
+		() =>
+			Boolean(
+				state.from &&
+					state.to &&
+					state.travelers.length > 0 &&
+					!hasMissingAges(state.travelers),
+			),
 		[state.from, state.to, state.travelers],
 	);
 
@@ -259,6 +256,24 @@ function SearchScreen() {
 			.filter((r) => !favIds.has(`${r.from.placeId}|${r.to.placeId}`))
 			.map((r) => toQuickRoute(r, false, state.travelers));
 	}, [recentSearches, favorites, state.travelers]);
+	const recentFromPlaces = useMemo(
+		() =>
+			Array.from(
+				new Map(
+					recentSearches.map((search) => [search.from.placeId, search.from]),
+				).values(),
+			),
+		[recentSearches],
+	);
+	const recentToPlaces = useMemo(
+		() =>
+			Array.from(
+				new Map(
+					recentSearches.map((search) => [search.to.placeId, search.to]),
+				).values(),
+			),
+		[recentSearches],
+	);
 
 	return (
 		<PageShell
@@ -271,11 +286,12 @@ function SearchScreen() {
 					className="relative z-10 rise-in rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4 sm:p-6"
 				>
 					<div className="flex flex-col gap-4">
-						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_1fr_1fr_10rem] lg:items-end">
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-end">
 							<PlaceSearch
 								label="From"
 								value={state.from}
 								placeholder="Departure"
+								recentPlaces={recentFromPlaces}
 								onChange={(p) => dispatch({ type: "SET_FROM", payload: p })}
 								autoFocus={focus === "from"}
 							/>
@@ -317,46 +333,51 @@ function SearchScreen() {
 								label="To"
 								value={state.to}
 								placeholder="Destination"
+								recentPlaces={recentToPlaces}
 								onChange={(p) => dispatch({ type: "SET_TO", payload: p })}
 								autoFocus={focus === "to"}
 							/>
-
-							<div className="lg:col-span-1">
-								<DateTimePicker
-									label="When"
-									value={state.travelDate}
-									timeMode={state.timeMode}
-									onChange={(v) =>
-										dispatch({ type: "SET_TRAVEL_DATE", payload: v })
-									}
-									onModeChange={(m) =>
-										dispatch({ type: "SET_TIME_MODE", payload: m })
-									}
-								/>
-							</div>
-
-							<div className="lg:col-span-1">
-								<TravelerPicker
-									travelers={state.travelers}
-									onChange={(t) =>
-										dispatch({ type: "SET_TRAVELERS", payload: t })
-									}
-									customer={customer}
-								/>
-							</div>
-
-							<div className="sm:col-span-2 lg:col-span-1">
-								<Button
-									type="submit"
-									variant="primary"
-									fluid
-									disabled={!canSearch}
-									loading={isPending}
-								>
-									Search
-								</Button>
-							</div>
 						</div>
+
+						{showSearchOptions && (
+							<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem] lg:items-end">
+								<div>
+									<DateTimePicker
+										label="When"
+										value={state.travelDate}
+										timeMode={state.timeMode}
+										onChange={(v) =>
+											dispatch({ type: "SET_TRAVEL_DATE", payload: v })
+										}
+										onModeChange={(m) =>
+											dispatch({ type: "SET_TIME_MODE", payload: m })
+										}
+									/>
+								</div>
+
+								<div>
+									<TravelerPicker
+										travelers={state.travelers}
+										onChange={(t) =>
+											dispatch({ type: "SET_TRAVELERS", payload: t })
+										}
+										customer={customer}
+									/>
+								</div>
+
+								<div className="sm:col-span-2 lg:col-span-1">
+									<Button
+										type="submit"
+										variant="primary"
+										fluid
+										disabled={!canSearch}
+										loading={isPending}
+									>
+										Search
+									</Button>
+								</div>
+							</div>
+						)}
 
 						{error && (
 							<p className="rounded-lg bg-wayfare-accent-soft px-3 py-2 text-sm text-wayfare-primary">
@@ -366,8 +387,6 @@ function SearchScreen() {
 					</div>
 				</form>
 
-				<QuickActionsRow />
-
 				<QuickRouteSection
 					title="Favorites"
 					routes={favoriteRoutes}
@@ -376,14 +395,14 @@ function SearchScreen() {
 					onRemove={handleRemoveFavorite}
 				/>
 
-				<QuickRouteSection
-					title="Recent searches"
+				<RecentRoutesSection
 					routes={recentRoutes}
 					onSelect={(r: QuickRoute) => handleQuickSearch(r)}
-					onRemove={handleRemoveRecent}
 				/>
 
-				<RecentPurchasesSection onRebook={handleRebook} />
+				<QuickActionsRow />
+
+				<ActiveTicketsSection />
 			</div>
 		</PageShell>
 	);

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccessDeniedRouteImport } from './routes/access-denied'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as OffersRouteImport } from './routes/offers'
 import { Route as PaymentReturnRouteImport } from './routes/payment-return'
@@ -19,11 +20,19 @@ import { Route as TripsRouteImport } from './routes/trips'
 import { Route as CheckoutOfferIdRouteImport } from './routes/checkout/$offerId'
 import { Route as SeatsOfferIdRouteImport } from './routes/seats/$offerId'
 import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
-import { Route as TicketsPackageIdRouteImport } from './routes/tickets/$packageId'
+import { Route as TicketsPackageIdIndexRouteImport } from './routes/tickets/$packageId/index'
+import { Route as TicketsPackageIdCancelRouteImport } from './routes/tickets/$packageId/cancel'
+import { Route as TicketsPackageIdRefundRouteImport } from './routes/tickets/$packageId/refund'
+import { Route as TicketsPackageIdStartTimeRouteImport } from './routes/tickets/$packageId/start-time'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccessDeniedRoute = AccessDeniedRouteImport.update({
+  id: '/access-denied',
+  path: '/access-denied',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapRoute = MapRouteImport.update({
@@ -71,14 +80,31 @@ const TicketsIndexRoute = TicketsIndexRouteImport.update({
   path: '/tickets/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TicketsPackageIdRoute = TicketsPackageIdRouteImport.update({
-  id: '/tickets/$packageId',
-  path: '/tickets/$packageId',
+const TicketsPackageIdIndexRoute = TicketsPackageIdIndexRouteImport.update({
+  id: '/tickets/$packageId/',
+  path: '/tickets/$packageId/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TicketsPackageIdCancelRoute = TicketsPackageIdCancelRouteImport.update({
+  id: '/tickets/$packageId/cancel',
+  path: '/tickets/$packageId/cancel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketsPackageIdRefundRoute = TicketsPackageIdRefundRouteImport.update({
+  id: '/tickets/$packageId/refund',
+  path: '/tickets/$packageId/refund',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketsPackageIdStartTimeRoute =
+  TicketsPackageIdStartTimeRouteImport.update({
+    id: '/tickets/$packageId/start-time',
+    path: '/tickets/$packageId/start-time',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/access-denied': typeof AccessDeniedRoute
   '/map': typeof MapRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
@@ -87,11 +113,15 @@ export interface FileRoutesByFullPath {
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
   '/seats/$offerId': typeof SeatsOfferIdRoute
-  '/tickets/$packageId': typeof TicketsPackageIdRoute
   '/tickets/': typeof TicketsIndexRoute
+  '/tickets/$packageId/cancel': typeof TicketsPackageIdCancelRoute
+  '/tickets/$packageId/refund': typeof TicketsPackageIdRefundRoute
+  '/tickets/$packageId/start-time': typeof TicketsPackageIdStartTimeRoute
+  '/tickets/$packageId/': typeof TicketsPackageIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/access-denied': typeof AccessDeniedRoute
   '/map': typeof MapRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
@@ -100,12 +130,16 @@ export interface FileRoutesByTo {
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
   '/seats/$offerId': typeof SeatsOfferIdRoute
-  '/tickets/$packageId': typeof TicketsPackageIdRoute
   '/tickets': typeof TicketsIndexRoute
+  '/tickets/$packageId/cancel': typeof TicketsPackageIdCancelRoute
+  '/tickets/$packageId/refund': typeof TicketsPackageIdRefundRoute
+  '/tickets/$packageId/start-time': typeof TicketsPackageIdStartTimeRoute
+  '/tickets/$packageId': typeof TicketsPackageIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/access-denied': typeof AccessDeniedRoute
   '/map': typeof MapRoute
   '/offers': typeof OffersRoute
   '/payment-return': typeof PaymentReturnRoute
@@ -114,13 +148,17 @@ export interface FileRoutesById {
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
   '/seats/$offerId': typeof SeatsOfferIdRoute
-  '/tickets/$packageId': typeof TicketsPackageIdRoute
   '/tickets/': typeof TicketsIndexRoute
+  '/tickets/$packageId/cancel': typeof TicketsPackageIdCancelRoute
+  '/tickets/$packageId/refund': typeof TicketsPackageIdRefundRoute
+  '/tickets/$packageId/start-time': typeof TicketsPackageIdStartTimeRoute
+  '/tickets/$packageId/': typeof TicketsPackageIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/access-denied'
     | '/map'
     | '/offers'
     | '/payment-return'
@@ -129,11 +167,15 @@ export interface FileRouteTypes {
     | '/trips'
     | '/checkout/$offerId'
     | '/seats/$offerId'
-    | '/tickets/$packageId'
     | '/tickets/'
+    | '/tickets/$packageId/cancel'
+    | '/tickets/$packageId/refund'
+    | '/tickets/$packageId/start-time'
+    | '/tickets/$packageId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/access-denied'
     | '/map'
     | '/offers'
     | '/payment-return'
@@ -142,11 +184,15 @@ export interface FileRouteTypes {
     | '/trips'
     | '/checkout/$offerId'
     | '/seats/$offerId'
-    | '/tickets/$packageId'
     | '/tickets'
+    | '/tickets/$packageId/cancel'
+    | '/tickets/$packageId/refund'
+    | '/tickets/$packageId/start-time'
+    | '/tickets/$packageId'
   id:
     | '__root__'
     | '/'
+    | '/access-denied'
     | '/map'
     | '/offers'
     | '/payment-return'
@@ -155,12 +201,16 @@ export interface FileRouteTypes {
     | '/trips'
     | '/checkout/$offerId'
     | '/seats/$offerId'
-    | '/tickets/$packageId'
     | '/tickets/'
+    | '/tickets/$packageId/cancel'
+    | '/tickets/$packageId/refund'
+    | '/tickets/$packageId/start-time'
+    | '/tickets/$packageId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccessDeniedRoute: typeof AccessDeniedRoute
   MapRoute: typeof MapRoute
   OffersRoute: typeof OffersRoute
   PaymentReturnRoute: typeof PaymentReturnRoute
@@ -169,8 +219,11 @@ export interface RootRouteChildren {
   TripsRoute: typeof TripsRoute
   CheckoutOfferIdRoute: typeof CheckoutOfferIdRoute
   SeatsOfferIdRoute: typeof SeatsOfferIdRoute
-  TicketsPackageIdRoute: typeof TicketsPackageIdRoute
   TicketsIndexRoute: typeof TicketsIndexRoute
+  TicketsPackageIdCancelRoute: typeof TicketsPackageIdCancelRoute
+  TicketsPackageIdRefundRoute: typeof TicketsPackageIdRefundRoute
+  TicketsPackageIdStartTimeRoute: typeof TicketsPackageIdStartTimeRoute
+  TicketsPackageIdIndexRoute: typeof TicketsPackageIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -180,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/access-denied': {
+      id: '/access-denied'
+      path: '/access-denied'
+      fullPath: '/access-denied'
+      preLoaderRoute: typeof AccessDeniedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/map': {
@@ -245,11 +305,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TicketsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tickets/$packageId': {
-      id: '/tickets/$packageId'
+    '/tickets/$packageId/': {
+      id: '/tickets/$packageId/'
       path: '/tickets/$packageId'
-      fullPath: '/tickets/$packageId'
-      preLoaderRoute: typeof TicketsPackageIdRouteImport
+      fullPath: '/tickets/$packageId/'
+      preLoaderRoute: typeof TicketsPackageIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets/$packageId/cancel': {
+      id: '/tickets/$packageId/cancel'
+      path: '/tickets/$packageId/cancel'
+      fullPath: '/tickets/$packageId/cancel'
+      preLoaderRoute: typeof TicketsPackageIdCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets/$packageId/refund': {
+      id: '/tickets/$packageId/refund'
+      path: '/tickets/$packageId/refund'
+      fullPath: '/tickets/$packageId/refund'
+      preLoaderRoute: typeof TicketsPackageIdRefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets/$packageId/start-time': {
+      id: '/tickets/$packageId/start-time'
+      path: '/tickets/$packageId/start-time'
+      fullPath: '/tickets/$packageId/start-time'
+      preLoaderRoute: typeof TicketsPackageIdStartTimeRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -257,6 +338,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccessDeniedRoute: AccessDeniedRoute,
   MapRoute: MapRoute,
   OffersRoute: OffersRoute,
   PaymentReturnRoute: PaymentReturnRoute,
@@ -265,8 +347,11 @@ const rootRouteChildren: RootRouteChildren = {
   TripsRoute: TripsRoute,
   CheckoutOfferIdRoute: CheckoutOfferIdRoute,
   SeatsOfferIdRoute: SeatsOfferIdRoute,
-  TicketsPackageIdRoute: TicketsPackageIdRoute,
   TicketsIndexRoute: TicketsIndexRoute,
+  TicketsPackageIdCancelRoute: TicketsPackageIdCancelRoute,
+  TicketsPackageIdRefundRoute: TicketsPackageIdRefundRoute,
+  TicketsPackageIdStartTimeRoute: TicketsPackageIdStartTimeRoute,
+  TicketsPackageIdIndexRoute: TicketsPackageIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

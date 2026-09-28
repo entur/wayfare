@@ -64,7 +64,7 @@ export async function buildApp(
   await app.register(swagger, {
     openapi: {
       info: {
-        title: "Wayfare reisefrihet mobile API",
+        title: "Wayfare mobile API",
         version: "1.0.0",
       },
     },

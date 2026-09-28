@@ -20,9 +20,20 @@ export interface ExternalTicketDocument {
 	travelDocumentType?: string;
 }
 
+/** Placeholder issued before the barcode payload exists. Carries no inspectable content. */
+export interface PendingTicketDocument {
+	type: "pending_ticket";
+	startvalidity: string;
+	endvalidity: string;
+	format?: string;
+	status?: string;
+	travelDocumentType?: string;
+}
+
 export type TravelDocumentProperties =
 	| BinaryTicketDocument
-	| ExternalTicketDocument;
+	| ExternalTicketDocument
+	| PendingTicketDocument;
 
 export interface TravelDocumentItem {
 	id?: string;
@@ -47,7 +58,11 @@ export interface FinancialDetail {
 	amount?: AmountBreakdown;
 	currencyCode?: string;
 	description?: string;
+	/** "REFUND" for money back, "FEE" for what is deducted. */
 	category?: string;
+	/** Id of the package offer this line applies to. */
+	offer?: string;
+	expirationDate?: string;
 }
 
 export interface RefundOption {
@@ -71,10 +86,24 @@ export interface RefundOptionCollection {
 	numberReturned?: number;
 }
 
+export type ChangeType =
+	| "REMOVE_TRAVELLER"
+	| "ADD_TRAVELLER"
+	| "UPDATE_TRAVELLER"
+	| "ASSIGN_ASSET"
+	| "REMOVE_ASSET"
+	| "ASSIGN_ANCILLARY"
+	| "REMOVE_ANCILLARY"
+	| "CANCEL_PACKAGE"
+	| "UPDATE_VALIDITY"
+	| "UPDATE_TRAVEL_SPECIFICATION"
+	| "TRANSFER_TICKET";
+
 export interface ChangeOption {
-	type?: string;
+	type?: "change_option";
 	id?: string;
-	description?: string;
+	changeType?: ChangeType;
+	consequences?: FinancialDetail[];
 }
 
 export interface ChangeOptionItem {

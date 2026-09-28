@@ -1,6 +1,6 @@
-# Wayfare reisefrihet BFF
+# Wayfare Fastify BFF
 
-Fastify backend-for-frontend for the Wayfare React Native prototype. It keeps
+Fastify backend-for-frontend for the Wayfare React Native client. It keeps
 client credentials outside the Expo bundle and exposes only the rider
 operations used by the app.
 

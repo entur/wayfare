@@ -1,4 +1,4 @@
-appId: no.entur.wayfare.reisefrihet
+appId: no.entur.wayfare
 name: Offline rider state
 ---
 - launchApp

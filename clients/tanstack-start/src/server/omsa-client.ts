@@ -1,10 +1,19 @@
-import { inspect } from "node:util";
 import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { getAccessToken } from "./auth";
 import { getRuntimeConfig, type RuntimeConfig } from "./runtime-config";
 
 type RequestLogLevel = "meta" | "headers" | "body";
 type RequestLogFormat = "pretty" | "json";
+
+// Upstream calls run during SSR. Without a ceiling a slow backend keeps the
+// render hanging until the ingress times out and resets the connection, which
+// surfaces to the browser as a 502. Fail fast with a clear error instead so the
+// route can render an error state. Override with OMSA_REQUEST_TIMEOUT_MS.
+const DEFAULT_REQUEST_TIMEOUT_MS = 15_000;
+
+// Response bodies can carry large base64 blobs (ticket QR codes, GIF
+// animations). Cap logged strings so body-level logging can never dump those.
+const MAX_LOGGED_STRING_LENGTH = 512;
 
 function getRequestLogFormat(): RequestLogFormat {
 	const envValue =
@@ -43,7 +52,9 @@ function getRequestLogLevel(): RequestLogLevel {
 		return envValue;
 	}
 
-	return "body";
+	// Default to metadata only. Header/body logging is opt-in via
+	// REQUEST_RESPONSE_LOG_LEVEL, so deployed environments stay quiet and cheap.
+	return "meta";
 }
 
 function shouldRedactSensitiveHeaders(): boolean {
@@ -95,11 +106,27 @@ function redactHeaders(
 	return redactedHeaders;
 }
 
+// Lazy, server-only: a top-level node:util import leaks into the client bundle
+// in dev and crashes the browser. Loaded at init so inspect is ready before the
+// first request log; formatForLog falls back to JSON until then.
+let cachedInspect: typeof import("node:util").inspect | null = null;
+if (typeof window === "undefined") {
+	import("node:util")
+		.then((m) => {
+			cachedInspect = m.inspect;
+		})
+		.catch(() => {});
+}
+
 function formatForLog(value: unknown): string {
-	return inspect(value, {
+	if (!cachedInspect) {
+		return stringifyJsonLog(value);
+	}
+	return cachedInspect(value, {
 		depth: getRequestLogDepth(),
 		colors: false,
 		maxArrayLength: 100,
+		maxStringLength: MAX_LOGGED_STRING_LENGTH,
 		compact: 2,
 		breakLength: 120,
 	});
@@ -152,6 +179,48 @@ function truncateAtDepth(
 	);
 }
 
+// Replaces oversized string leaves (typically base64 payloads) with a short
+// marker so JSON logs stay parseable and small.
+function truncateLongStrings(
+	value: unknown,
+	maxLength = MAX_LOGGED_STRING_LENGTH,
+): unknown {
+	if (typeof value === "string") {
+		if (value.length <= maxLength) {
+			return value;
+		}
+		return `${value.slice(0, maxLength)}… [truncated ${
+			value.length - maxLength
+		} chars]`;
+	}
+	if (Array.isArray(value)) {
+		return value.map((item) => truncateLongStrings(item, maxLength));
+	}
+	if (value && typeof value === "object") {
+		return Object.fromEntries(
+			Object.entries(value).map(([key, val]) => [
+				key,
+				truncateLongStrings(val, maxLength),
+			]),
+		);
+	}
+	return value;
+}
+
+function sanitizeBodyForLog(value: unknown): unknown {
+	return truncateLongStrings(truncateAtDepth(value, getRequestLogDepth()));
+}
+
+// OMSA (and the other Entur APIs) echo a correlation id we can use to trace a
+// call end to end without logging headers or bodies.
+function correlationId(response: Response): string | undefined {
+	return (
+		response.headers.get("x-correlation-id") ??
+		response.headers.get("x-request-id") ??
+		undefined
+	);
+}
+
 async function readResponseBody(response: Response): Promise<unknown> {
 	const contentType = response.headers.get("content-type") ?? "";
 	if (contentType.includes("json")) {
@@ -189,9 +258,7 @@ function logRequest(
 				method: method.toUpperCase(),
 				url,
 				...(redactedHeaders ? { headers: redactedHeaders } : {}),
-				...(includeBody
-					? { body: truncateAtDepth(body, getRequestLogDepth()) }
-					: {}),
+				...(includeBody ? { body: sanitizeBodyForLog(body) } : {}),
 			}),
 		);
 		return;
@@ -219,6 +286,8 @@ async function logResponse(
 
 	const durationMs = Date.now() - startedAt;
 	const format = getRequestLogFormat();
+	const correlation = correlationId(response);
+	const correlationSuffix = correlation ? ` [cid ${correlation}]` : "";
 
 	if (quiet) {
 		if (format === "json") {
@@ -231,12 +300,13 @@ async function logResponse(
 					url,
 					status: response.status,
 					durationMs,
+					...(correlation ? { correlationId: correlation } : {}),
 				}),
 			);
 			return;
 		}
 		console.log(
-			`[http][prefetch] ${method.toUpperCase()} ${url} ${response.status} (${durationMs}ms)`,
+			`[http][prefetch] ${method.toUpperCase()} ${url} ${response.status} (${durationMs}ms)${correlationSuffix}`,
 		);
 		return;
 	}
@@ -263,17 +333,16 @@ async function logResponse(
 				status: response.status,
 				statusText: response.statusText,
 				durationMs,
+				...(correlation ? { correlationId: correlation } : {}),
 				...(redactedHeaders ? { headers: redactedHeaders } : {}),
-				...(includeBody
-					? { body: truncateAtDepth(body, getRequestLogDepth()) }
-					: {}),
+				...(includeBody ? { body: sanitizeBodyForLog(body) } : {}),
 			}),
 		);
 		return;
 	}
 
 	console.log(
-		`[http][incoming] ${response.status} ${response.statusText} (${durationMs}ms)`,
+		`[http][incoming] ${response.status} ${response.statusText} (${durationMs}ms)${correlationSuffix}`,
 	);
 	if (skipDetails) {
 		return;
@@ -376,6 +445,38 @@ async function handleResponse<T>(
 	return body;
 }
 
+function getRequestTimeoutMs(): number {
+	const raw = process.env.OMSA_REQUEST_TIMEOUT_MS?.trim();
+	const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
+	if (Number.isNaN(parsed) || parsed <= 0) {
+		return DEFAULT_REQUEST_TIMEOUT_MS;
+	}
+	return parsed;
+}
+
+// Wraps fetch with an abort-based timeout so a slow or stuck upstream rejects
+// promptly instead of hanging the SSR render. Drop-in for fetch(url, init).
+async function fetchWithTimeout(
+	url: string,
+	init?: RequestInit,
+): Promise<Response> {
+	const timeoutMs = getRequestTimeoutMs();
+	try {
+		const timeout = AbortSignal.timeout(timeoutMs);
+		return await fetch(url, {
+			...init,
+			signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
+		});
+	} catch (error) {
+		if (error instanceof DOMException && error.name === "TimeoutError") {
+			throw new Error(`Request timed out after ${timeoutMs}ms: ${url}`, {
+				cause: error,
+			});
+		}
+		throw error;
+	}
+}
+
 export function createOmsaClient(
 	devConfig?: DevConfigOverrides,
 	options?: { quiet?: boolean; signal?: AbortSignal },
@@ -397,7 +498,7 @@ export function createOmsaClient(
 			const headers = await authorizedHeaders(config, devConfig);
 			logRequest("GET", requestUrl, undefined, headers, quiet);
 			try {
-				const response = await fetch(requestUrl, { headers, signal });
+				const response = await fetchWithTimeout(requestUrl, { headers, signal });
 				await logResponse("GET", requestUrl, response, startedAt, quiet);
 				return handleResponse<T>(response, `GET ${path}`);
 			} catch (error) {
@@ -415,7 +516,7 @@ export function createOmsaClient(
 			};
 			logRequest("POST", requestUrl, body, headers, quiet);
 			try {
-				const response = await fetch(requestUrl, {
+				const response = await fetchWithTimeout(requestUrl, {
 					method: "POST",
 					headers,
 					body: JSON.stringify(body),
@@ -437,7 +538,7 @@ export function createOmsaClient(
 			};
 			logRequest("PUT", requestUrl, body, headers, quiet);
 			try {
-				const response = await fetch(requestUrl, {
+				const response = await fetchWithTimeout(requestUrl, {
 					method: "PUT",
 					headers,
 					body: JSON.stringify(body),
@@ -459,7 +560,7 @@ export function createOmsaClient(
 			};
 			logRequest("PATCH", requestUrl, body, headers, quiet);
 			try {
-				const response = await fetch(requestUrl, {
+				const response = await fetchWithTimeout(requestUrl, {
 					method: "PATCH",
 					headers,
 					body: JSON.stringify(body),
@@ -491,7 +592,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 			};
 			logRequest("POST", requestUrl, body, headers);
 			try {
-				const response = await fetch(requestUrl, {
+				const response = await fetchWithTimeout(requestUrl, {
 					method: "POST",
 					headers,
 					body: JSON.stringify(body),
@@ -516,7 +617,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 			};
 			logRequest("PUT", requestUrl, undefined, headers);
 			try {
-				const response = await fetch(requestUrl, {
+				const response = await fetchWithTimeout(requestUrl, {
 					method: "PUT",
 					headers,
 				});
@@ -546,7 +647,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 			};
 			logRequest("GET", requestUrl, undefined, headers);
 			try {
-				const response = await fetch(requestUrl, { headers });
+				const response = await fetchWithTimeout(requestUrl, { headers });
 				await logResponse("GET", requestUrl, response, startedAt);
 				return handleResponse<T>(response, `GET ${path}`);
 			} catch (error) {
@@ -568,7 +669,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 			};
 			logRequest("PATCH", requestUrl, body, headers);
 			try {
-				const response = await fetch(requestUrl, {
+				const response = await fetchWithTimeout(requestUrl, {
 					method: "PATCH",
 					headers,
 					body: JSON.stringify(body),
@@ -593,7 +694,7 @@ export function createSalesClient(devConfig?: DevConfigOverrides) {
 			};
 			logRequest("DELETE", requestUrl, undefined, headers);
 			try {
-				const response = await fetch(requestUrl, {
+				const response = await fetchWithTimeout(requestUrl, {
 					method: "DELETE",
 					headers,
 				});
@@ -621,7 +722,7 @@ export function createVehiclePositionsClient(devConfig?: DevConfigOverrides) {
 			};
 			logRequest("POST", requestUrl, body, headers);
 			try {
-				const response = await fetch(requestUrl, {
+				const response = await fetchWithTimeout(requestUrl, {
 					method: "POST",
 					headers,
 					body: JSON.stringify(body),
@@ -660,7 +761,7 @@ export function createJourneyPlannerClient(devConfig?: DevConfigOverrides) {
 			};
 			logRequest("POST", requestUrl, body, headers);
 			try {
-				const response = await fetch(requestUrl, {
+				const response = await fetchWithTimeout(requestUrl, {
 					method: "POST",
 					headers,
 					body: JSON.stringify(body),

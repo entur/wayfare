@@ -1,3 +1,4 @@
+import { PUBLIC_PATHNAMES } from "../lib/public-pathnames.ts";
 import { isEnturLoginRequired } from "./deployment-config.ts";
 import {
 	buildLoginRedirect,
@@ -5,6 +6,7 @@ import {
 	handleCallback,
 	handleLogout,
 	initializeEnturLogin,
+	noStoreHeaders,
 	startLogin,
 } from "./entur-login.ts";
 import {
@@ -56,21 +58,21 @@ export async function authorizeRequest(
 			},
 		});
 	}
+	// Reachable regardless of session state, so the auth failures below can
+	// redirect here without looping back through this same gate. Shared with
+	// __root.tsx's standalone-shell check so the two lists can't drift apart.
+	if (PUBLIC_PATHNAMES.has(new URL(request.url).pathname)) {
+		return null;
+	}
 	const subject = await getSessionSubject(request, responseHeaders);
 	if (!subject) {
 		return buildLoginRedirect(new URL(request.url));
 	}
 	if (!(await hasStagingAccess(subject))) {
-		return new Response(
-			"Your Entur account does not have wayfare.web access.",
-			{
-				status: 403,
-				headers: {
-					"cache-control": "no-store",
-					"content-type": "text/plain; charset=utf-8",
-				},
-			},
-		);
+		return new Response(null, {
+			status: 302,
+			headers: noStoreHeaders({ location: "/access-denied?reason=no-access" }),
+		});
 	}
 	return null;
 }

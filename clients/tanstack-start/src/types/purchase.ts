@@ -12,6 +12,8 @@ export interface PurchaseOffersInputs {
 	type: "purchase_offers";
 	offerIds: string[];
 	customer?: OmsaCustomer;
+	// OMSA requires contact.id to accompany customer.id -- never send one without the other.
+	contact?: OmsaCustomer;
 	timestamp?: string;
 }
 
@@ -87,6 +89,10 @@ export interface PurchasePackageRequest {
 	inputs: PackageInput;
 }
 
+export interface ReleasePackageRequest {
+	inputs: { type: "package"; packageId: string };
+}
+
 export interface CancelPackageRequest {
 	inputs: PackageInput;
 	subscriber?: Subscriber;
@@ -100,6 +106,25 @@ export interface RefundOptionInput {
 export interface ClaimRefundRequest {
 	inputs: RefundOptionInput;
 	subscriber?: Subscriber;
+}
+
+export interface UpdateValidityInput {
+	type: "update_travel_document_validity";
+	packageId: string;
+	travelDocumentId: string;
+	// RFC3339, or the literal "NOW" for a server-side immediate start.
+	newStartTime: string;
+}
+
+export interface UpdateValidityRequest {
+	inputs: UpdateValidityInput;
+	subscriber?: Subscriber;
+}
+
+// The document is replaced rather than mutated, so its id changes.
+export interface UpdatedValidity {
+	previousTravelDocumentId: string;
+	newTravelDocumentId: string;
 }
 
 export type PackageStatus =
@@ -128,6 +153,7 @@ export interface ConfirmedPackage {
 	price: AmountOfMoney;
 	offers?: Offer[];
 	orderVersion?: number;
+	expiryTime?: string;
 	links?: Link[];
 }
 
@@ -186,6 +212,11 @@ export interface PaymentSessionResult {
 	currency?: string;
 	status?: string;
 	transactionHistory?: TransactionHistoryItem[];
+}
+
+export interface AddTransactionResult {
+	transactionId?: number;
+	status?: TransactionStatusValue;
 }
 
 export interface TerminalSessionResult {

@@ -7,6 +7,7 @@ import {
 	TramIcon,
 	ZoneIcon,
 } from "@entur/icons";
+import { useMemo } from "react";
 import { getPreferredOperator } from "../../lib/preferences-storage";
 import { getFareZoneSuggestions } from "../../server-functions/fare-zones";
 import { autocompletePlaces } from "../../server-functions/geocoder";
@@ -76,6 +77,7 @@ interface PlaceSearchProps {
 	onChange: (place: PlaceReference | null) => void;
 	placeholder?: string;
 	autoFocus?: boolean;
+	recentPlaces?: PlaceReference[];
 }
 
 export default function PlaceSearch({
@@ -84,8 +86,18 @@ export default function PlaceSearch({
 	onChange,
 	placeholder,
 	autoFocus,
+	recentPlaces = [],
 }: PlaceSearchProps) {
 	const selected = value ? { value, label: value.name ?? value.placeId } : null;
+	const recentOptions = useMemo(
+		() =>
+			recentPlaces.map((place) => ({
+				value: place,
+				label: place.name ?? place.placeId,
+				icon: place.type === "zone" ? ZoneIcon : MapPinIcon,
+			})),
+		[recentPlaces],
+	);
 
 	return (
 		<Combobox<PlaceReference>
@@ -98,6 +110,8 @@ export default function PlaceSearch({
 			minQueryLength={2}
 			noMatchText="No stops or zones found"
 			autoFocus={autoFocus}
+			initialOptions={recentOptions}
+			initialOptionsLabel="Recent places"
 		/>
 	);
 }

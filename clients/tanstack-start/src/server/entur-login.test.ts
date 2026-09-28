@@ -108,6 +108,10 @@ describe("Entur login", () => {
 			},
 		);
 
+		// The incoming request is plain http, as srvx sees it behind the
+		// TLS-terminating ingress. completeInteractiveLogin must still be
+		// called with the public https origin so its redirect_uri matches the
+		// one sent to /authorize.
 		const response = await handleCallback(
 			new Request(
 				"http://internal-service/auth/callback?code=code-123&state=state-123",
@@ -116,7 +120,7 @@ describe("Entur login", () => {
 
 		expect(auth0.client.completeInteractiveLogin).toHaveBeenCalledWith(
 			new URL(
-				"http://internal-service/auth/callback?code=code-123&state=state-123",
+				"https://wayfare.staging.entur.no/auth/callback?code=code-123&state=state-123",
 			),
 			expect.objectContaining({ responseHeaders: expect.any(Headers) }),
 		);
@@ -128,7 +132,7 @@ describe("Entur login", () => {
 		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 
-	it("returns a generic error for an invalid callback", async () => {
+	it("redirects to /access-denied for an invalid callback", async () => {
 		auth0.client.completeInteractiveLogin.mockRejectedValue(
 			new Error("token endpoint returned client secret details"),
 		);
@@ -139,10 +143,11 @@ describe("Entur login", () => {
 			),
 		);
 
-		expect(response.status).toBe(400);
-		expect(await response.text()).toBe(
-			"Login could not be completed. Please try again.",
+		expect(response.status).toBe(302);
+		expect(response.headers.get("location")).toBe(
+			"/access-denied?reason=login-failed",
 		);
+		expect(response.headers.get("cache-control")).toBe("no-store");
 	});
 
 	it("returns the session subject for a valid, refreshable session", async () => {

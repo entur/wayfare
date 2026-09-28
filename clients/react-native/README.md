@@ -1,6 +1,6 @@
 # Wayfare React Native
 
-English-language rider prototype for reisefrihet, built with Expo SDK 57 and
+Mobile version of the Wayfare TanStack Start client, built with Expo SDK 57 and
 Expo Router. The TanStack Start client is the visual reference.
 
 ## Start locally

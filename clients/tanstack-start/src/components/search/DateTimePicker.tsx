@@ -85,6 +85,7 @@ interface DateTimePickerProps {
 	value: string;
 	timeMode: TimeMode;
 	minDate?: string;
+	hideLabel?: boolean;
 	onChange: (value: string) => void;
 	onModeChange: (mode: TimeMode) => void;
 }
@@ -94,6 +95,7 @@ export default function DateTimePicker({
 	value,
 	timeMode,
 	minDate,
+	hideLabel,
 	onChange,
 	onModeChange,
 }: DateTimePickerProps) {
@@ -103,17 +105,30 @@ export default function DateTimePicker({
 	const popupRef = useRef<HTMLDivElement>(null);
 	const triggerId = useId();
 
-	const parsedDate = value ? parseLocalIso(value) : new Date();
+	// Edits stay in draft state and are committed to the parent only on "Done".
+	// Seeded from the committed props each time the popover opens.
+	const [draftValue, setDraftValue] = useState(value);
+	const [draftMode, setDraftMode] = useState<TimeMode>(timeMode);
+
+	const parsedDate = draftValue ? parseLocalIso(draftValue) : new Date();
 	const [calYear, setCalYear] = useState(parsedDate.getFullYear());
 	const [calMonth, setCalMonth] = useState(parsedDate.getMonth());
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: seed only on open
 	useEffect(() => {
-		if (value) {
-			const d = parseLocalIso(value);
+		if (open) {
+			setDraftValue(value);
+			setDraftMode(timeMode);
+		}
+	}, [open]);
+
+	useEffect(() => {
+		if (draftValue) {
+			const d = parseLocalIso(draftValue);
 			setCalYear(d.getFullYear());
 			setCalMonth(d.getMonth());
 		}
-	}, [value]);
+	}, [draftValue]);
 
 	useLayoutEffect(() => {
 		if (!open) {
@@ -142,8 +157,8 @@ export default function DateTimePicker({
 		return () => document.removeEventListener("mousedown", onMouseDown);
 	}, [open]);
 
-	const dateStr = value.slice(0, 10);
-	const timeStr = value.length >= 16 ? value.slice(11, 16) : "00:00";
+	const dateStr = draftValue.slice(0, 10);
+	const timeStr = draftValue.length >= 16 ? draftValue.slice(11, 16) : "00:00";
 	const [hStr, mStr] = timeStr.split(":");
 	const hour = Number.parseInt(hStr || "0", 10);
 	const minute = Number.parseInt(mStr || "0", 10);
@@ -152,9 +167,16 @@ export default function DateTimePicker({
 	const minDateStr = minDate ?? todayStr;
 
 	function handleModeChange(mode: TimeMode) {
-		if (mode !== "now" && !value) onChange(localIsoNow());
-		onModeChange(mode);
-		if (mode === "now") setOpen(false);
+		if (mode !== "now" && !draftValue) setDraftValue(localIsoNow());
+		setDraftMode(mode);
+	}
+
+	function commit() {
+		// Mode before value: a parent that derives from mode (e.g. /trips) then
+		// sees the final mode when the value lands.
+		onModeChange(draftMode);
+		if (draftValue) onChange(draftValue);
+		setOpen(false);
 	}
 
 	function prevMonth() {
@@ -177,17 +199,17 @@ export default function DateTimePicker({
 
 	function selectDay(day: number) {
 		const ds = `${calYear}-${pad(calMonth + 1)}-${pad(day)}`;
-		onChange(`${ds}T${timeStr}`);
+		setDraftValue(`${ds}T${timeStr}`);
 	}
 
 	function adjustHour(delta: number) {
 		const h = (((hour + delta) % 24) + 24) % 24;
-		onChange(`${dateStr}T${pad(h)}:${mStr}`);
+		setDraftValue(`${dateStr}T${pad(h)}:${mStr}`);
 	}
 
 	function adjustMinute(delta: number) {
 		const m = (((minute + delta) % 60) + 60) % 60;
-		onChange(`${dateStr}T${hStr}:${pad(m)}`);
+		setDraftValue(`${dateStr}T${hStr}:${pad(m)}`);
 	}
 
 	const firstDay = firstWeekday(calYear, calMonth);
@@ -202,12 +224,14 @@ export default function DateTimePicker({
 
 	return (
 		<div ref={containerRef} className="relative w-full">
-			<label
-				htmlFor={triggerId}
-				className="mb-1.5 block text-sm font-medium text-wayfare-text"
-			>
-				{label}
-			</label>
+			{!hideLabel && (
+				<label
+					htmlFor={triggerId}
+					className="mb-1.5 block text-sm font-medium text-wayfare-text"
+				>
+					{label}
+				</label>
+			)}
 			<button
 				id={triggerId}
 				type="button"
@@ -236,7 +260,7 @@ export default function DateTimePicker({
 			{open && (
 				<div
 					ref={popupRef}
-					className={`absolute left-0 z-50 w-72 rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 shadow-lg ${openUpward ? "bottom-full mb-1" : "top-full mt-1"}`}
+					className={`absolute left-0 z-50 w-full min-w-[18rem] rounded-xl border border-wayfare-line bg-wayfare-surface-strong p-4 shadow-lg ${openUpward ? "bottom-full mb-1" : "top-full mt-1"}`}
 				>
 					{/* Mode tabs */}
 					<div className="mb-4 flex rounded-lg border border-wayfare-line bg-wayfare-bg p-0.5">
@@ -246,7 +270,7 @@ export default function DateTimePicker({
 								type="button"
 								onClick={() => handleModeChange(m.value)}
 								className={`flex-1 whitespace-nowrap rounded-md px-2 py-1.5 text-xs font-medium transition-all ${
-									timeMode === m.value
+									draftMode === m.value
 										? "bg-wayfare-surface-strong text-wayfare-text shadow-sm"
 										: "bg-transparent text-wayfare-text-secondary shadow-none"
 								}`}
@@ -256,7 +280,7 @@ export default function DateTimePicker({
 						))}
 					</div>
 
-					{timeMode !== "now" && (
+					{draftMode !== "now" && (
 						<>
 							{/* Inline calendar */}
 							<div className="mb-3">
@@ -384,11 +408,14 @@ export default function DateTimePicker({
 								<div className="ml-auto flex gap-1">
 									{(
 										[
-											{ label: "Now", fn: () => onChange(localIsoNow()) },
-											{ label: "+5", fn: () => onChange(addMinutes(value, 5)) },
+											{ label: "Now", fn: () => setDraftValue(localIsoNow()) },
+											{
+												label: "+5",
+												fn: () => setDraftValue(addMinutes(draftValue, 5)),
+											},
 											{
 												label: "+10",
-												fn: () => onChange(addMinutes(value, 10)),
+												fn: () => setDraftValue(addMinutes(draftValue, 10)),
 											},
 										] as const
 									).map(({ label: btnLabel, fn }) => (
@@ -405,6 +432,14 @@ export default function DateTimePicker({
 							</div>
 						</>
 					)}
+
+					<button
+						type="button"
+						onClick={commit}
+						className={`w-full rounded-xl border border-wayfare-line bg-transparent py-2 text-sm font-medium text-wayfare-text transition-colors ${draftMode === "now" ? "" : "mt-3"}`}
+					>
+						Done
+					</button>
 				</div>
 			)}
 		</div>

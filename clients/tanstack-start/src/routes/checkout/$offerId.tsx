@@ -1,4 +1,10 @@
-import { CardIcon, LeftArrowIcon, SeatIcon, TrainCarIcon } from "@entur/icons";
+import {
+	BackArrowIcon,
+	CardIcon,
+	LeftArrowIcon,
+	SeatIcon,
+	TrainCarIcon,
+} from "@entur/icons";
 import { useQueries } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -15,6 +21,7 @@ import {
 	usePurchaseFlow,
 } from "../../context/purchase-flow";
 import {
+	useAddTransaction,
 	useCreatePayment,
 	useStartAppClaim,
 	useStartTerminalSession,
@@ -22,12 +29,25 @@ import {
 import {
 	useAssignAncillary,
 	useListAncillaries,
+	usePurchaseOffers,
 	usePurchasePackage,
 } from "../../hooks/use-purchase";
 import { useAuthorizeCard } from "../../hooks/use-recurring-payments";
 import { assetSeatNumber, isSeatFeature } from "../../lib/asset-features";
 import { confirmedAssetIdsByLeg } from "../../lib/confirmed-assets";
 import { formatPrice } from "../../lib/format-price";
+import {
+	abandonPendingCheckout,
+	cancelOpenTransaction,
+	getPendingCheckout,
+	isPackageExpired,
+	setPendingCheckout,
+} from "../../lib/pending-checkout";
+import { buildPurchaseOffersRequest } from "../../lib/purchase-request";
+import {
+	readSearchSession,
+	type SearchContext,
+} from "../../lib/search-session";
 import { getOfferReservationFlow } from "../../lib/offer-reservations";
 import {
 	clearPackageSession,
@@ -40,10 +60,6 @@ import {
 	readPurchaseOptionsSession,
 	writePurchaseOptionsSession,
 } from "../../lib/purchase-options-session";
-import {
-	readSearchSession,
-	type SearchContext,
-} from "../../lib/search-session";
 import { manualSelectionServiceJourneyGroups } from "../../lib/service-journey-groups";
 import { setPendingGuestContact } from "../../lib/ticket-storage";
 import {
@@ -53,6 +69,7 @@ import {
 	travelPartyCategoryKey,
 } from "../../lib/travel-party";
 import { assetsCollectionQuery } from "../../server-functions/assets.queries";
+import type { OmsaCustomer } from "../../types/customer";
 import type { PaymentSelection } from "../../types/payment-methods";
 import type {
 	AncillaryCollection,
@@ -74,6 +91,11 @@ export const Route = createFileRoute("/checkout/$offerId")({
 			? Number(search.pendingCardId)
 			: undefined,
 	}),
+	// Leaving checkout for another route before paying means the user abandoned
+	// the purchase, so free the package's holds instead of waiting for expiry.
+	// The redirect to the payment terminal is a full page load, not a route
+	// change, so it never triggers this.
+	onLeave: () => abandonPendingCheckout(),
 	component: CheckoutPage,
 });
 
@@ -171,6 +193,21 @@ function CheckoutScreen() {
 	const [selectedPackage, setSelectedPackage] =
 		useState<ConfirmedPackage | null>(null);
 	const [ancillaryError, setAncillaryError] = useState<string | null>(null);
+	const [checkoutOrigin, setCheckoutOrigin] = useState<
+		"offers" | "products" | "home"
+	>("home");
+	const returnTo =
+		checkoutOrigin === "products"
+			? "/products"
+			: checkoutOrigin === "offers"
+				? "/offers"
+				: "/";
+	const returnLabel =
+		checkoutOrigin === "products"
+			? "Back to products"
+			: checkoutOrigin === "offers"
+				? "Back to offers"
+				: "Back to search";
 	const [guestCustomer, setGuestCustomer] = useState<{
 		firstName: string;
 		lastName: string;
@@ -179,8 +216,10 @@ function CheckoutScreen() {
 
 	const listAncillariesMutation = useListAncillaries();
 	const assignAncillaryMutation = useAssignAncillary();
+	const purchaseMutation = usePurchaseOffers();
 	const purchasePackageMutation = usePurchasePackage();
 	const createPaymentMutation = useCreatePayment();
+	const addTransactionMutation = useAddTransaction();
 	const startTerminalMutation = useStartTerminalSession();
 	const startAppClaimMutation = useStartAppClaim();
 	const authorizeCard = useAuthorizeCard(profileCustomer?.id ?? "");
@@ -211,8 +250,20 @@ function CheckoutScreen() {
 		setCheckoutContext(session.context);
 		setSelectedPackage(packageSession.package);
 		setPurchaseOptions(readPurchaseOptionsSession());
+		setCheckoutOrigin(
+			session.context?.origin === "products"
+				? "products"
+				: session.collection
+					? "offers"
+					: "home",
+		);
 		setHydrated(true);
 	}, []);
+
+	// OMSA requires customer.id to be non-null, so only attach a customer when signed in
+	const activeCustomer: OmsaCustomer | undefined = profileCustomer?.id
+		? profileCustomer
+		: undefined;
 
 	const guestCustomerComplete = true;
 
@@ -521,24 +572,46 @@ function CheckoutScreen() {
 			return;
 		dispatch({ type: "START_PURCHASE" });
 		try {
-			const packageId = selectedPackage?.id ?? "";
-			if (!selectedPackage || !packageId) {
-				throw new Error("No package selected for checkout");
+			// Step 1: reuse the package from a failed attempt at this offer, or
+			// buy the selected package (purchase-package) so seats assigned to it
+			// stay attached; purchase-offers covers entry points without one
+			let pending = getPendingCheckout();
+			if (
+				pending &&
+				(pending.offerId !== offerId || isPackageExpired(pending))
+			) {
+				abandonPendingCheckout();
+				pending = null;
 			}
-			const purchased = await purchasePackageMutation.mutateAsync({
-				inputs: { type: "package", packageId },
-			});
-			if (purchased.id !== packageId) {
-				throw new Error(
-					`Purchased package ID ${purchased.id ?? "<missing>"} does not match selected package ${packageId}`,
-				);
+			if (!pending) {
+				const selectedPackageId = selectedPackage?.id;
+				const purchased = selectedPackageId
+					? await purchasePackageMutation.mutateAsync({
+							inputs: { type: "package", packageId: selectedPackageId },
+						})
+					: await purchaseMutation.mutateAsync(
+							buildPurchaseOffersRequest(offerIds, activeCustomer),
+						);
+				if (selectedPackageId) {
+					if (purchased.id !== selectedPackageId) {
+						throw new Error(
+							`Purchased package ID ${purchased.id ?? "<missing>"} does not match selected package ${selectedPackageId}`,
+						);
+					}
+					writePackageSession({ ...readPackageSession(), package: purchased });
+					setSelectedPackage(purchased);
+				}
+				pending = {
+					packageId: purchased.id ?? "",
+					offerId,
+					amount: purchased.price?.amount?.toFixed(2) ?? "0.00",
+					currency: purchased.price?.currencyCode ?? "NOK",
+					orderVersion: purchased.orderVersion ?? 1,
+					expiryTime: purchased.expiryTime,
+				};
+				if (pending.packageId) setPendingCheckout(pending);
 			}
-			const packageSession = readPackageSession();
-			writePackageSession({
-				...packageSession,
-				package: purchased,
-			});
-			setSelectedPackage(purchased);
+			const { packageId, amount, currency: purchasedCurrency } = pending;
 			dispatch({ type: "PURCHASE_DONE", packageId });
 
 			// Stash any guest contact details so payment-return can attach them to the saved package
@@ -554,9 +627,6 @@ function CheckoutScreen() {
 			}
 
 			// Step 2: Build transaction based on payment selection
-			const amount = purchased.price?.amount?.toFixed(2) ?? "0.00";
-			const purchasedCurrency = purchased.price?.currencyCode ?? "NOK";
-
 			let transaction: CardPaymentTransaction | RecurringPaymentTransaction;
 			if (paymentMethod.kind === "recurring") {
 				const t: RecurringPaymentTransaction = {
@@ -585,20 +655,56 @@ function CheckoutScreen() {
 				transaction = t;
 			}
 
-			const payment = await createPaymentMutation.mutateAsync({
-				orderId: packageId,
-				orderVersion: purchased.orderVersion ?? 1,
-				totalAmount: amount,
-				transaction,
-			});
-			const paymentId = String(payment.paymentId ?? "");
-			const transactionId = String(
-				payment.transactionHistory?.[0]?.transactionId ?? "",
-			);
+			// A retry keeps the payment: cancel the failed transaction and add a
+			// new one, so the package and order version stay the same
+			let paymentId: string;
+			let transactionId: string;
+			if (pending.paymentId) {
+				paymentId = pending.paymentId;
+				const previous = await cancelOpenTransaction(pending);
+				if (previous === "captured") {
+					// The earlier attempt went through after all (e.g. a late Vipps
+					// approval); finish that purchase. The polling path only reads the
+					// transaction, so it never tries to capture it again.
+					window.location.href = paymentReturnUrl(
+						packageId,
+						paymentId,
+						pending.transactionId ?? "",
+						true,
+					);
+					return;
+				}
+				if (previous === "unknown")
+					throw new Error(
+						"Could not cancel the previous payment attempt. Please try again.",
+					);
+				const added = await addTransactionMutation.mutateAsync({
+					paymentId,
+					transaction,
+				});
+				transactionId = String(added.transactionId ?? "");
+			} else {
+				const payment = await createPaymentMutation.mutateAsync({
+					orderId: packageId,
+					orderVersion: pending.orderVersion,
+					totalAmount: amount,
+					transaction,
+				});
+				paymentId = String(payment.paymentId ?? "");
+				transactionId = String(
+					payment.transactionHistory?.[0]?.transactionId ?? "",
+				);
+			}
+			setPendingCheckout({ ...pending, paymentId, transactionId });
 
 			// Step 3: Initiate payment via terminal (card) or app-claim (Vipps)
 			if (paymentMethod.kind === "vipps") {
-				const returnUrl = `${window.location.origin}/payment-return?packageId=${packageId}&enturPaymentId=${paymentId}&enturTransactionId=${transactionId}&paymentType=VIPPS`;
+				const returnUrl = paymentReturnUrl(
+					packageId,
+					paymentId,
+					transactionId,
+					true,
+				);
 				const description =
 					selectedOffers[0]?.properties?.products?.[0]?.productName ??
 					"Entur ticket";
@@ -611,7 +717,12 @@ function CheckoutScreen() {
 				});
 				window.location.href = appClaim.appClaimUrl ?? "";
 			} else {
-				const returnUrl = `${window.location.origin}/payment-return?packageId=${packageId}&enturPaymentId=${paymentId}&enturTransactionId=${transactionId}`;
+				const returnUrl = paymentReturnUrl(
+					packageId,
+					paymentId,
+					transactionId,
+					false,
+				);
 				const terminal = await startTerminalMutation.mutateAsync({
 					paymentId,
 					transactionId,
@@ -626,6 +737,15 @@ function CheckoutScreen() {
 				error: err instanceof Error ? err.message : "Purchase failed",
 			});
 		}
+	}
+
+	function paymentReturnUrl(
+		packageId: string,
+		paymentId: string,
+		transactionId: string,
+		vipps: boolean,
+	) {
+		return `${window.location.origin}/payment-return?packageId=${packageId}&offerId=${encodeURIComponent(offerId)}&enturPaymentId=${paymentId}&enturTransactionId=${transactionId}${vipps ? "&paymentType=VIPPS" : ""}`;
 	}
 
 	if (state.flowState === "success" && state.packageId) {
@@ -725,6 +845,16 @@ function CheckoutScreen() {
 			stepper={<JourneyStepper />}
 			rightRail={rightRail}
 		>
+			{!isProcessing && (
+				<Button
+					variant="secondary"
+					className="mb-6"
+					onClick={() => navigate({ to: returnTo })}
+				>
+					<BackArrowIcon aria-hidden="true" />
+					{returnLabel}
+				</Button>
+			)}
 			<div>
 				{isProcessing && (
 					<div className="mb-6">
@@ -752,7 +882,7 @@ function CheckoutScreen() {
 							</div>
 							<Link
 								to="/settings"
-								search={{ tab: "profile", pendingCardId: undefined }}
+								search={{ tab: "developer", pendingCardId: undefined }}
 								className="text-xs text-wayfare-primary no-underline"
 							>
 								Change
@@ -761,13 +891,13 @@ function CheckoutScreen() {
 					) : (
 						<div className="space-y-3">
 							<p className="text-xs text-wayfare-text-secondary">
-								No profile selected.{" "}
+								No customer configured.{" "}
 								<Link
 									to="/settings"
-									search={{ tab: "profile", pendingCardId: undefined }}
+									search={{ tab: "developer", pendingCardId: undefined }}
 									className="text-wayfare-primary no-underline"
 								>
-									Sign in
+									Developer settings
 								</Link>{" "}
 								or enter your details below.
 							</p>
@@ -948,21 +1078,20 @@ function CheckoutScreen() {
 				)}
 
 				<div className="flex gap-3">
-					<Link
-						to="/offers"
-						className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-wayfare-line px-5 py-2.5 text-sm font-semibold text-wayfare-text no-underline transition-colors"
-					>
-						<LeftArrowIcon aria-hidden="true" />
-						Back
-					</Link>
+					{!isProcessing && (
+						<Link
+							to={returnTo}
+							className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-wayfare-line px-5 py-2.5 text-sm font-semibold text-wayfare-text no-underline transition-colors"
+						>
+							<LeftArrowIcon aria-hidden="true" />
+							{returnLabel}
+						</Link>
+					)}
 					<Button
 						variant="primary"
 						className="flex-1"
 						disabled={
-							!selectedPackage?.id ||
-							!paymentMethodComplete ||
-							!guestCustomerComplete ||
-							isProcessing
+							!paymentMethodComplete || !guestCustomerComplete || isProcessing
 						}
 						loading={isProcessing}
 						onClick={handlePurchase}

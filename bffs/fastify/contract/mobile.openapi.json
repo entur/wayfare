@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Wayfare reisefrihet mobile API",
+    "title": "Wayfare mobile API",
     "version": "1.0.0"
   },
   "components": {

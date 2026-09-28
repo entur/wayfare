@@ -1,4 +1,4 @@
-import MapLibreGL from "maplibre-gl";
+import * as MapLibreGL from "maplibre-gl";
 import { useEffect, useMemo } from "react";
 
 import { decodePolyline } from "../../lib/polyline";

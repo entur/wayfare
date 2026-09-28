@@ -4,11 +4,18 @@ type IllustrationName =
 	| "ninja-turtle"
 	| "crocodile-on-bus"
 	| "octopus-payment-processing"
-	| "crab-ticket-expired";
+	| "crab-ticket-expired"
+	| "fox-404"
+	| "raccoon-403";
 
-type IllustrationSize = "sm" | "md" | "lg";
+type IllustrationSize = "sm" | "md" | "lg" | "xl";
 
-const WIDTHS: Record<IllustrationSize, number> = { sm: 96, md: 160, lg: 240 };
+const WIDTHS: Record<IllustrationSize, number> = {
+	sm: 96,
+	md: 160,
+	lg: 240,
+	xl: 360,
+};
 
 const ALT: Record<IllustrationName, string> = {
 	"turtle-magnifying-glass": "A turtle inspecting with a magnifying glass",
@@ -17,6 +24,9 @@ const ALT: Record<IllustrationName, string> = {
 	"crocodile-on-bus": "A crocodile riding the bus",
 	"octopus-payment-processing": "An octopus processing a payment",
 	"crab-ticket-expired": "A crab holding an expired ticket",
+	"fox-404": "A fox hiking past a giant 404, checking a map",
+	"raccoon-403":
+		"A raccoon holding a key card at a door with a red X, next to a giant 403",
 };
 
 interface IllustrationProps {

@@ -89,6 +89,7 @@ describe("createOmsaClient", () => {
 					"ET-Client-Name": "Boundary-Test",
 					"Entur-POS": "Test-POS",
 				},
+				signal: expect.any(AbortSignal),
 			},
 		);
 		expect(getAccessTokenMock).toHaveBeenCalledWith(
@@ -96,34 +97,34 @@ describe("createOmsaClient", () => {
 		);
 	});
 
-	it.each([
-		"post",
-		"put",
-		"patch",
-	] as const)("sends JSON bodies for %s requests", async (method) => {
-		vi.mocked(fetch).mockResolvedValue(jsonResponse({ id: "result-1" }));
-		const client = createOmsaClient({ envMode: "local-dev" });
-		const body = { inputs: { type: "test_input" } };
+	it.each(["post", "put", "patch"] as const)(
+		"sends JSON bodies for %s requests",
+		async (method) => {
+			vi.mocked(fetch).mockResolvedValue(jsonResponse({ id: "result-1" }));
+			const client = createOmsaClient({ envMode: "local-dev" });
+			const body = { inputs: { type: "test_input" } };
 
-		const result = await client[method]<{ id: string }>(
-			"/processes/test/execute",
-			body,
-		);
+			const result = await client[method]<{ id: string }>(
+				"/processes/test/execute",
+				body,
+			);
 
-		expect(result).toEqual({ id: "result-1" });
-		expect(fetch).toHaveBeenCalledWith(
-			"http://localhost:8080/v1/processes/test/execute",
-			{
-				method: method.toUpperCase(),
-				headers: expect.objectContaining({
-					Authorization: "Bearer test-token",
-					Accept: "application/json",
-					"Content-Type": "application/json",
-				}),
-				body: JSON.stringify(body),
-			},
-		);
-	});
+			expect(result).toEqual({ id: "result-1" });
+			expect(fetch).toHaveBeenCalledWith(
+				"http://localhost:8080/v1/processes/test/execute",
+				{
+					method: method.toUpperCase(),
+					headers: expect.objectContaining({
+						Authorization: "Bearer test-token",
+						Accept: "application/json",
+						"Content-Type": "application/json",
+					}),
+					body: JSON.stringify(body),
+					signal: expect.any(AbortSignal),
+				},
+			);
+		},
+	);
 
 	it("includes the OMSA response body in HTTP errors", async () => {
 		vi.mocked(fetch).mockResolvedValue(
