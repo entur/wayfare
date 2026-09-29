@@ -1,9 +1,18 @@
-import { BackArrowIcon, CardIcon, LeftArrowIcon } from "@entur/icons";
+import {
+	BackArrowIcon,
+	CardIcon,
+	LeftArrowIcon,
+	SeatIcon,
+	TrainCarIcon,
+} from "@entur/icons";
+import { useQueries } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import PurchaseProgress from "../../components/checkout/PurchaseProgress";
 import PurchaseSuccess from "../../components/checkout/PurchaseSuccess";
 import SavedPaymentPicker from "../../components/checkout/SavedPaymentPicker";
+import { JourneyStepper } from "../../components/layout/JourneyStepper";
+import { JourneySummary } from "../../components/layout/JourneySummary";
 import PageShell from "../../components/layout/PageShell";
 import Button from "../../components/ui/Button";
 import { useProfile } from "../../context/profile";
@@ -17,8 +26,15 @@ import {
 	useStartAppClaim,
 	useStartTerminalSession,
 } from "../../hooks/use-payments";
-import { usePurchaseOffers } from "../../hooks/use-purchase";
+import {
+	useAssignAncillary,
+	useListAncillaries,
+	usePurchaseOffers,
+	usePurchasePackage,
+} from "../../hooks/use-purchase";
 import { useAuthorizeCard } from "../../hooks/use-recurring-payments";
+import { assetSeatNumber, isSeatFeature } from "../../lib/asset-features";
+import { confirmedAssetIdsByLeg } from "../../lib/confirmed-assets";
 import { formatPrice } from "../../lib/format-price";
 import {
 	abandonPendingCheckout,
@@ -28,15 +44,46 @@ import {
 	setPendingCheckout,
 } from "../../lib/pending-checkout";
 import { buildPurchaseOffersRequest } from "../../lib/purchase-request";
-import { readSearchSession } from "../../lib/search-session";
+import {
+	readSearchSession,
+	type SearchContext,
+} from "../../lib/search-session";
+import { getOfferReservationFlow } from "../../lib/offer-reservations";
+import {
+	clearPackageSession,
+	readPackageSession,
+	writePackageSession,
+} from "../../lib/package-session";
+import {
+	clearPurchaseOptionsSession,
+	type PurchaseOptionsSession,
+	readPurchaseOptionsSession,
+	writePurchaseOptionsSession,
+} from "../../lib/purchase-options-session";
+import { manualSelectionServiceJourneyGroups } from "../../lib/service-journey-groups";
 import { setPendingGuestContact } from "../../lib/ticket-storage";
+import {
+	categoryNoun,
+	expandTravellerLabels,
+	partyLabel,
+	travelPartyCategoryKey,
+} from "../../lib/travel-party";
+import { assetsCollectionQuery } from "../../server-functions/assets.queries";
 import type { OmsaCustomer } from "../../types/customer";
 import type { PaymentSelection } from "../../types/payment-methods";
 import type {
+	AncillaryCollection,
+	AncillaryReference,
 	CardPaymentTransaction,
+	ConfirmedPackage,
 	RecurringPaymentTransaction,
 } from "../../types/purchase";
-import type { Offer, OfferCollection } from "../../types/search";
+import type {
+	Offer,
+	OfferCollection,
+	OfferLeg,
+	OfferProduct,
+} from "../../types/search";
 
 export const Route = createFileRoute("/checkout/$offerId")({
 	validateSearch: (search: Record<string, unknown>) => ({
@@ -60,6 +107,67 @@ function CheckoutPage() {
 	);
 }
 
+// Resolves a search-time ancillaryId (e.g. "PiDs4l") to the package/leg-scoped
+// AncillaryReference OMSA expects in assign-ancillary requests (e.g. { ancillaryId: "wcoryo" }).
+function resolveAncillaryReference(
+	collection: AncillaryCollection,
+	selectedAncillaryId: string,
+): AncillaryReference {
+	const matching = collection.ancillaries?.find(
+		(item) =>
+			item.id === selectedAncillaryId ||
+			item.properties?.ancillaryId === selectedAncillaryId,
+	);
+	return {
+		ancillaryId:
+			matching?.properties?.ancillaryId ?? matching?.id ?? selectedAncillaryId,
+		name: matching?.properties?.name,
+	};
+}
+
+interface PendingAncillaryAssignment {
+	packageId: string;
+	legId: string;
+	offerId?: string;
+	// Search-time ancillaryId — resolved to an AncillaryReference via resolveAncillaryReference
+	// before being sent, since OMSA's assign-ancillary endpoint needs the leg-scoped one.
+	ancillaryId: string;
+}
+
+function buildAncillaryAssignments(
+	pkg: ConfirmedPackage,
+	options: PurchaseOptionsSession,
+): PendingAncillaryAssignment[] {
+	if (!pkg.id || options.ancillaries.length === 0) return [];
+
+	// option.offerIds/legIds come from the pre-select-offers catalog (searchOffers).
+	// select-offers mints its own offer/leg ids for the package, so those catalog ids
+	// never match pkg.offers[].id — matching must rely on pkg-native leg fields only.
+	const assignments = new Map<string, PendingAncillaryAssignment>();
+	for (const option of options.ancillaries) {
+		for (const offer of pkg.offers ?? []) {
+			for (const leg of offer.properties?.legs ?? []) {
+				const legMatches =
+					(leg.ancillaries ?? []).includes(option.ancillaryId) ||
+					(leg.reservationRequirement?.fulfilledByAncillaries ?? []).some(
+						(ancillary) => ancillary.ancillaryId === option.ancillaryId,
+					);
+				if (!legMatches) continue;
+
+				const key = `${pkg.id}:${offer.id ?? ""}:${leg.id}:${option.ancillaryId}`;
+				assignments.set(key, {
+					packageId: pkg.id,
+					legId: leg.id,
+					...(offer.id ? { offerId: offer.id } : {}),
+					ancillaryId: option.ancillaryId,
+				});
+			}
+		}
+	}
+
+	return [...assignments.values()];
+}
+
 function CheckoutScreen() {
 	const { offerId } = Route.useParams();
 	const { pendingCardId } = Route.useSearch();
@@ -77,6 +185,14 @@ function CheckoutScreen() {
 	const [hydrated, setHydrated] = useState(false);
 	const [offerCollection, setOfferCollection] =
 		useState<OfferCollection | null>(null);
+	const [checkoutContext, setCheckoutContext] = useState<SearchContext | null>(
+		null,
+	);
+	const [purchaseOptions, setPurchaseOptions] =
+		useState<PurchaseOptionsSession>({ ancillaries: [] });
+	const [selectedPackage, setSelectedPackage] =
+		useState<ConfirmedPackage | null>(null);
+	const [ancillaryError, setAncillaryError] = useState<string | null>(null);
 	const [checkoutOrigin, setCheckoutOrigin] = useState<
 		"offers" | "products" | "home"
 	>("home");
@@ -98,7 +214,10 @@ function CheckoutScreen() {
 		email: string;
 	}>({ firstName: "", lastName: "", email: "" });
 
+	const listAncillariesMutation = useListAncillaries();
+	const assignAncillaryMutation = useAssignAncillary();
 	const purchaseMutation = usePurchaseOffers();
+	const purchasePackageMutation = usePurchasePackage();
 	const createPaymentMutation = useCreatePayment();
 	const addTransactionMutation = useAddTransaction();
 	const startTerminalMutation = useStartTerminalSession();
@@ -126,7 +245,11 @@ function CheckoutScreen() {
 
 	useEffect(() => {
 		const session = readSearchSession();
+		const packageSession = readPackageSession();
 		setOfferCollection(session.collection);
+		setCheckoutContext(session.context);
+		setSelectedPackage(packageSession.package);
+		setPurchaseOptions(readPurchaseOptionsSession());
 		setCheckoutOrigin(
 			session.context?.origin === "products"
 				? "products"
@@ -148,15 +271,301 @@ function CheckoutScreen() {
 		paymentMethod !== null &&
 		(paymentMethod.kind !== "vipps" || paymentMethod.phone.trim().length > 0);
 
-	const selectedOffers: Offer[] =
+	// Package legs after select-offers are stripped of reservationRequirement.
+	// Use the search-session collection offers for reservation flow detection.
+	const searchOffers: Offer[] =
 		offerCollection?.offers?.filter((o) => o.id && offerIds.includes(o.id)) ??
 		[];
-
-	const previewTotal = selectedOffers.reduce(
-		(sum, o) => sum + (o.properties?.price?.amount ?? 0),
-		0,
+	const selectedOffers: Offer[] = selectedPackage?.offers ?? searchOffers;
+	const assignedAncillaryIds = new Set(
+		purchaseOptions.ancillaries.map((ancillary) => ancillary.ancillaryId),
 	);
-	const currency = selectedOffers[0]?.properties?.price?.currencyCode ?? "NOK";
+	const reservationFlow = getOfferReservationFlow(
+		searchOffers,
+		assignedAncillaryIds,
+	);
+
+	const seatEligibleGroups = manualSelectionServiceJourneyGroups(
+		selectedPackage?.offers ?? [],
+		searchOffers,
+	);
+	const confirmedSeatAssetIds = selectedPackage
+		? confirmedAssetIdsByLeg(selectedPackage)
+		: {};
+
+	const seatAssetQueries = useQueries({
+		queries: seatEligibleGroups.map((group) =>
+			assetsCollectionQuery(selectedPackage?.id ?? "", group.serviceJourney),
+		),
+	});
+
+	const previewTotal =
+		selectedPackage?.price?.amount ??
+		selectedOffers.reduce(
+			(sum, o) => sum + (o.properties?.price?.amount ?? 0),
+			0,
+		);
+	const currency =
+		selectedPackage?.price?.currencyCode ??
+		selectedOffers[0]?.properties?.price?.currencyCode ??
+		"NOK";
+
+	const allParties = [
+		...(checkoutContext?.profiles ?? []),
+		...(checkoutContext?.travellers ?? []),
+	];
+	const checkoutPartyStr =
+		allParties.length > 0
+			? allParties.map((p) => partyLabel(p)).join(", ")
+			: undefined;
+
+	const expandedTravellerLabels = expandTravellerLabels(allParties);
+	function travellerLabelForLeg(groupLegs: OfferLeg[], legId: string): string {
+		const index = groupLegs.findIndex((leg) => leg.id === legId);
+		return expandedTravellerLabels[index] ?? `Traveller ${index + 1}`;
+	}
+
+	// Resolves each seat-eligible leg's confirmed asset id against the loaded
+	// seatmap features so already-assigned seats (auto-assigned during
+	// select-offers, or picked earlier on /seats) show a seat number and
+	// carriage instead of just "a seat exists".
+	const assignedSeats = seatEligibleGroups.flatMap((group, groupIndex) => {
+		const features = seatAssetQueries[groupIndex]?.data?.features ?? [];
+		return group.legs.map((leg) => {
+			const assetId = confirmedSeatAssetIds[leg.id];
+			const feature = assetId
+				? features.find((candidate) => candidate.id === assetId)
+				: undefined;
+			const seatInfo =
+				feature && isSeatFeature(feature)
+					? {
+							seatNumber: assetSeatNumber(feature) ?? assetId,
+							carriage: feature.properties.carriage,
+						}
+					: undefined;
+			return {
+				legId: leg.id,
+				travellerLabel: travellerLabelForLeg(group.legs, leg.id),
+				...seatInfo,
+			};
+		});
+	});
+	const assignedSeatCount = assignedSeats.filter(
+		(seat) => seat.seatNumber,
+	).length;
+
+	// OMSA folds an assigned ancillary's price into the offer it's attached to, so the
+	// offer price alone can't be shown as the "ticket" line without double-counting the
+	// add-on total shown separately below. Re-derive per-offer ancillary charges from the
+	// same offer/leg matching assign-ancillary uses, and subtract them back out.
+	const ancillaryAssignments = selectedPackage
+		? buildAncillaryAssignments(selectedPackage, purchaseOptions)
+		: [];
+	const ancillaryChargeByOfferId = new Map<string, number>();
+	const ancillaryQuantityById = new Map<string, number>();
+	for (const ancillary of purchaseOptions.ancillaries) {
+		const matches = ancillaryAssignments.filter(
+			(assignment) => assignment.ancillaryId === ancillary.ancillaryId,
+		);
+		const quantity = matches.length || 1;
+		ancillaryQuantityById.set(ancillary.ancillaryId, quantity);
+		const unitAmount = ancillary.price?.amount ?? 0;
+		for (const match of matches) {
+			if (!match.offerId) continue;
+			ancillaryChargeByOfferId.set(
+				match.offerId,
+				(ancillaryChargeByOfferId.get(match.offerId) ?? 0) + unitAmount,
+			);
+		}
+	}
+
+	const addOnRows = purchaseOptions.ancillaries.map((ancillary) => {
+		const quantity = ancillaryQuantityById.get(ancillary.ancillaryId) ?? 1;
+		return {
+			name: ancillary.name,
+			quantity,
+			price: {
+				amount: (ancillary.price?.amount ?? 0) * quantity,
+				currencyCode: ancillary.price?.currencyCode,
+			},
+		};
+	});
+
+	// OMSA returns one offer per (traveller × physical leg): a party of 3 adults on a
+	// 2-leg journey yields 6 offers, with the group's whole price attributed to a single
+	// "representative" offer and 0 on the rest. Group them back into one row per
+	// product+leg so the summary reads as "Lowfare × 3" rather than six rows, three at 0 kr.
+	// Different fare categories (adult/child/student, say) can share the same product and
+	// leg but charge different amounts per traveller, so the offer's own per-leg fare
+	// (not the possibly-zeroed offer total) is part of the grouping key too.
+	const transitPatternLegs = (checkoutContext?.pattern?.legs ?? []).filter(
+		(leg) => leg.datedServiceJourney?.id,
+	);
+
+	function productKeyPart(product: OfferProduct): string {
+		if (typeof product.productId === "string") return product.productId;
+		return product.productId?.productId ?? product.productName ?? "";
+	}
+
+	function segmentLabelForOffer(offer: Offer): string | undefined {
+		const legs = offer.properties?.legs ?? [];
+		const labels = legs
+			.map((leg) => {
+				const match = transitPatternLegs.find(
+					(patternLeg) =>
+						patternLeg.datedServiceJourney?.id === leg.serviceJourney,
+				);
+				return match
+					? `${match.fromPlace.name} → ${match.toPlace.name}`
+					: undefined;
+			})
+			.filter((label): label is string => Boolean(label));
+		return labels.length > 0 ? [...new Set(labels)].join(" + ") : undefined;
+	}
+
+	function categoryKeyForTraveller(travellerId: string): string | undefined {
+		const party =
+			checkoutContext?.profiles?.find((p) => p.id === travellerId) ??
+			checkoutContext?.travellers?.find((t) => t.id === travellerId);
+		return party ? travelPartyCategoryKey(party) : undefined;
+	}
+
+	interface TicketGroup {
+		name: string;
+		quantity: number;
+		amount: number;
+		currencyCode?: string;
+		segment?: string;
+		categoryKey?: string;
+		order: number;
+	}
+
+	const ticketGroups = new Map<string, TicketGroup>();
+	for (const offer of selectedOffers) {
+		const legs = offer.properties?.legs ?? [];
+		const product = offer.properties?.products?.[0];
+		const legKey = legs
+			.map((leg) => leg.serviceJourney ?? leg.id)
+			.sort()
+			.join(",");
+		const productKey = (offer.properties?.products ?? [])
+			.map(productKeyPart)
+			.sort()
+			.join(",");
+		const fareKey = legs.reduce(
+			(sum, leg) => sum + (leg.price?.amount ?? 0),
+			0,
+		);
+		const key = `${productKey}|${legKey}|${fareKey}`;
+		const ancillaryCharge = offer.id
+			? (ancillaryChargeByOfferId.get(offer.id) ?? 0)
+			: 0;
+		const amount = (offer.properties?.price?.amount ?? 0) - ancillaryCharge;
+		const travellerIds = legs
+			.map((leg) => leg.traveller)
+			.filter((id): id is string => Boolean(id));
+		const travellerCount = new Set(travellerIds).size || 1;
+		const categoryKey = travellerIds
+			.map(categoryKeyForTraveller)
+			.find((label): label is string => Boolean(label));
+		const order = Math.min(
+			...legs.map((leg) => leg.sequenceNumber ?? Number.POSITIVE_INFINITY),
+			Number.POSITIVE_INFINITY,
+		);
+
+		const existing = ticketGroups.get(key);
+		if (existing) {
+			existing.quantity += travellerCount;
+			existing.amount += amount;
+			existing.categoryKey ??= categoryKey;
+			continue;
+		}
+		ticketGroups.set(key, {
+			name:
+				offer.properties?.summary?.name ??
+				product?.productName ??
+				"Travel Offer",
+			quantity: travellerCount,
+			amount,
+			currencyCode: offer.properties?.price?.currencyCode,
+			segment: segmentLabelForOffer(offer),
+			categoryKey,
+			order,
+		});
+	}
+
+	const ticketRows = [...ticketGroups.values()]
+		.sort((a, b) => a.order - b.order)
+		.map((group) => ({
+			name: group.name,
+			quantity: group.quantity,
+			category: categoryNoun(group.categoryKey, group.quantity),
+			segment: group.segment,
+			price: {
+				amount: group.amount,
+				currencyCode: group.currencyCode,
+			},
+		}));
+
+	async function handleAssignAncillary(ancillaryId: string) {
+		const option = reservationFlow.ancillaryOptions.find(
+			(candidate) => candidate.ancillaryId === ancillaryId,
+		);
+		if (!option || !selectedPackage?.id) return;
+
+		setAncillaryError(null);
+		try {
+			let updatedPackage = selectedPackage;
+			const nextOptions: PurchaseOptionsSession = {
+				ancillaries: [
+					...purchaseOptions.ancillaries.filter(
+						(ancillary) => ancillary.ancillaryId !== option.ancillaryId,
+					),
+					option,
+				],
+			};
+
+			const assignments = buildAncillaryAssignments(
+				updatedPackage,
+				nextOptions,
+			).filter((assignment) => assignment.ancillaryId === option.ancillaryId);
+			if (assignments.length === 0) {
+				throw new Error(
+					"Could not find a leg on this package to assign the seat reservation to.",
+				);
+			}
+			for (const assignment of assignments) {
+				const collection = await listAncillariesMutation.mutateAsync({
+					packageId: assignment.packageId,
+					legId: assignment.legId,
+				});
+				const ancillaryReference = resolveAncillaryReference(
+					collection,
+					assignment.ancillaryId,
+				);
+				updatedPackage = await assignAncillaryMutation.mutateAsync({
+					inputs: {
+						type: "ancillary",
+						packageId: assignment.packageId,
+						legId: assignment.legId,
+						...(assignment.offerId ? { offerId: assignment.offerId } : {}),
+						ancillaryId: ancillaryReference,
+					},
+				});
+			}
+
+			setSelectedPackage(updatedPackage);
+			setPurchaseOptions(nextOptions);
+			writePurchaseOptionsSession(nextOptions);
+			writePackageSession({ package: updatedPackage, offerIds });
+		} catch (error) {
+			setAncillaryError(
+				error instanceof Error
+					? error.message
+					: "Could not add seat reservation.",
+			);
+		}
+	}
 
 	async function handlePurchase() {
 		if (!paymentMethod || !paymentMethodComplete || !guestCustomerComplete)
@@ -164,7 +573,8 @@ function CheckoutScreen() {
 		dispatch({ type: "START_PURCHASE" });
 		try {
 			// Step 1: reuse the package from a failed attempt at this offer, or
-			// create one with OMSA purchase-offers
+			// buy the selected package (purchase-package) so seats assigned to it
+			// stay attached; purchase-offers covers entry points without one
 			let pending = getPendingCheckout();
 			if (
 				pending &&
@@ -174,9 +584,23 @@ function CheckoutScreen() {
 				pending = null;
 			}
 			if (!pending) {
-				const purchased = await purchaseMutation.mutateAsync(
-					buildPurchaseOffersRequest(offerIds, activeCustomer),
-				);
+				const selectedPackageId = selectedPackage?.id;
+				const purchased = selectedPackageId
+					? await purchasePackageMutation.mutateAsync({
+							inputs: { type: "package", packageId: selectedPackageId },
+						})
+					: await purchaseMutation.mutateAsync(
+							buildPurchaseOffersRequest(offerIds, activeCustomer),
+						);
+				if (selectedPackageId) {
+					if (purchased.id !== selectedPackageId) {
+						throw new Error(
+							`Purchased package ID ${purchased.id ?? "<missing>"} does not match selected package ${selectedPackageId}`,
+						);
+					}
+					writePackageSession({ ...readPackageSession(), package: purchased });
+					setSelectedPackage(purchased);
+				}
 				pending = {
 					packageId: purchased.id ?? "",
 					offerId,
@@ -338,6 +762,73 @@ function CheckoutScreen() {
 		"capturing",
 		"confirming",
 	].includes(state.flowState);
+	const assigningAncillary =
+		listAncillariesMutation.isPending || assignAncillaryMutation.isPending;
+
+	const seatDetailsSlot =
+		reservationFlow.canOpenSeatmap && assignedSeats.length > 0 ? (
+			<div className="flex flex-col gap-1.5 border-t border-wayfare-line pt-3">
+				<p className="mb-1 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
+					Seats
+				</p>
+				{assignedSeats.map((seat) => (
+					<div
+						key={seat.legId}
+						className="flex items-center justify-between gap-2 text-xs text-wayfare-text-secondary"
+					>
+						<span className="truncate">{seat.travellerLabel}</span>
+						{seat.seatNumber ? (
+							<span className="flex shrink-0 items-center gap-2">
+								<span className="flex items-center gap-1">
+									<SeatIcon aria-hidden="true" />
+									{seat.seatNumber}
+								</span>
+								<span className="flex items-center gap-1">
+									<TrainCarIcon aria-hidden="true" />
+									{seat.carriage}
+								</span>
+							</span>
+						) : (
+							<span className="shrink-0 italic">Not selected</span>
+						)}
+					</div>
+				))}
+				{assignedSeatCount > 0 && (
+					<p className="text-xs italic text-wayfare-text-secondary">
+						Seat held — completes when you confirm your purchase
+					</p>
+				)}
+			</div>
+		) : null;
+	const { from: checkoutFrom, to: checkoutTo } = checkoutContext ?? {};
+	const rightRail =
+		checkoutContext && checkoutFrom && checkoutTo ? (
+			<JourneySummary
+				variant="rail"
+				from={checkoutFrom.name ?? checkoutFrom.placeId}
+				to={checkoutTo.name ?? checkoutTo.placeId}
+				startTime={
+					checkoutContext.pattern?.expectedStartTime ??
+					checkoutContext.travelDate
+				}
+				endTime={checkoutContext.pattern?.expectedEndTime}
+				durationSeconds={checkoutContext.pattern?.duration}
+				partyLabel={checkoutPartyStr}
+				ticketRows={ticketRows.length > 0 ? ticketRows : undefined}
+				addOnRows={addOnRows.length > 0 ? addOnRows : undefined}
+				total={
+					previewTotal > 0
+						? { amount: previewTotal, currencyCode: currency }
+						: undefined
+				}
+				detailsSlot={seatDetailsSlot}
+				onChangeJourney={() => {
+					clearPackageSession();
+					clearPurchaseOptionsSession();
+					navigate({ to: "/offers" });
+				}}
+			/>
+		) : null;
 
 	if (!hydrated) {
 		return (
@@ -351,7 +842,8 @@ function CheckoutScreen() {
 		<PageShell
 			title="Checkout"
 			subtitle="Review your order and pay"
-			contentClassName="mx-auto max-w-xl"
+			stepper={<JourneyStepper />}
+			rightRail={rightRail}
 		>
 			{!isProcessing && (
 				<Button
@@ -369,59 +861,6 @@ function CheckoutScreen() {
 						<PurchaseProgress flowState={state.flowState} />
 					</div>
 				)}
-
-				<div className="mb-4 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
-					<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
-						{selectedOffers.length === 1
-							? "Your offer"
-							: `Your offers (${selectedOffers.length})`}
-					</p>
-					<div className="flex flex-col gap-2">
-						{selectedOffers.map((offer) => {
-							const product = offer.properties?.products?.[0];
-							const price = offer.properties?.price;
-							const legs = offer.properties?.legs ?? [];
-							const travellerCount = new Set(
-								legs.map((l) => l.traveller).filter(Boolean),
-							).size;
-							return (
-								<div
-									key={offer.id}
-									className="flex items-center justify-between gap-2"
-								>
-									<div>
-										<p className="m-0 text-sm font-medium text-wayfare-text">
-											{offer.properties?.summary?.name ??
-												product?.productName ??
-												"Travel Offer"}
-										</p>
-										{travellerCount > 0 && (
-											<p className="m-0 text-xs text-wayfare-text-secondary">
-												{travellerCount} traveller
-												{travellerCount !== 1 ? "s" : ""}
-											</p>
-										)}
-									</div>
-									{price && (
-										<p className="m-0 shrink-0 text-sm font-semibold text-wayfare-primary">
-											{formatPrice(price.amount, price.currencyCode ?? "NOK")}
-										</p>
-									)}
-								</div>
-							);
-						})}
-					</div>
-					{selectedOffers.length > 1 && (
-						<div className="mt-3 flex items-center justify-between border-t border-wayfare-line pt-3">
-							<p className="m-0 text-sm font-semibold text-wayfare-text">
-								Total
-							</p>
-							<p className="m-0 text-base font-bold text-wayfare-primary">
-								{formatPrice(previewTotal, currency)}
-							</p>
-						</div>
-					)}
-				</div>
 
 				<div className="mb-4 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
 					<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
@@ -530,6 +969,99 @@ function CheckoutScreen() {
 						</div>
 					)}
 				</div>
+
+				{(reservationFlow.ancillaryOptions.length > 0 ||
+					reservationFlow.canOpenSeatmap) && (
+					<div className="mb-4 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
+						<p className="mb-3 text-xs font-semibold uppercase tracking-wide text-wayfare-text-secondary">
+							Seats
+						</p>
+						{reservationFlow.ancillaryOptions.length > 0 && (
+							<div className="mb-3 flex flex-col gap-2">
+								{reservationFlow.ancillaryOptions.map((option) => {
+									const assigned = assignedAncillaryIds.has(option.ancillaryId);
+									return (
+										<div
+											key={option.ancillaryId}
+											className="flex items-center justify-between gap-3 rounded-lg border border-wayfare-line bg-wayfare-bg px-3 py-2"
+										>
+											<div className="min-w-0">
+												<p className="m-0 text-sm font-medium text-wayfare-text">
+													{option.name}
+												</p>
+												{option.price && (
+													<p className="m-0 text-xs text-wayfare-text-secondary">
+														{formatPrice(
+															option.price.amount,
+															option.price.currencyCode ?? "NOK",
+														)}
+													</p>
+												)}
+											</div>
+											<Button
+												variant="secondary"
+												disabled={assigned || assigningAncillary}
+												loading={assigningAncillary && !assigned}
+												onClick={() =>
+													handleAssignAncillary(option.ancillaryId)
+												}
+											>
+												{assigned ? "Added" : "Add"}
+											</Button>
+										</div>
+									);
+								})}
+							</div>
+						)}
+						{ancillaryError && (
+							<p className="mb-3 rounded-lg bg-wayfare-accent-soft px-3 py-2 text-sm text-wayfare-primary">
+								{ancillaryError}
+							</p>
+						)}
+						{reservationFlow.canOpenSeatmap && assignedSeats.length > 0 && (
+							<div className="mb-3 flex flex-col gap-2">
+								{assignedSeats.map((seat) => (
+									<div
+										key={seat.legId}
+										className="flex items-center justify-between gap-3 rounded-lg border border-wayfare-line bg-wayfare-bg px-3 py-2 text-sm"
+									>
+										<span className="min-w-0 truncate text-wayfare-text">
+											{seat.travellerLabel}
+										</span>
+										{seat.seatNumber ? (
+											<span className="flex shrink-0 items-center gap-3 text-wayfare-text-secondary">
+												<span className="flex items-center gap-1">
+													<SeatIcon aria-hidden="true" />
+													{seat.seatNumber}
+												</span>
+												<span className="flex items-center gap-1">
+													<TrainCarIcon aria-hidden="true" />
+													{seat.carriage}
+												</span>
+											</span>
+										) : (
+											<span className="shrink-0 italic text-wayfare-text-secondary">
+												No seat selected
+											</span>
+										)}
+									</div>
+								))}
+							</div>
+						)}
+						<Button
+							variant="secondary"
+							disabled={!reservationFlow.canOpenSeatmap || assigningAncillary}
+							onClick={() =>
+								navigate({
+									to: "/seats/$offerId",
+									params: { offerId },
+								})
+							}
+						>
+							{assignedSeatCount > 0 ? "Change seats" : "Choose seats"}
+						</Button>
+					</div>
+				)}
 
 				<div className="mb-6 rounded-lg border border-wayfare-line bg-wayfare-surface-strong p-4">
 					<SavedPaymentPicker

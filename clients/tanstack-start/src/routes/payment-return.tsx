@@ -98,9 +98,11 @@ function PaymentReturnPage() {
 				}
 				// Paid: from here the package must be confirmed, never released
 				clearPendingCheckout();
+				// confirm-package also confirms any held seat reservations server-side
 				const confirmed = await confirmMutation.mutateAsync({
 					inputs: { type: "package_input", packageId: resolvedPackageId },
 				});
+
 				const guestContact = popPendingGuestContact(resolvedPackageId);
 				const searchContext = readSearchSession().context;
 				savePackage({

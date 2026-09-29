@@ -16,9 +16,63 @@ const ENTITLEMENT_LABELS: Record<string, string> = {
 	MILITARY: "Military",
 };
 
+const CATEGORY_NOUNS: Record<string, [singular: string, plural: string]> = {
+	ADULT: ["adult", "adults"],
+	CHILD: ["child", "children"],
+	YOUTH: ["youth", "youths"],
+	SENIOR: ["senior", "seniors"],
+	INFANT: ["infant", "infants"],
+	ANYONE: ["traveller", "travellers"],
+	STUDENT: ["student", "students"],
+	MILITARY: ["military", "military"],
+};
+
+// Entitlements (STUDENT, MILITARY) are more specific than ageGroup, matching partyLabel's priority.
+export function travelPartyCategoryKey(p: TravelParty): string | undefined {
+	const entitlementType =
+		p.entitlements?.entitlementsGiven?.[0]?.entitlementType;
+	if (entitlementType) return entitlementType;
+	return p.type === "user_profile" ? p.ageGroup : undefined;
+}
+
+// Bare singular/plural noun for a resolved category key (e.g. "ADULT" + 3 -> "adults"),
+// for contexts that already show their own count and don't want partyLabel's "Adult × 3" form.
+export function categoryNoun(
+	categoryKey: string | undefined,
+	quantity: number,
+): string | undefined {
+	const forms = categoryKey ? CATEGORY_NOUNS[categoryKey] : undefined;
+	if (!forms) return undefined;
+	return quantity === 1 ? forms[0] : forms[1];
+}
+
 function entitlementLabel(types: string[]): string | null {
 	if (types.length === 0) return null;
 	return types.map((t) => ENTITLEMENT_LABELS[t] ?? t).join(", ");
+}
+
+export function travelPartyCount(
+	profiles?: import("../types/search").UserProfile[],
+	travellers?: import("../types/search").IndividualTraveller[],
+): number {
+	const fromProfiles = (profiles ?? []).reduce(
+		(sum, p) => sum + (p.count ?? 1),
+		0,
+	);
+	return fromProfiles + (travellers?.length ?? 0);
+}
+
+// Expands a party list into one label per individual traveller (e.g. a
+// user_profile with count 3 becomes ["Adult 1", "Adult 2", "Adult 3"]), so
+// travellers can be matched positionally against a package's ordered legs.
+export function expandTravellerLabels(parties: TravelParty[]): string[] {
+	return parties.flatMap((party) => {
+		const label = partyLabel(party).replace(/ × \d+$/, "");
+		const count = party.type === "user_profile" ? (party.count ?? 1) : 1;
+		return Array.from({ length: count }, (_, index) =>
+			count > 1 ? `${label} ${index + 1}` : label,
+		);
+	});
 }
 
 export function partyLabel(p: TravelParty): string {

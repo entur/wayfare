@@ -3,13 +3,18 @@ import type { DevConfigOverrides } from "../lib/dev-config-storage";
 import { authMiddleware } from "../server/middleware";
 import { createOmsaClient } from "../server/omsa-client";
 import type {
+	AncillaryCollection,
+	AssignAncillaryRequest,
 	CancelPackageRequest,
 	ClaimRefundRequest,
 	ConfirmedPackage,
 	ConfirmPackageRequest,
+	ListAncillariesRequest,
 	PurchaseOffersInputs,
 	PurchaseOffersRequest,
+	PurchasePackageRequest,
 	ReleasePackageRequest,
+	SelectOffersRequest,
 	UpdatedValidity,
 	UpdateValidityRequest,
 } from "../types/purchase";
@@ -40,6 +45,21 @@ export async function resolvePurchaseCustomerAndContact(
 	return { customer, contact };
 }
 
+export const selectOffers = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator((data: SelectOffersRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		const body: SelectOffersRequest = {
+			...data,
+			subscriber: { successUri: "https://example.com" },
+		};
+		return omsa.post<ConfirmedPackage>(
+			"/processes/select-offers/execute",
+			body,
+		);
+	});
+
 export const purchaseOffers = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.validator((data: PurchaseOffersRequest) => data)
@@ -62,6 +82,17 @@ export const purchaseOffers = createServerFn({ method: "POST" })
 		);
 	});
 
+export const purchasePackage = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator((data: PurchasePackageRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.post<ConfirmedPackage>(
+			"/processes/purchase-package/execute",
+			data,
+		);
+	});
+
 export const confirmPackage = createServerFn({ method: "POST" })
 	.middleware([authMiddleware])
 	.validator((data: ConfirmPackageRequest) => data)
@@ -69,6 +100,30 @@ export const confirmPackage = createServerFn({ method: "POST" })
 		const omsa = createOmsaClient(context.devConfig);
 		return omsa.post<ConfirmedPackage>(
 			"/processes/confirm-package/execute",
+			data,
+		);
+	});
+
+export const listAncillaries = createServerFn({ method: "GET" })
+	.middleware([authMiddleware])
+	.validator((data: ListAncillariesRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.get<AncillaryCollection>("/collections/ancillaries/items", {
+			packageId: data.packageId,
+			...(data.legId ? { legId: data.legId } : {}),
+			...(data.limit !== undefined ? { limit: String(data.limit) } : {}),
+			...(data.offset !== undefined ? { offset: String(data.offset) } : {}),
+		});
+	});
+
+export const assignAncillary = createServerFn({ method: "POST" })
+	.middleware([authMiddleware])
+	.validator((data: AssignAncillaryRequest) => data)
+	.handler(async ({ data, context }) => {
+		const omsa = createOmsaClient(context.devConfig);
+		return omsa.post<ConfirmedPackage>(
+			"/processes/assign-ancillary/execute",
 			data,
 		);
 	});

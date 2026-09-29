@@ -20,7 +20,6 @@ import { DevConfigProvider } from "../context/dev-config";
 import { ProfileProvider } from "../context/profile";
 import { SearchFormProvider } from "../context/search-form";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
-import TanStackQueryProvider from "../integrations/tanstack-query/root-provider";
 import { PUBLIC_PATHNAMES } from "../lib/public-pathnames";
 import appCss from "../styles.css?url";
 
@@ -98,7 +97,6 @@ function RouteError({ error }: ErrorComponentProps) {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-	const { queryClient } = Route.useRouteContext();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	// Routes that render outside the app shell -- reached by a session that
 	// isn't (yet) a logged-in, authorized user, so the nav/footer chrome
@@ -114,50 +112,48 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body className="font-sans antialiased [overflow-wrap:anywhere]">
-				<TanStackQueryProvider queryClient={queryClient}>
-					<DevConfigProvider>
-						<ProfileProvider>
-							<SearchFormProvider>
-								{isStandalone ? (
-									<div className="flex h-screen flex-col overflow-y-auto">
-										<div className="flex justify-center px-4 py-6 sm:px-6">
-											<Link
-												to="/"
-												className="flex items-center text-wayfare-primary no-underline"
-											>
-												<WayfareWordmark height={20} />
-											</Link>
-										</div>
-										{children}
+				<DevConfigProvider>
+					<ProfileProvider>
+						<SearchFormProvider>
+							{isStandalone ? (
+								<div className="flex h-screen flex-col overflow-y-auto">
+									<div className="flex justify-center px-4 py-6 sm:px-6">
+										<Link
+											to="/"
+											className="flex items-center text-wayfare-primary no-underline"
+										>
+											<WayfareWordmark height={20} />
+										</Link>
 									</div>
-								) : (
-									<div className="flex h-screen flex-col overflow-hidden">
-										<Header />
-										<div className="mobile-tabbar-pad flex flex-1 flex-col overflow-y-auto">
-											<div className="flex flex-1 flex-col">{children}</div>
-											<Footer />
-										</div>
-										<MobileTabBar />
+									{children}
+								</div>
+							) : (
+								<div className="flex h-screen flex-col overflow-hidden">
+									<Header />
+									<div className="mobile-tabbar-pad flex flex-1 flex-col overflow-y-auto">
+										<div className="flex flex-1 flex-col">{children}</div>
+										<Footer />
 									</div>
-								)}
-							</SearchFormProvider>
-						</ProfileProvider>
-					</DevConfigProvider>
-					{import.meta.env.DEV && (
-						<TanStackDevtools
-							config={{
-								position: "bottom-right",
-							}}
-							plugins={[
-								{
-									name: "Tanstack Router",
-									render: <TanStackRouterDevtoolsPanel />,
-								},
-								TanStackQueryDevtools,
-							]}
-						/>
-					)}
-				</TanStackQueryProvider>
+									<MobileTabBar />
+								</div>
+							)}
+						</SearchFormProvider>
+					</ProfileProvider>
+				</DevConfigProvider>
+				{import.meta.env.DEV && (
+					<TanStackDevtools
+						config={{
+							position: "bottom-right",
+						}}
+						plugins={[
+							{
+								name: "Tanstack Router",
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+							TanStackQueryDevtools,
+						]}
+					/>
+				)}
 				<Scripts />
 			</body>
 		</html>

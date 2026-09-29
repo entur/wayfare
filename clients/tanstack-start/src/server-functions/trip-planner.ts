@@ -67,6 +67,7 @@ const TRIP_QUERY = `
             id
             situations { ${SITUATION_FRAGMENT} }
           }
+          datedServiceJourney { id }
           line {
             publicCode
             name

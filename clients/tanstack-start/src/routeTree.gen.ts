@@ -18,6 +18,7 @@ import { Route as ProductsRouteImport } from './routes/products'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as TripsRouteImport } from './routes/trips'
 import { Route as CheckoutOfferIdRouteImport } from './routes/checkout/$offerId'
+import { Route as SeatsOfferIdRouteImport } from './routes/seats/$offerId'
 import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
 import { Route as TicketsPackageIdIndexRouteImport } from './routes/tickets/$packageId/index'
 import { Route as TicketsPackageIdCancelRouteImport } from './routes/tickets/$packageId/cancel'
@@ -69,6 +70,11 @@ const CheckoutOfferIdRoute = CheckoutOfferIdRouteImport.update({
   path: '/checkout/$offerId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SeatsOfferIdRoute = SeatsOfferIdRouteImport.update({
+  id: '/seats/$offerId',
+  path: '/seats/$offerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TicketsIndexRoute = TicketsIndexRouteImport.update({
   id: '/tickets/',
   path: '/tickets/',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
+  '/seats/$offerId': typeof SeatsOfferIdRoute
   '/tickets/': typeof TicketsIndexRoute
   '/tickets/$packageId/cancel': typeof TicketsPackageIdCancelRoute
   '/tickets/$packageId/refund': typeof TicketsPackageIdRefundRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
+  '/seats/$offerId': typeof SeatsOfferIdRoute
   '/tickets': typeof TicketsIndexRoute
   '/tickets/$packageId/cancel': typeof TicketsPackageIdCancelRoute
   '/tickets/$packageId/refund': typeof TicketsPackageIdRefundRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/trips': typeof TripsRoute
   '/checkout/$offerId': typeof CheckoutOfferIdRoute
+  '/seats/$offerId': typeof SeatsOfferIdRoute
   '/tickets/': typeof TicketsIndexRoute
   '/tickets/$packageId/cancel': typeof TicketsPackageIdCancelRoute
   '/tickets/$packageId/refund': typeof TicketsPackageIdRefundRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/trips'
     | '/checkout/$offerId'
+    | '/seats/$offerId'
     | '/tickets/'
     | '/tickets/$packageId/cancel'
     | '/tickets/$packageId/refund'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/trips'
     | '/checkout/$offerId'
+    | '/seats/$offerId'
     | '/tickets'
     | '/tickets/$packageId/cancel'
     | '/tickets/$packageId/refund'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/trips'
     | '/checkout/$offerId'
+    | '/seats/$offerId'
     | '/tickets/'
     | '/tickets/$packageId/cancel'
     | '/tickets/$packageId/refund'
@@ -206,6 +218,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   TripsRoute: typeof TripsRoute
   CheckoutOfferIdRoute: typeof CheckoutOfferIdRoute
+  SeatsOfferIdRoute: typeof SeatsOfferIdRoute
   TicketsIndexRoute: typeof TicketsIndexRoute
   TicketsPackageIdCancelRoute: typeof TicketsPackageIdCancelRoute
   TicketsPackageIdRefundRoute: typeof TicketsPackageIdRefundRoute
@@ -278,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutOfferIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/seats/$offerId': {
+      id: '/seats/$offerId'
+      path: '/seats/$offerId'
+      fullPath: '/seats/$offerId'
+      preLoaderRoute: typeof SeatsOfferIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tickets/': {
       id: '/tickets/'
       path: '/tickets'
@@ -326,6 +346,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   TripsRoute: TripsRoute,
   CheckoutOfferIdRoute: CheckoutOfferIdRoute,
+  SeatsOfferIdRoute: SeatsOfferIdRoute,
   TicketsIndexRoute: TicketsIndexRoute,
   TicketsPackageIdCancelRoute: TicketsPackageIdCancelRoute,
   TicketsPackageIdRefundRoute: TicketsPackageIdRefundRoute,
