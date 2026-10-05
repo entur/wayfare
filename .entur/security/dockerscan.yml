@@ -1,0 +1,27 @@
+apiVersion: entur.io/securitytools/v1
+kind: DockerScanConfig
+metadata:
+  id: wayfare
+spec:
+  allowlist:
+    - cve: "CVE-2019-1010022"
+      comment: "glibc, no fix in Debian 13. Debian rates it unimportant (disputed upstream)."
+      reason: "wont_fix"
+    - cve: "CVE-2019-1010023"
+      comment: "glibc, no fix in Debian 13. Debian rates it unimportant (disputed upstream)."
+      reason: "wont_fix"
+    - cve: "CVE-2019-1010024"
+      comment: "glibc, no fix in Debian 13. Debian rates it unimportant (disputed upstream)."
+      reason: "wont_fix"
+    - cve: "CVE-2019-1010025"
+      comment: "glibc, no fix in Debian 13. Debian rates it unimportant (disputed upstream)."
+      reason: "wont_fix"
+    - cve: "CVE-2019-9192"
+      comment: "glibc regex, no fix in Debian 13. Debian rates it unimportant."
+      reason: "wont_fix"
+    - cve: "CVE-2018-20796"
+      comment: "glibc regex, no fix in Debian 13. Debian rates it unimportant."
+      reason: "wont_fix"
+    - cve: "CVE-2010-4756"
+      comment: "glibc glob, no fix in Debian 13. Debian rates it unimportant."
+      reason: "wont_fix"
