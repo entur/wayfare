@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/journey/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["merge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/journey/list": {
         parameters: {
             query?: never;
@@ -242,7 +258,7 @@ export interface components {
             startedAt: string;
             distance: components["schemas"]["Distance"];
             /** @enum {string} */
-            transportMode: "CAR" | "BUS" | "TRAIN" | "TRAM" | "METRO" | "BIKE" | "FOOT";
+            transportMode: "CAR" | "BUS" | "TRAIN" | "TRAM" | "METRO" | "WATER" | "BIKE" | "FOOT";
             price: components["schemas"]["Price"];
             analysisMeta: components["schemas"]["AnalysisMeta"];
             legZoneInfo: components["schemas"]["LegZoneInfo"];
@@ -403,12 +419,22 @@ export interface components {
             /** Format: date-time */
             startTime: string;
         };
+        CustomerId: {
+            /** Format: int64 */
+            number: number;
+        };
+        MergeJourneyRequest: {
+            /** Format: int64 */
+            customerNumber: number;
+            journeyIds: components["schemas"]["JourneyId"][];
+            customerId: components["schemas"]["CustomerId"];
+        };
         FailedTransactionsResponse: {
             hasFailedTransactions: boolean;
         };
         PreassignedFareProductSimple: {
             id: string;
-            version: string;
+            version?: string | null;
             /** @enum {string} */
             status: "DRAFT" | "PROPOSED" | "VERSIONED" | "DEPRECATED";
             description: components["schemas"]["Translation"][];
@@ -526,6 +552,33 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ActiveJourney"];
+                };
+            };
+        };
+    };
+    merge: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Identifies the calling application, in the form `<company>-<application>`. */
+                "ET-Client-Name"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeJourneyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CompletedJourney"];
                 };
             };
         };
