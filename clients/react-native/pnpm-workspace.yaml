@@ -7,10 +7,12 @@ allowBuilds:
 
 overrides:
   # Expo SDK 57 compatibility pin, not security-related.
-  "@expo/metro-runtime": 57.0.15
+  "@expo/metro-runtime": 57.0.16
   # GHSA-w5hq-g745-h8pq: missing buffer bounds check in v3/v5/v6 below 11.1.1.
   "uuid@<11.1.1": 11.1.1
-  # GHSA-52cp-r559-cp3m / GHSA-5p4m-2wfm-xmqj: quadratic CPU consumption below 4.3.1.
-  js-yaml: ">=4.3.1 <5"
+  # GHSA-52cp-r559-cp3m / GHSA-5p4m-2wfm-xmqj / GHSA-2883-xcg3-v3hh: fixed in 4.3.2.
+  js-yaml: ">=4.3.2 <5"
   # GHSA-vcc3-ghjq-m6fr: exponential decoding DoS below 0.5.0.
   "decode-uri-component@<0.5.0": 0.5.0
+  # GHSA-w27v-7q3p-w38r / GHSA-4vpr-x523-8j87: fixed in 3.3.5.
+  "svgo@<3.3.5": 3.3.5
