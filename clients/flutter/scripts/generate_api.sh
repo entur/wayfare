@@ -4,7 +4,7 @@ set -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$DIR/.."
-API_SPEC="${OMSA_SPEC_URL:-https://beta.developer.entur.no/apis/omsa/latest/openapi.json}"
+API_SPEC="${OMSA_SPEC_URL:-https://developer.entur.no/apis/sales/latest/openapi.json}"
 OUTPUT_DIR="$PROJECT_ROOT/packages/omsa_api"
 
 echo "Generating Dart OMSA package from $API_SPEC..."
@@ -26,7 +26,7 @@ flutter pub get
 echo "Applying manual fixes to generated models..."
 python3 "$DIR/fix_generated_models.py"
 
-flutter format . || true 
+dart format . || true
 cd "$DIR"
 
 echo "Done generating Dart OMSA package at $OUTPUT_DIR"

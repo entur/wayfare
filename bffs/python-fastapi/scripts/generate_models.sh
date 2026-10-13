@@ -4,7 +4,7 @@ set -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$DIR/.."
-API_SPEC="${OMSA_SPEC_URL:-https://beta.developer.entur.no/apis/omsa/latest/openapi.json}"
+API_SPEC="${OMSA_SPEC_URL:-https://developer.entur.no/apis/sales/latest/openapi.json}"
 OUTPUT_DIR="$PROJECT_ROOT/app/models"
 OUTPUT_FILE="$OUTPUT_DIR/omsa.py"
 
