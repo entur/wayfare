@@ -51,26 +51,31 @@ class CancellationParameter {
   num? cancellationFeePercentage;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is CancellationParameter &&
-    other.type == type &&
-    other.cancellationAllowed == cancellationAllowed &&
-    other.cancellationFee == cancellationFee &&
-    other.cancellationFeePercentage == cancellationFeePercentage;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CancellationParameter &&
+          other.type == type &&
+          other.cancellationAllowed == cancellationAllowed &&
+          other.cancellationFee == cancellationFee &&
+          other.cancellationFeePercentage == cancellationFeePercentage;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (cancellationAllowed == null ? 0 : cancellationAllowed!.hashCode) +
-    (cancellationFee == null ? 0 : cancellationFee!.hashCode) +
-    (cancellationFeePercentage == null ? 0 : cancellationFeePercentage!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (cancellationAllowed == null ? 0 : cancellationAllowed!.hashCode) +
+      (cancellationFee == null ? 0 : cancellationFee!.hashCode) +
+      (cancellationFeePercentage == null
+          ? 0
+          : cancellationFeePercentage!.hashCode);
 
   @override
-  String toString() => 'CancellationParameter[type=$type, cancellationAllowed=$cancellationAllowed, cancellationFee=$cancellationFee, cancellationFeePercentage=$cancellationFeePercentage]';
+  String toString() =>
+      'CancellationParameter[type=$type, cancellationAllowed=$cancellationAllowed, cancellationFee=$cancellationFee, cancellationFeePercentage=$cancellationFeePercentage]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.cancellationAllowed != null) {
       json[r'cancellationAllowed'] = this.cancellationAllowed;
     } else {
@@ -101,8 +106,10 @@ class CancellationParameter {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "CancellationParameter[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "CancellationParameter[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "CancellationParameter[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "CancellationParameter[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -111,13 +118,17 @@ class CancellationParameter {
         type: mapValueOfType<String>(json, r'type')!,
         cancellationAllowed: mapValueOfType<bool>(json, r'cancellationAllowed'),
         cancellationFee: AmountOfMoney.fromJson(json[r'cancellationFee']),
-        cancellationFeePercentage: num.parse('${json[r'cancellationFeePercentage']}'),
+        cancellationFeePercentage:
+            num.parse('${json[r'cancellationFeePercentage']}'),
       );
     }
     return null;
   }
 
-  static List<CancellationParameter> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<CancellationParameter> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <CancellationParameter>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -145,13 +156,19 @@ class CancellationParameter {
   }
 
   // maps a json object with a list of CancellationParameter-objects as value to a dart map
-  static Map<String, List<CancellationParameter>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<CancellationParameter>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<CancellationParameter>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = CancellationParameter.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = CancellationParameter.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -162,4 +179,3 @@ class CancellationParameter {
     'type',
   };
 }
-

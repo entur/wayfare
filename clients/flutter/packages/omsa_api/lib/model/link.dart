@@ -90,39 +90,42 @@ class Link {
   TemporalParameter? validity;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Link &&
-    other.rel == rel &&
-    other.href == href &&
-    other.type == type &&
-    other.method == method &&
-    other.description == description &&
-    other.body == body &&
-    _deepEquality.equals(other.headers, headers) &&
-    other.isMandatory == isMandatory &&
-    other.hash == hash &&
-    other.validity == validity;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Link &&
+          other.rel == rel &&
+          other.href == href &&
+          other.type == type &&
+          other.method == method &&
+          other.description == description &&
+          other.body == body &&
+          _deepEquality.equals(other.headers, headers) &&
+          other.isMandatory == isMandatory &&
+          other.hash == hash &&
+          other.validity == validity;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (rel.hashCode) +
-    (href.hashCode) +
-    (type == null ? 0 : type!.hashCode) +
-    (method == null ? 0 : method!.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (body == null ? 0 : body!.hashCode) +
-    (headers.hashCode) +
-    (isMandatory == null ? 0 : isMandatory!.hashCode) +
-    (hash == null ? 0 : hash!.hashCode) +
-    (validity == null ? 0 : validity!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (rel.hashCode) +
+      (href.hashCode) +
+      (type == null ? 0 : type!.hashCode) +
+      (method == null ? 0 : method!.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (body == null ? 0 : body!.hashCode) +
+      (headers.hashCode) +
+      (isMandatory == null ? 0 : isMandatory!.hashCode) +
+      (hash == null ? 0 : hash!.hashCode) +
+      (validity == null ? 0 : validity!.hashCode);
 
   @override
-  String toString() => 'Link[rel=$rel, href=$href, type=$type, method=$method, description=$description, body=$body, headers=$headers, isMandatory=$isMandatory, hash=$hash, validity=$validity]';
+  String toString() =>
+      'Link[rel=$rel, href=$href, type=$type, method=$method, description=$description, body=$body, headers=$headers, isMandatory=$isMandatory, hash=$hash, validity=$validity]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'rel'] = this.rel;
-      json[r'href'] = this.href;
+    json[r'rel'] = this.rel;
+    json[r'href'] = this.href;
     if (this.type != null) {
       json[r'type'] = this.type;
     } else {
@@ -143,7 +146,7 @@ class Link {
     } else {
       json[r'body'] = null;
     }
-      json[r'headers'] = this.headers;
+    json[r'headers'] = this.headers;
     if (this.isMandatory != null) {
       json[r'isMandatory'] = this.isMandatory;
     } else {
@@ -174,8 +177,10 @@ class Link {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Link[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Link[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Link[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Link[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -196,7 +201,10 @@ class Link {
     return null;
   }
 
-  static List<Link> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Link> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Link>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -224,13 +232,19 @@ class Link {
   }
 
   // maps a json object with a list of Link-objects as value to a dart map
-  static Map<String, List<Link>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Link>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Link>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Link.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Link.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -271,9 +285,13 @@ class LinkMethodEnum {
     PATCH,
   ];
 
-  static LinkMethodEnum? fromJson(dynamic value) => LinkMethodEnumTypeTransformer().decode(value);
+  static LinkMethodEnum? fromJson(dynamic value) =>
+      LinkMethodEnumTypeTransformer().decode(value);
 
-  static List<LinkMethodEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<LinkMethodEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <LinkMethodEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -290,7 +308,8 @@ class LinkMethodEnum {
 /// Transformation class that can [encode] an instance of [LinkMethodEnum] to String,
 /// and [decode] dynamic data back to [LinkMethodEnum].
 class LinkMethodEnumTypeTransformer {
-  factory LinkMethodEnumTypeTransformer() => _instance ??= const LinkMethodEnumTypeTransformer._();
+  factory LinkMethodEnumTypeTransformer() =>
+      _instance ??= const LinkMethodEnumTypeTransformer._();
 
   const LinkMethodEnumTypeTransformer._();
 
@@ -307,11 +326,16 @@ class LinkMethodEnumTypeTransformer {
   LinkMethodEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'POST': return LinkMethodEnum.POST;
-        case r'GET': return LinkMethodEnum.GET;
-        case r'PUT': return LinkMethodEnum.PUT;
-        case r'DELETE': return LinkMethodEnum.DELETE;
-        case r'PATCH': return LinkMethodEnum.PATCH;
+        case r'POST':
+          return LinkMethodEnum.POST;
+        case r'GET':
+          return LinkMethodEnum.GET;
+        case r'PUT':
+          return LinkMethodEnum.PUT;
+        case r'DELETE':
+          return LinkMethodEnum.DELETE;
+        case r'PATCH':
+          return LinkMethodEnum.PATCH;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -324,5 +348,3 @@ class LinkMethodEnumTypeTransformer {
   /// Singleton [LinkMethodEnumTypeTransformer] instance.
   static LinkMethodEnumTypeTransformer? _instance;
 }
-
-

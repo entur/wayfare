@@ -11,7 +11,6 @@
 import 'package:omsa_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for AuthenticationApi
 void main() {
   // final instance = AuthenticationApi();
@@ -25,6 +24,5 @@ void main() {
     test('test oauthTokenPost', () async {
       // TODO
     });
-
   });
 }

@@ -54,32 +54,35 @@ class UpdateTravellerInput {
   TravellingAsset? travellingAsset;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is UpdateTravellerInput &&
-    other.type == type &&
-    other.packageId == packageId &&
-    other.travellerId == travellerId &&
-    other.individualTraveller == individualTraveller &&
-    other.userProfile == userProfile &&
-    other.travellingAsset == travellingAsset;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UpdateTravellerInput &&
+          other.type == type &&
+          other.packageId == packageId &&
+          other.travellerId == travellerId &&
+          other.individualTraveller == individualTraveller &&
+          other.userProfile == userProfile &&
+          other.travellingAsset == travellingAsset;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (packageId.hashCode) +
-    (travellerId.hashCode) +
-    (individualTraveller == null ? 0 : individualTraveller!.hashCode) +
-    (userProfile == null ? 0 : userProfile!.hashCode) +
-    (travellingAsset == null ? 0 : travellingAsset!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (packageId.hashCode) +
+      (travellerId.hashCode) +
+      (individualTraveller == null ? 0 : individualTraveller!.hashCode) +
+      (userProfile == null ? 0 : userProfile!.hashCode) +
+      (travellingAsset == null ? 0 : travellingAsset!.hashCode);
 
   @override
-  String toString() => 'UpdateTravellerInput[type=$type, packageId=$packageId, travellerId=$travellerId, individualTraveller=$individualTraveller, userProfile=$userProfile, travellingAsset=$travellingAsset]';
+  String toString() =>
+      'UpdateTravellerInput[type=$type, packageId=$packageId, travellerId=$travellerId, individualTraveller=$individualTraveller, userProfile=$userProfile, travellingAsset=$travellingAsset]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'packageId'] = this.packageId;
-      json[r'travellerId'] = this.travellerId;
+    json[r'type'] = this.type;
+    json[r'packageId'] = this.packageId;
+    json[r'travellerId'] = this.travellerId;
     if (this.individualTraveller != null) {
       json[r'individualTraveller'] = this.individualTraveller;
     } else {
@@ -110,8 +113,10 @@ class UpdateTravellerInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "UpdateTravellerInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "UpdateTravellerInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "UpdateTravellerInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "UpdateTravellerInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -120,7 +125,8 @@ class UpdateTravellerInput {
         type: mapValueOfType<String>(json, r'type')!,
         packageId: mapValueOfType<String>(json, r'packageId')!,
         travellerId: mapValueOfType<String>(json, r'travellerId')!,
-        individualTraveller: IndividualTraveller.fromJson(json[r'individualTraveller']),
+        individualTraveller:
+            IndividualTraveller.fromJson(json[r'individualTraveller']),
         userProfile: UserProfile.fromJson(json[r'userProfile']),
         travellingAsset: TravellingAsset.fromJson(json[r'travellingAsset']),
       );
@@ -128,7 +134,10 @@ class UpdateTravellerInput {
     return null;
   }
 
-  static List<UpdateTravellerInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<UpdateTravellerInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <UpdateTravellerInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -156,13 +165,19 @@ class UpdateTravellerInput {
   }
 
   // maps a json object with a list of UpdateTravellerInput-objects as value to a dart map
-  static Map<String, List<UpdateTravellerInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<UpdateTravellerInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<UpdateTravellerInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = UpdateTravellerInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = UpdateTravellerInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -175,4 +190,3 @@ class UpdateTravellerInput {
     'travellerId',
   };
 }
-

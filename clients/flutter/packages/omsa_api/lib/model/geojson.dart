@@ -68,28 +68,31 @@ class Geojson {
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Geojson &&
-    other.type == type &&
-    _deepEquality.equals(other.features, features) &&
-    other.properties == properties &&
-    other.crs == crs &&
-    other.numberMatched == numberMatched &&
-    other.numberReturned == numberReturned &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Geojson &&
+          other.type == type &&
+          _deepEquality.equals(other.features, features) &&
+          other.properties == properties &&
+          other.crs == crs &&
+          other.numberMatched == numberMatched &&
+          other.numberReturned == numberReturned &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type == null ? 0 : type!.hashCode) +
-    (features.hashCode) +
-    (properties == null ? 0 : properties!.hashCode) +
-    (crs == null ? 0 : crs!.hashCode) +
-    (numberMatched == null ? 0 : numberMatched!.hashCode) +
-    (numberReturned == null ? 0 : numberReturned!.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type == null ? 0 : type!.hashCode) +
+      (features.hashCode) +
+      (properties == null ? 0 : properties!.hashCode) +
+      (crs == null ? 0 : crs!.hashCode) +
+      (numberMatched == null ? 0 : numberMatched!.hashCode) +
+      (numberReturned == null ? 0 : numberReturned!.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'Geojson[type=$type, features=$features, properties=$properties, crs=$crs, numberMatched=$numberMatched, numberReturned=$numberReturned, links=$links]';
+  String toString() =>
+      'Geojson[type=$type, features=$features, properties=$properties, crs=$crs, numberMatched=$numberMatched, numberReturned=$numberReturned, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -98,7 +101,7 @@ class Geojson {
     } else {
       json[r'type'] = null;
     }
-      json[r'features'] = this.features;
+    json[r'features'] = this.features;
     if (this.properties != null) {
       json[r'properties'] = this.properties;
     } else {
@@ -119,7 +122,7 @@ class Geojson {
     } else {
       json[r'numberReturned'] = null;
     }
-      json[r'links'] = this.links;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -135,8 +138,10 @@ class Geojson {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Geojson[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Geojson[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Geojson[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Geojson[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -154,7 +159,10 @@ class Geojson {
     return null;
   }
 
-  static List<Geojson> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Geojson> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Geojson>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -182,20 +190,24 @@ class Geojson {
   }
 
   // maps a json object with a list of Geojson-objects as value to a dart map
-  static Map<String, List<Geojson>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Geojson>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Geojson>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Geojson.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Geojson.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

@@ -54,22 +54,25 @@ class TripPatternInner {
   PlaceReference? to;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is TripPatternInner &&
-    other.serviceJourney == serviceJourney &&
-    other.date == date &&
-    other.from == from &&
-    other.to == to;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TripPatternInner &&
+          other.serviceJourney == serviceJourney &&
+          other.date == date &&
+          other.from == from &&
+          other.to == to;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (serviceJourney == null ? 0 : serviceJourney!.hashCode) +
-    (date == null ? 0 : date!.hashCode) +
-    (from == null ? 0 : from!.hashCode) +
-    (to == null ? 0 : to!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (serviceJourney == null ? 0 : serviceJourney!.hashCode) +
+      (date == null ? 0 : date!.hashCode) +
+      (from == null ? 0 : from!.hashCode) +
+      (to == null ? 0 : to!.hashCode);
 
   @override
-  String toString() => 'TripPatternInner[serviceJourney=$serviceJourney, date=$date, from=$from, to=$to]';
+  String toString() =>
+      'TripPatternInner[serviceJourney=$serviceJourney, date=$date, from=$from, to=$to]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -108,8 +111,10 @@ class TripPatternInner {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "TripPatternInner[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "TripPatternInner[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "TripPatternInner[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "TripPatternInner[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -124,7 +129,10 @@ class TripPatternInner {
     return null;
   }
 
-  static List<TripPatternInner> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TripPatternInner> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TripPatternInner>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -152,20 +160,24 @@ class TripPatternInner {
   }
 
   // maps a json object with a list of TripPatternInner-objects as value to a dart map
-  static Map<String, List<TripPatternInner>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<TripPatternInner>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<TripPatternInner>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = TripPatternInner.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = TripPatternInner.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

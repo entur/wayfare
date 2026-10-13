@@ -57,8 +57,5 @@ void main() {
     test('to test the property `accommodations`', () async {
       // TODO
     });
-
-
   });
-
 }

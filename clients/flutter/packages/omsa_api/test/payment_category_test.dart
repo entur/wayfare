@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for PaymentCategory
 void main() {
-
-  group('test PaymentCategory', () {
-
-  });
-
+  group('test PaymentCategory', () {});
 }

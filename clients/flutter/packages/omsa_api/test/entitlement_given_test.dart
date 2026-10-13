@@ -32,8 +32,5 @@ void main() {
     test('to test the property `entitlementType`', () async {
       // TODO
     });
-
-
   });
-
 }

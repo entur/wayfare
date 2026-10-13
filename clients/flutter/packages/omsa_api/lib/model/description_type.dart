@@ -40,22 +40,25 @@ class DescriptionType {
   List<Metadata> metadata;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is DescriptionType &&
-    other.title == title &&
-    other.description == description &&
-    _deepEquality.equals(other.keywords, keywords) &&
-    _deepEquality.equals(other.metadata, metadata);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DescriptionType &&
+          other.title == title &&
+          other.description == description &&
+          _deepEquality.equals(other.keywords, keywords) &&
+          _deepEquality.equals(other.metadata, metadata);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (title == null ? 0 : title!.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (keywords.hashCode) +
-    (metadata.hashCode);
+      // ignore: unnecessary_parenthesis
+      (title == null ? 0 : title!.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (keywords.hashCode) +
+      (metadata.hashCode);
 
   @override
-  String toString() => 'DescriptionType[title=$title, description=$description, keywords=$keywords, metadata=$metadata]';
+  String toString() =>
+      'DescriptionType[title=$title, description=$description, keywords=$keywords, metadata=$metadata]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -69,8 +72,8 @@ class DescriptionType {
     } else {
       json[r'description'] = null;
     }
-      json[r'keywords'] = this.keywords;
-      json[r'metadata'] = this.metadata;
+    json[r'keywords'] = this.keywords;
+    json[r'metadata'] = this.metadata;
     return json;
   }
 
@@ -86,8 +89,10 @@ class DescriptionType {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "DescriptionType[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "DescriptionType[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "DescriptionType[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "DescriptionType[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -96,7 +101,9 @@ class DescriptionType {
         title: mapValueOfType<String>(json, r'title'),
         description: mapValueOfType<String>(json, r'description'),
         keywords: json[r'keywords'] is Iterable
-            ? (json[r'keywords'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'keywords'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
         metadata: Metadata.listFromJson(json[r'metadata']),
       );
@@ -104,7 +111,10 @@ class DescriptionType {
     return null;
   }
 
-  static List<DescriptionType> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<DescriptionType> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <DescriptionType>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -132,20 +142,24 @@ class DescriptionType {
   }
 
   // maps a json object with a list of DescriptionType-objects as value to a dart map
-  static Map<String, List<DescriptionType>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<DescriptionType>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<DescriptionType>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = DescriptionType.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = DescriptionType.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

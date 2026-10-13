@@ -19,20 +19,22 @@ class SearchOfferHandlerDefaultResponse {
   List<Error> errors;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is SearchOfferHandlerDefaultResponse &&
-    _deepEquality.equals(other.errors, errors);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SearchOfferHandlerDefaultResponse &&
+          _deepEquality.equals(other.errors, errors);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (errors.hashCode);
+      // ignore: unnecessary_parenthesis
+      (errors.hashCode);
 
   @override
   String toString() => 'SearchOfferHandlerDefaultResponse[errors=$errors]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'errors'] = this.errors;
+    json[r'errors'] = this.errors;
     return json;
   }
 
@@ -48,8 +50,10 @@ class SearchOfferHandlerDefaultResponse {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "SearchOfferHandlerDefaultResponse[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "SearchOfferHandlerDefaultResponse[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "SearchOfferHandlerDefaultResponse[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "SearchOfferHandlerDefaultResponse[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -61,7 +65,10 @@ class SearchOfferHandlerDefaultResponse {
     return null;
   }
 
-  static List<SearchOfferHandlerDefaultResponse> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<SearchOfferHandlerDefaultResponse> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <SearchOfferHandlerDefaultResponse>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -74,7 +81,8 @@ class SearchOfferHandlerDefaultResponse {
     return result.toList(growable: growable);
   }
 
-  static Map<String, SearchOfferHandlerDefaultResponse> mapFromJson(dynamic json) {
+  static Map<String, SearchOfferHandlerDefaultResponse> mapFromJson(
+      dynamic json) {
     final map = <String, SearchOfferHandlerDefaultResponse>{};
     if (json is Map && json.isNotEmpty) {
       json = json.cast<String, dynamic>(); // ignore: parameter_assignments
@@ -89,20 +97,24 @@ class SearchOfferHandlerDefaultResponse {
   }
 
   // maps a json object with a list of SearchOfferHandlerDefaultResponse-objects as value to a dart map
-  static Map<String, List<SearchOfferHandlerDefaultResponse>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<SearchOfferHandlerDefaultResponse>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<SearchOfferHandlerDefaultResponse>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = SearchOfferHandlerDefaultResponse.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = SearchOfferHandlerDefaultResponse.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

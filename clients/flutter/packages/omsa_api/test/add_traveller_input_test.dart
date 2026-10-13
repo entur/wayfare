@@ -41,8 +41,5 @@ void main() {
     test('to test the property `travellingAsset`', () async {
       // TODO
     });
-
-
   });
-
 }

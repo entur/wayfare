@@ -30,22 +30,24 @@ class OrganisationReference {
   String? name;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is OrganisationReference &&
-    other.organisationId == organisationId &&
-    other.name == name;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OrganisationReference &&
+          other.organisationId == organisationId &&
+          other.name == name;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (organisationId.hashCode) +
-    (name == null ? 0 : name!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (organisationId.hashCode) + (name == null ? 0 : name!.hashCode);
 
   @override
-  String toString() => 'OrganisationReference[organisationId=$organisationId, name=$name]';
+  String toString() =>
+      'OrganisationReference[organisationId=$organisationId, name=$name]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'organisationId'] = this.organisationId;
+    json[r'organisationId'] = this.organisationId;
     if (this.name != null) {
       json[r'name'] = this.name;
     } else {
@@ -66,8 +68,10 @@ class OrganisationReference {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "OrganisationReference[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "OrganisationReference[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "OrganisationReference[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "OrganisationReference[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -80,7 +84,10 @@ class OrganisationReference {
     return null;
   }
 
-  static List<OrganisationReference> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<OrganisationReference> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <OrganisationReference>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -108,13 +115,19 @@ class OrganisationReference {
   }
 
   // maps a json object with a list of OrganisationReference-objects as value to a dart map
-  static Map<String, List<OrganisationReference>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<OrganisationReference>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<OrganisationReference>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = OrganisationReference.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = OrganisationReference.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -125,4 +138,3 @@ class OrganisationReference {
     'organisationId',
   };
 }
-

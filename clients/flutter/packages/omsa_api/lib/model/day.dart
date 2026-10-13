@@ -10,7 +10,6 @@
 
 part of openapi.api;
 
-
 class Day {
   /// Instantiate a new enum with the provided [value].
   const Day._(this.value);
@@ -44,7 +43,10 @@ class Day {
 
   static Day? fromJson(dynamic value) => DayTypeTransformer().decode(value);
 
-  static List<Day> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Day> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Day>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -78,13 +80,20 @@ class DayTypeTransformer {
   Day? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'MON': return Day.MON;
-        case r'TUE': return Day.TUE;
-        case r'WED': return Day.WED;
-        case r'THU': return Day.THU;
-        case r'FRI': return Day.FRI;
-        case r'SAT': return Day.SAT;
-        case r'SUN': return Day.SUN;
+        case r'MON':
+          return Day.MON;
+        case r'TUE':
+          return Day.TUE;
+        case r'WED':
+          return Day.WED;
+        case r'THU':
+          return Day.THU;
+        case r'FRI':
+          return Day.FRI;
+        case r'SAT':
+          return Day.SAT;
+        case r'SUN':
+          return Day.SUN;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -97,4 +106,3 @@ class DayTypeTransformer {
   /// Singleton [DayTypeTransformer] instance.
   static DayTypeTransformer? _instance;
 }
-

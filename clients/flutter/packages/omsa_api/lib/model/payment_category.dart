@@ -60,9 +60,13 @@ class PaymentCategory {
     FEE,
   ];
 
-  static PaymentCategory? fromJson(dynamic value) => PaymentCategoryTypeTransformer().decode(value);
+  static PaymentCategory? fromJson(dynamic value) =>
+      PaymentCategoryTypeTransformer().decode(value);
 
-  static List<PaymentCategory> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PaymentCategory> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PaymentCategory>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -79,7 +83,8 @@ class PaymentCategory {
 /// Transformation class that can [encode] an instance of [PaymentCategory] to String,
 /// and [decode] dynamic data back to [PaymentCategory].
 class PaymentCategoryTypeTransformer {
-  factory PaymentCategoryTypeTransformer() => _instance ??= const PaymentCategoryTypeTransformer._();
+  factory PaymentCategoryTypeTransformer() =>
+      _instance ??= const PaymentCategoryTypeTransformer._();
 
   const PaymentCategoryTypeTransformer._();
 
@@ -96,22 +101,38 @@ class PaymentCategoryTypeTransformer {
   PaymentCategory? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'ALL': return PaymentCategory.ALL;
-        case r'DAMAGE': return PaymentCategory.DAMAGE;
-        case r'LOSS': return PaymentCategory.LOSS;
-        case r'STOLEN': return PaymentCategory.STOLEN;
-        case r'EXTRA_USAGE': return PaymentCategory.EXTRA_USAGE;
-        case r'REFUND': return PaymentCategory.REFUND;
-        case r'REBATE': return PaymentCategory.REBATE;
-        case r'REIMBURSEMENT': return PaymentCategory.REIMBURSEMENT;
-        case r'FINE': return PaymentCategory.FINE;
-        case r'OTHER_ASSET_USED': return PaymentCategory.OTHER_ASSET_USED;
-        case r'CREDIT': return PaymentCategory.CREDIT;
-        case r'VOUCHER': return PaymentCategory.VOUCHER;
-        case r'DEPOSIT': return PaymentCategory.DEPOSIT;
-        case r'OTHER': return PaymentCategory.OTHER;
-        case r'FARE': return PaymentCategory.FARE;
-        case r'FEE': return PaymentCategory.FEE;
+        case r'ALL':
+          return PaymentCategory.ALL;
+        case r'DAMAGE':
+          return PaymentCategory.DAMAGE;
+        case r'LOSS':
+          return PaymentCategory.LOSS;
+        case r'STOLEN':
+          return PaymentCategory.STOLEN;
+        case r'EXTRA_USAGE':
+          return PaymentCategory.EXTRA_USAGE;
+        case r'REFUND':
+          return PaymentCategory.REFUND;
+        case r'REBATE':
+          return PaymentCategory.REBATE;
+        case r'REIMBURSEMENT':
+          return PaymentCategory.REIMBURSEMENT;
+        case r'FINE':
+          return PaymentCategory.FINE;
+        case r'OTHER_ASSET_USED':
+          return PaymentCategory.OTHER_ASSET_USED;
+        case r'CREDIT':
+          return PaymentCategory.CREDIT;
+        case r'VOUCHER':
+          return PaymentCategory.VOUCHER;
+        case r'DEPOSIT':
+          return PaymentCategory.DEPOSIT;
+        case r'OTHER':
+          return PaymentCategory.OTHER;
+        case r'FARE':
+          return PaymentCategory.FARE;
+        case r'FEE':
+          return PaymentCategory.FEE;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -124,4 +145,3 @@ class PaymentCategoryTypeTransformer {
   /// Singleton [PaymentCategoryTypeTransformer] instance.
   static PaymentCategoryTypeTransformer? _instance;
 }
-

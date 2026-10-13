@@ -99,41 +99,44 @@ class MetadataOneOf {
   String? role;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is MetadataOneOf &&
-    other.rel == rel &&
-    other.href == href &&
-    other.type == type &&
-    other.method == method &&
-    other.description == description &&
-    other.body == body &&
-    _deepEquality.equals(other.headers, headers) &&
-    other.isMandatory == isMandatory &&
-    other.hash == hash &&
-    other.validity == validity &&
-    other.role == role;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MetadataOneOf &&
+          other.rel == rel &&
+          other.href == href &&
+          other.type == type &&
+          other.method == method &&
+          other.description == description &&
+          other.body == body &&
+          _deepEquality.equals(other.headers, headers) &&
+          other.isMandatory == isMandatory &&
+          other.hash == hash &&
+          other.validity == validity &&
+          other.role == role;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (rel.hashCode) +
-    (href.hashCode) +
-    (type == null ? 0 : type!.hashCode) +
-    (method == null ? 0 : method!.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (body == null ? 0 : body!.hashCode) +
-    (headers.hashCode) +
-    (isMandatory == null ? 0 : isMandatory!.hashCode) +
-    (hash == null ? 0 : hash!.hashCode) +
-    (validity == null ? 0 : validity!.hashCode) +
-    (role == null ? 0 : role!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (rel.hashCode) +
+      (href.hashCode) +
+      (type == null ? 0 : type!.hashCode) +
+      (method == null ? 0 : method!.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (body == null ? 0 : body!.hashCode) +
+      (headers.hashCode) +
+      (isMandatory == null ? 0 : isMandatory!.hashCode) +
+      (hash == null ? 0 : hash!.hashCode) +
+      (validity == null ? 0 : validity!.hashCode) +
+      (role == null ? 0 : role!.hashCode);
 
   @override
-  String toString() => 'MetadataOneOf[rel=$rel, href=$href, type=$type, method=$method, description=$description, body=$body, headers=$headers, isMandatory=$isMandatory, hash=$hash, validity=$validity, role=$role]';
+  String toString() =>
+      'MetadataOneOf[rel=$rel, href=$href, type=$type, method=$method, description=$description, body=$body, headers=$headers, isMandatory=$isMandatory, hash=$hash, validity=$validity, role=$role]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'rel'] = this.rel;
-      json[r'href'] = this.href;
+    json[r'rel'] = this.rel;
+    json[r'href'] = this.href;
     if (this.type != null) {
       json[r'type'] = this.type;
     } else {
@@ -154,7 +157,7 @@ class MetadataOneOf {
     } else {
       json[r'body'] = null;
     }
-      json[r'headers'] = this.headers;
+    json[r'headers'] = this.headers;
     if (this.isMandatory != null) {
       json[r'isMandatory'] = this.isMandatory;
     } else {
@@ -190,8 +193,10 @@ class MetadataOneOf {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "MetadataOneOf[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "MetadataOneOf[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "MetadataOneOf[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "MetadataOneOf[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -213,7 +218,10 @@ class MetadataOneOf {
     return null;
   }
 
-  static List<MetadataOneOf> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<MetadataOneOf> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <MetadataOneOf>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -241,13 +249,19 @@ class MetadataOneOf {
   }
 
   // maps a json object with a list of MetadataOneOf-objects as value to a dart map
-  static Map<String, List<MetadataOneOf>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<MetadataOneOf>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<MetadataOneOf>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = MetadataOneOf.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = MetadataOneOf.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -288,9 +302,13 @@ class MetadataOneOfMethodEnum {
     PATCH,
   ];
 
-  static MetadataOneOfMethodEnum? fromJson(dynamic value) => MetadataOneOfMethodEnumTypeTransformer().decode(value);
+  static MetadataOneOfMethodEnum? fromJson(dynamic value) =>
+      MetadataOneOfMethodEnumTypeTransformer().decode(value);
 
-  static List<MetadataOneOfMethodEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<MetadataOneOfMethodEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <MetadataOneOfMethodEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -307,7 +325,8 @@ class MetadataOneOfMethodEnum {
 /// Transformation class that can [encode] an instance of [MetadataOneOfMethodEnum] to String,
 /// and [decode] dynamic data back to [MetadataOneOfMethodEnum].
 class MetadataOneOfMethodEnumTypeTransformer {
-  factory MetadataOneOfMethodEnumTypeTransformer() => _instance ??= const MetadataOneOfMethodEnumTypeTransformer._();
+  factory MetadataOneOfMethodEnumTypeTransformer() =>
+      _instance ??= const MetadataOneOfMethodEnumTypeTransformer._();
 
   const MetadataOneOfMethodEnumTypeTransformer._();
 
@@ -324,11 +343,16 @@ class MetadataOneOfMethodEnumTypeTransformer {
   MetadataOneOfMethodEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'POST': return MetadataOneOfMethodEnum.POST;
-        case r'GET': return MetadataOneOfMethodEnum.GET;
-        case r'PUT': return MetadataOneOfMethodEnum.PUT;
-        case r'DELETE': return MetadataOneOfMethodEnum.DELETE;
-        case r'PATCH': return MetadataOneOfMethodEnum.PATCH;
+        case r'POST':
+          return MetadataOneOfMethodEnum.POST;
+        case r'GET':
+          return MetadataOneOfMethodEnum.GET;
+        case r'PUT':
+          return MetadataOneOfMethodEnum.PUT;
+        case r'DELETE':
+          return MetadataOneOfMethodEnum.DELETE;
+        case r'PATCH':
+          return MetadataOneOfMethodEnum.PATCH;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -341,5 +365,3 @@ class MetadataOneOfMethodEnumTypeTransformer {
   /// Singleton [MetadataOneOfMethodEnumTypeTransformer] instance.
   static MetadataOneOfMethodEnumTypeTransformer? _instance;
 }
-
-

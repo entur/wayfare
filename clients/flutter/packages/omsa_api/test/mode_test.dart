@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for Mode
 void main() {
-
-  group('test Mode', () {
-
-  });
-
+  group('test Mode', () {});
 }

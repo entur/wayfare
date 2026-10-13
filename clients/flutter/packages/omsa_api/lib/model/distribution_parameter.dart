@@ -39,24 +39,27 @@ class DistributionParameter {
   String? distributionChannel;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is DistributionParameter &&
-    other.type == type &&
-    other.fulfilmentMethod == fulfilmentMethod &&
-    other.distributionChannel == distributionChannel;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DistributionParameter &&
+          other.type == type &&
+          other.fulfilmentMethod == fulfilmentMethod &&
+          other.distributionChannel == distributionChannel;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (fulfilmentMethod == null ? 0 : fulfilmentMethod!.hashCode) +
-    (distributionChannel == null ? 0 : distributionChannel!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (fulfilmentMethod == null ? 0 : fulfilmentMethod!.hashCode) +
+      (distributionChannel == null ? 0 : distributionChannel!.hashCode);
 
   @override
-  String toString() => 'DistributionParameter[type=$type, fulfilmentMethod=$fulfilmentMethod, distributionChannel=$distributionChannel]';
+  String toString() =>
+      'DistributionParameter[type=$type, fulfilmentMethod=$fulfilmentMethod, distributionChannel=$distributionChannel]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.fulfilmentMethod != null) {
       json[r'fulfilmentMethod'] = this.fulfilmentMethod;
     } else {
@@ -82,8 +85,10 @@ class DistributionParameter {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "DistributionParameter[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "DistributionParameter[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "DistributionParameter[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "DistributionParameter[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -91,13 +96,17 @@ class DistributionParameter {
       return DistributionParameter(
         type: mapValueOfType<String>(json, r'type')!,
         fulfilmentMethod: mapValueOfType<String>(json, r'fulfilmentMethod'),
-        distributionChannel: mapValueOfType<String>(json, r'distributionChannel'),
+        distributionChannel:
+            mapValueOfType<String>(json, r'distributionChannel'),
       );
     }
     return null;
   }
 
-  static List<DistributionParameter> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<DistributionParameter> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <DistributionParameter>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -125,13 +134,19 @@ class DistributionParameter {
   }
 
   // maps a json object with a list of DistributionParameter-objects as value to a dart map
-  static Map<String, List<DistributionParameter>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<DistributionParameter>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<DistributionParameter>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = DistributionParameter.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = DistributionParameter.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -142,4 +157,3 @@ class DistributionParameter {
     'type',
   };
 }
-

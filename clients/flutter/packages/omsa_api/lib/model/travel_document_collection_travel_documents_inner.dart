@@ -38,20 +38,23 @@ class TravelDocumentCollectionTravelDocumentsInner {
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is TravelDocumentCollectionTravelDocumentsInner &&
-    other.id == id &&
-    other.properties == properties &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TravelDocumentCollectionTravelDocumentsInner &&
+          other.id == id &&
+          other.properties == properties &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (id == null ? 0 : id!.hashCode) +
-    (properties == null ? 0 : properties!.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (id == null ? 0 : id!.hashCode) +
+      (properties == null ? 0 : properties!.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'TravelDocumentCollectionTravelDocumentsInner[id=$id, properties=$properties, links=$links]';
+  String toString() =>
+      'TravelDocumentCollectionTravelDocumentsInner[id=$id, properties=$properties, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -65,7 +68,7 @@ class TravelDocumentCollectionTravelDocumentsInner {
     } else {
       json[r'properties'] = null;
     }
-      json[r'links'] = this.links;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -81,26 +84,34 @@ class TravelDocumentCollectionTravelDocumentsInner {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "TravelDocumentCollectionTravelDocumentsInner[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "TravelDocumentCollectionTravelDocumentsInner[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "TravelDocumentCollectionTravelDocumentsInner[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "TravelDocumentCollectionTravelDocumentsInner[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return TravelDocumentCollectionTravelDocumentsInner(
         id: mapValueOfType<String>(json, r'id'),
-        properties: TravelDocumentCollectionTravelDocumentsInnerProperties.fromJson(json[r'properties']),
+        properties:
+            TravelDocumentCollectionTravelDocumentsInnerProperties.fromJson(
+                json[r'properties']),
         links: Link.listFromJson(json[r'links']),
       );
     }
     return null;
   }
 
-  static List<TravelDocumentCollectionTravelDocumentsInner> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TravelDocumentCollectionTravelDocumentsInner> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TravelDocumentCollectionTravelDocumentsInner>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
-        final value = TravelDocumentCollectionTravelDocumentsInner.fromJson(row);
+        final value =
+            TravelDocumentCollectionTravelDocumentsInner.fromJson(row);
         if (value != null) {
           result.add(value);
         }
@@ -109,12 +120,14 @@ class TravelDocumentCollectionTravelDocumentsInner {
     return result.toList(growable: growable);
   }
 
-  static Map<String, TravelDocumentCollectionTravelDocumentsInner> mapFromJson(dynamic json) {
+  static Map<String, TravelDocumentCollectionTravelDocumentsInner> mapFromJson(
+      dynamic json) {
     final map = <String, TravelDocumentCollectionTravelDocumentsInner>{};
     if (json is Map && json.isNotEmpty) {
       json = json.cast<String, dynamic>(); // ignore: parameter_assignments
       for (final entry in json.entries) {
-        final value = TravelDocumentCollectionTravelDocumentsInner.fromJson(entry.value);
+        final value =
+            TravelDocumentCollectionTravelDocumentsInner.fromJson(entry.value);
         if (value != null) {
           map[entry.key] = value;
         }
@@ -124,20 +137,26 @@ class TravelDocumentCollectionTravelDocumentsInner {
   }
 
   // maps a json object with a list of TravelDocumentCollectionTravelDocumentsInner-objects as value to a dart map
-  static Map<String, List<TravelDocumentCollectionTravelDocumentsInner>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<TravelDocumentCollectionTravelDocumentsInner>>
+      mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<TravelDocumentCollectionTravelDocumentsInner>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = TravelDocumentCollectionTravelDocumentsInner.listFromJson(entry.value, growable: growable,);
+        map[entry.key] =
+            TravelDocumentCollectionTravelDocumentsInner.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

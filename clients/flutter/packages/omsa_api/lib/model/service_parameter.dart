@@ -66,34 +66,37 @@ class ServiceParameter {
   List<Accommodation> accommodations;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ServiceParameter &&
-    other.type == type &&
-    other.product == product &&
-    other.asset == asset &&
-    other.serviceJourney == serviceJourney &&
-    _deepEquality.equals(other.userNeeds, userNeeds) &&
-    other.class_ == class_ &&
-    _deepEquality.equals(other.onboardStay, onboardStay) &&
-    _deepEquality.equals(other.accommodations, accommodations);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ServiceParameter &&
+          other.type == type &&
+          other.product == product &&
+          other.asset == asset &&
+          other.serviceJourney == serviceJourney &&
+          _deepEquality.equals(other.userNeeds, userNeeds) &&
+          other.class_ == class_ &&
+          _deepEquality.equals(other.onboardStay, onboardStay) &&
+          _deepEquality.equals(other.accommodations, accommodations);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (product == null ? 0 : product!.hashCode) +
-    (asset == null ? 0 : asset!.hashCode) +
-    (serviceJourney == null ? 0 : serviceJourney!.hashCode) +
-    (userNeeds.hashCode) +
-    (class_ == null ? 0 : class_!.hashCode) +
-    (onboardStay.hashCode) +
-    (accommodations.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (product == null ? 0 : product!.hashCode) +
+      (asset == null ? 0 : asset!.hashCode) +
+      (serviceJourney == null ? 0 : serviceJourney!.hashCode) +
+      (userNeeds.hashCode) +
+      (class_ == null ? 0 : class_!.hashCode) +
+      (onboardStay.hashCode) +
+      (accommodations.hashCode);
 
   @override
-  String toString() => 'ServiceParameter[type=$type, product=$product, asset=$asset, serviceJourney=$serviceJourney, userNeeds=$userNeeds, class_=$class_, onboardStay=$onboardStay, accommodations=$accommodations]';
+  String toString() =>
+      'ServiceParameter[type=$type, product=$product, asset=$asset, serviceJourney=$serviceJourney, userNeeds=$userNeeds, class_=$class_, onboardStay=$onboardStay, accommodations=$accommodations]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.product != null) {
       json[r'product'] = this.product;
     } else {
@@ -109,14 +112,14 @@ class ServiceParameter {
     } else {
       json[r'serviceJourney'] = null;
     }
-      json[r'userNeeds'] = this.userNeeds;
+    json[r'userNeeds'] = this.userNeeds;
     if (this.class_ != null) {
       json[r'class'] = this.class_;
     } else {
       json[r'class'] = null;
     }
-      json[r'onboardStay'] = this.onboardStay;
-      json[r'accommodations'] = this.accommodations;
+    json[r'onboardStay'] = this.onboardStay;
+    json[r'accommodations'] = this.accommodations;
     return json;
   }
 
@@ -132,8 +135,10 @@ class ServiceParameter {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ServiceParameter[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ServiceParameter[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ServiceParameter[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ServiceParameter[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -152,7 +157,10 @@ class ServiceParameter {
     return null;
   }
 
-  static List<ServiceParameter> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ServiceParameter> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ServiceParameter>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -180,13 +188,19 @@ class ServiceParameter {
   }
 
   // maps a json object with a list of ServiceParameter-objects as value to a dart map
-  static Map<String, List<ServiceParameter>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ServiceParameter>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ServiceParameter>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ServiceParameter.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ServiceParameter.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -197,4 +211,3 @@ class ServiceParameter {
     'type',
   };
 }
-

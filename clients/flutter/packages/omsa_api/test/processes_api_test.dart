@@ -11,7 +11,6 @@
 import 'package:omsa_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for ProcessesApi
 void main() {
   // final instance = ProcessesApi();
@@ -128,6 +127,5 @@ void main() {
     test('test updateTravellerHandler', () async {
       // TODO
     });
-
   });
 }

@@ -19,20 +19,22 @@ class GeojsonFeatureGeometry {
   List<List<List<List<double>>>> coordinates;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is GeojsonFeatureGeometry &&
-    _deepEquality.equals(other.coordinates, coordinates);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GeojsonFeatureGeometry &&
+          _deepEquality.equals(other.coordinates, coordinates);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (coordinates.hashCode);
+      // ignore: unnecessary_parenthesis
+      (coordinates.hashCode);
 
   @override
   String toString() => 'GeojsonFeatureGeometry[coordinates=$coordinates]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'coordinates'] = this.coordinates;
+    json[r'coordinates'] = this.coordinates;
     return json;
   }
 
@@ -48,28 +50,34 @@ class GeojsonFeatureGeometry {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "GeojsonFeatureGeometry[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "GeojsonFeatureGeometry[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "GeojsonFeatureGeometry[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "GeojsonFeatureGeometry[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return GeojsonFeatureGeometry(
         coordinates: json[r'coordinates'] is List
-          ? (json[r'coordinates'] as List).map<List<List<List<double>>>>((e) =>
-              (e as List).map<List<List<double>>>((e) =>
-                (e as List).map<List<double>>((e) =>
-                  (e as List).cast<double>().toList()
-                ).toList()
-              ).toList()
-            ).toList()
-          :  const [],
+            ? (json[r'coordinates'] as List)
+                .map<List<List<List<double>>>>((e) => (e as List)
+                    .map<List<List<double>>>((e) => (e as List)
+                        .map<List<double>>(
+                            (e) => (e as List).cast<double>().toList())
+                        .toList())
+                    .toList())
+                .toList()
+            : const [],
       );
     }
     return null;
   }
 
-  static List<GeojsonFeatureGeometry> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<GeojsonFeatureGeometry> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <GeojsonFeatureGeometry>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -97,13 +105,19 @@ class GeojsonFeatureGeometry {
   }
 
   // maps a json object with a list of GeojsonFeatureGeometry-objects as value to a dart map
-  static Map<String, List<GeojsonFeatureGeometry>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<GeojsonFeatureGeometry>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<GeojsonFeatureGeometry>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = GeojsonFeatureGeometry.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = GeojsonFeatureGeometry.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -114,4 +128,3 @@ class GeojsonFeatureGeometry {
     'coordinates',
   };
 }
-

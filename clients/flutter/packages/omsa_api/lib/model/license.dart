@@ -48,26 +48,29 @@ class License {
   String? endValidity;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is License &&
-    other.type == type &&
-    other.licenseType == licenseType &&
-    other.licenseNumber == licenseNumber &&
-    other.endValidity == endValidity;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is License &&
+          other.type == type &&
+          other.licenseType == licenseType &&
+          other.licenseNumber == licenseNumber &&
+          other.endValidity == endValidity;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (licenseType == null ? 0 : licenseType!.hashCode) +
-    (licenseNumber == null ? 0 : licenseNumber!.hashCode) +
-    (endValidity == null ? 0 : endValidity!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (licenseType == null ? 0 : licenseType!.hashCode) +
+      (licenseNumber == null ? 0 : licenseNumber!.hashCode) +
+      (endValidity == null ? 0 : endValidity!.hashCode);
 
   @override
-  String toString() => 'License[type=$type, licenseType=$licenseType, licenseNumber=$licenseNumber, endValidity=$endValidity]';
+  String toString() =>
+      'License[type=$type, licenseType=$licenseType, licenseNumber=$licenseNumber, endValidity=$endValidity]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.licenseType != null) {
       json[r'licenseType'] = this.licenseType;
     } else {
@@ -98,8 +101,10 @@ class License {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "License[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "License[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "License[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "License[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -114,7 +119,10 @@ class License {
     return null;
   }
 
-  static List<License> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<License> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <License>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -142,13 +150,19 @@ class License {
   }
 
   // maps a json object with a list of License-objects as value to a dart map
-  static Map<String, List<License>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<License>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<License>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = License.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = License.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -159,4 +173,3 @@ class License {
     'type',
   };
 }
-

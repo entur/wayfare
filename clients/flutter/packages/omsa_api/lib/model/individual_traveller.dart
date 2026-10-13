@@ -85,38 +85,41 @@ class IndividualTraveller {
   Map<String, Object> customFields;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is IndividualTraveller &&
-    other.type == type &&
-    other.entitlements == entitlements &&
-    other.requirements == requirements &&
-    other.id == id &&
-    other.isValidated == isValidated &&
-    other.age == age &&
-    other.gender == gender &&
-    other.fullName == fullName &&
-    other.customerReference == customerReference &&
-    _deepEquality.equals(other.customFields, customFields);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is IndividualTraveller &&
+          other.type == type &&
+          other.entitlements == entitlements &&
+          other.requirements == requirements &&
+          other.id == id &&
+          other.isValidated == isValidated &&
+          other.age == age &&
+          other.gender == gender &&
+          other.fullName == fullName &&
+          other.customerReference == customerReference &&
+          _deepEquality.equals(other.customFields, customFields);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (entitlements == null ? 0 : entitlements!.hashCode) +
-    (requirements == null ? 0 : requirements!.hashCode) +
-    (id.hashCode) +
-    (isValidated == null ? 0 : isValidated!.hashCode) +
-    (age.hashCode) +
-    (gender == null ? 0 : gender!.hashCode) +
-    (fullName == null ? 0 : fullName!.hashCode) +
-    (customerReference == null ? 0 : customerReference!.hashCode) +
-    (customFields.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (entitlements == null ? 0 : entitlements!.hashCode) +
+      (requirements == null ? 0 : requirements!.hashCode) +
+      (id.hashCode) +
+      (isValidated == null ? 0 : isValidated!.hashCode) +
+      (age.hashCode) +
+      (gender == null ? 0 : gender!.hashCode) +
+      (fullName == null ? 0 : fullName!.hashCode) +
+      (customerReference == null ? 0 : customerReference!.hashCode) +
+      (customFields.hashCode);
 
   @override
-  String toString() => 'IndividualTraveller[type=$type, entitlements=$entitlements, requirements=$requirements, id=$id, isValidated=$isValidated, age=$age, gender=$gender, fullName=$fullName, customerReference=$customerReference, customFields=$customFields]';
+  String toString() =>
+      'IndividualTraveller[type=$type, entitlements=$entitlements, requirements=$requirements, id=$id, isValidated=$isValidated, age=$age, gender=$gender, fullName=$fullName, customerReference=$customerReference, customFields=$customFields]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.entitlements != null) {
       json[r'entitlements'] = this.entitlements;
     } else {
@@ -127,13 +130,13 @@ class IndividualTraveller {
     } else {
       json[r'requirements'] = null;
     }
-      json[r'id'] = this.id;
+    json[r'id'] = this.id;
     if (this.isValidated != null) {
       json[r'isValidated'] = this.isValidated;
     } else {
       json[r'isValidated'] = null;
     }
-      json[r'age'] = this.age;
+    json[r'age'] = this.age;
     if (this.gender != null) {
       json[r'gender'] = this.gender;
     } else {
@@ -149,7 +152,7 @@ class IndividualTraveller {
     } else {
       json[r'customerReference'] = null;
     }
-      json[r'customFields'] = this.customFields;
+    json[r'customFields'] = this.customFields;
     return json;
   }
 
@@ -165,8 +168,10 @@ class IndividualTraveller {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "IndividualTraveller[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "IndividualTraveller[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "IndividualTraveller[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "IndividualTraveller[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -181,13 +186,17 @@ class IndividualTraveller {
         gender: IndividualTravellerGenderEnum.fromJson(json[r'gender']),
         fullName: mapValueOfType<String>(json, r'fullName'),
         customerReference: mapValueOfType<String>(json, r'customerReference'),
-        customFields: mapCastOfType<String, Object>(json, r'customFields') ?? const {},
+        customFields:
+            mapCastOfType<String, Object>(json, r'customFields') ?? const {},
       );
     }
     return null;
   }
 
-  static List<IndividualTraveller> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<IndividualTraveller> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <IndividualTraveller>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -215,13 +224,19 @@ class IndividualTraveller {
   }
 
   // maps a json object with a list of IndividualTraveller-objects as value to a dart map
-  static Map<String, List<IndividualTraveller>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<IndividualTraveller>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<IndividualTraveller>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = IndividualTraveller.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = IndividualTraveller.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -233,7 +248,6 @@ class IndividualTraveller {
     'id',
   };
 }
-
 
 class IndividualTravellerGenderEnum {
   /// Instantiate a new enum with the provided [value].
@@ -260,9 +274,13 @@ class IndividualTravellerGenderEnum {
     U,
   ];
 
-  static IndividualTravellerGenderEnum? fromJson(dynamic value) => IndividualTravellerGenderEnumTypeTransformer().decode(value);
+  static IndividualTravellerGenderEnum? fromJson(dynamic value) =>
+      IndividualTravellerGenderEnumTypeTransformer().decode(value);
 
-  static List<IndividualTravellerGenderEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<IndividualTravellerGenderEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <IndividualTravellerGenderEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -279,7 +297,8 @@ class IndividualTravellerGenderEnum {
 /// Transformation class that can [encode] an instance of [IndividualTravellerGenderEnum] to String,
 /// and [decode] dynamic data back to [IndividualTravellerGenderEnum].
 class IndividualTravellerGenderEnumTypeTransformer {
-  factory IndividualTravellerGenderEnumTypeTransformer() => _instance ??= const IndividualTravellerGenderEnumTypeTransformer._();
+  factory IndividualTravellerGenderEnumTypeTransformer() =>
+      _instance ??= const IndividualTravellerGenderEnumTypeTransformer._();
 
   const IndividualTravellerGenderEnumTypeTransformer._();
 
@@ -296,10 +315,14 @@ class IndividualTravellerGenderEnumTypeTransformer {
   IndividualTravellerGenderEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'M': return IndividualTravellerGenderEnum.M;
-        case r'F': return IndividualTravellerGenderEnum.F;
-        case r'X': return IndividualTravellerGenderEnum.X;
-        case r'U': return IndividualTravellerGenderEnum.U;
+        case r'M':
+          return IndividualTravellerGenderEnum.M;
+        case r'F':
+          return IndividualTravellerGenderEnum.F;
+        case r'X':
+          return IndividualTravellerGenderEnum.X;
+        case r'U':
+          return IndividualTravellerGenderEnum.U;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -312,5 +335,3 @@ class IndividualTravellerGenderEnumTypeTransformer {
   /// Singleton [IndividualTravellerGenderEnumTypeTransformer] instance.
   static IndividualTravellerGenderEnumTypeTransformer? _instance;
 }
-
-

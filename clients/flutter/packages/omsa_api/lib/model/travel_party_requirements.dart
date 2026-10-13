@@ -46,47 +46,50 @@ class TravelPartyRequirements {
   List<PurchaseParameter> purchase;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is TravelPartyRequirements &&
-    _deepEquality.equals(other.organisational, organisational) &&
-    _deepEquality.equals(other.spotReservations, spotReservations) &&
-    _deepEquality.equals(other.distribution, distribution) &&
-    _deepEquality.equals(other.network, network) &&
-    _deepEquality.equals(other.routing, routing) &&
-    _deepEquality.equals(other.service, service) &&
-    _deepEquality.equals(other.temporal, temporal) &&
-    _deepEquality.equals(other.equipment, equipment) &&
-    _deepEquality.equals(other.cancellation, cancellation) &&
-    _deepEquality.equals(other.purchase, purchase);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TravelPartyRequirements &&
+          _deepEquality.equals(other.organisational, organisational) &&
+          _deepEquality.equals(other.spotReservations, spotReservations) &&
+          _deepEquality.equals(other.distribution, distribution) &&
+          _deepEquality.equals(other.network, network) &&
+          _deepEquality.equals(other.routing, routing) &&
+          _deepEquality.equals(other.service, service) &&
+          _deepEquality.equals(other.temporal, temporal) &&
+          _deepEquality.equals(other.equipment, equipment) &&
+          _deepEquality.equals(other.cancellation, cancellation) &&
+          _deepEquality.equals(other.purchase, purchase);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (organisational.hashCode) +
-    (spotReservations.hashCode) +
-    (distribution.hashCode) +
-    (network.hashCode) +
-    (routing.hashCode) +
-    (service.hashCode) +
-    (temporal.hashCode) +
-    (equipment.hashCode) +
-    (cancellation.hashCode) +
-    (purchase.hashCode);
+      // ignore: unnecessary_parenthesis
+      (organisational.hashCode) +
+      (spotReservations.hashCode) +
+      (distribution.hashCode) +
+      (network.hashCode) +
+      (routing.hashCode) +
+      (service.hashCode) +
+      (temporal.hashCode) +
+      (equipment.hashCode) +
+      (cancellation.hashCode) +
+      (purchase.hashCode);
 
   @override
-  String toString() => 'TravelPartyRequirements[organisational=$organisational, spotReservations=$spotReservations, distribution=$distribution, network=$network, routing=$routing, service=$service, temporal=$temporal, equipment=$equipment, cancellation=$cancellation, purchase=$purchase]';
+  String toString() =>
+      'TravelPartyRequirements[organisational=$organisational, spotReservations=$spotReservations, distribution=$distribution, network=$network, routing=$routing, service=$service, temporal=$temporal, equipment=$equipment, cancellation=$cancellation, purchase=$purchase]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'organisational'] = this.organisational;
-      json[r'spotReservations'] = this.spotReservations;
-      json[r'distribution'] = this.distribution;
-      json[r'network'] = this.network;
-      json[r'routing'] = this.routing;
-      json[r'service'] = this.service;
-      json[r'temporal'] = this.temporal;
-      json[r'equipment'] = this.equipment;
-      json[r'cancellation'] = this.cancellation;
-      json[r'purchase'] = this.purchase;
+    json[r'organisational'] = this.organisational;
+    json[r'spotReservations'] = this.spotReservations;
+    json[r'distribution'] = this.distribution;
+    json[r'network'] = this.network;
+    json[r'routing'] = this.routing;
+    json[r'service'] = this.service;
+    json[r'temporal'] = this.temporal;
+    json[r'equipment'] = this.equipment;
+    json[r'cancellation'] = this.cancellation;
+    json[r'purchase'] = this.purchase;
     return json;
   }
 
@@ -102,15 +105,19 @@ class TravelPartyRequirements {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "TravelPartyRequirements[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "TravelPartyRequirements[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "TravelPartyRequirements[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "TravelPartyRequirements[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return TravelPartyRequirements(
-        organisational: OrganisationalParameter.listFromJson(json[r'organisational']),
-        spotReservations: SpotReservationParameter.listFromJson(json[r'spotReservations']),
+        organisational:
+            OrganisationalParameter.listFromJson(json[r'organisational']),
+        spotReservations:
+            SpotReservationParameter.listFromJson(json[r'spotReservations']),
         distribution: DistributionParameter.listFromJson(json[r'distribution']),
         network: NetworkParameter.listFromJson(json[r'network']),
         routing: RoutingParameter.listFromJson(json[r'routing']),
@@ -124,7 +131,10 @@ class TravelPartyRequirements {
     return null;
   }
 
-  static List<TravelPartyRequirements> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TravelPartyRequirements> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TravelPartyRequirements>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -152,20 +162,24 @@ class TravelPartyRequirements {
   }
 
   // maps a json object with a list of TravelPartyRequirements-objects as value to a dart map
-  static Map<String, List<TravelPartyRequirements>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<TravelPartyRequirements>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<TravelPartyRequirements>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = TravelPartyRequirements.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = TravelPartyRequirements.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

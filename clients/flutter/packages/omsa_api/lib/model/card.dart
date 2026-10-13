@@ -72,38 +72,41 @@ class Card {
   String? country;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Card &&
-    other.type == type &&
-    other.cardType == cardType &&
-    other.cardNumber == cardNumber &&
-    other.description == description &&
-    other.additionalNumber == additionalNumber &&
-    other.endValidity == endValidity &&
-    other.country == country;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Card &&
+          other.type == type &&
+          other.cardType == cardType &&
+          other.cardNumber == cardNumber &&
+          other.description == description &&
+          other.additionalNumber == additionalNumber &&
+          other.endValidity == endValidity &&
+          other.country == country;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (cardType == null ? 0 : cardType!.hashCode) +
-    (cardNumber.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (additionalNumber == null ? 0 : additionalNumber!.hashCode) +
-    (endValidity == null ? 0 : endValidity!.hashCode) +
-    (country == null ? 0 : country!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (cardType == null ? 0 : cardType!.hashCode) +
+      (cardNumber.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (additionalNumber == null ? 0 : additionalNumber!.hashCode) +
+      (endValidity == null ? 0 : endValidity!.hashCode) +
+      (country == null ? 0 : country!.hashCode);
 
   @override
-  String toString() => 'Card[type=$type, cardType=$cardType, cardNumber=$cardNumber, description=$description, additionalNumber=$additionalNumber, endValidity=$endValidity, country=$country]';
+  String toString() =>
+      'Card[type=$type, cardType=$cardType, cardNumber=$cardNumber, description=$description, additionalNumber=$additionalNumber, endValidity=$endValidity, country=$country]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.cardType != null) {
       json[r'cardType'] = this.cardType;
     } else {
       json[r'cardType'] = null;
     }
-      json[r'cardNumber'] = this.cardNumber;
+    json[r'cardNumber'] = this.cardNumber;
     if (this.description != null) {
       json[r'description'] = this.description;
     } else {
@@ -139,8 +142,10 @@ class Card {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Card[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Card[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Card[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Card[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -158,7 +163,10 @@ class Card {
     return null;
   }
 
-  static List<Card> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Card> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Card>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -186,13 +194,19 @@ class Card {
   }
 
   // maps a json object with a list of Card-objects as value to a dart map
-  static Map<String, List<Card>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Card>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Card>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Card.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Card.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -204,4 +218,3 @@ class Card {
     'cardNumber',
   };
 }
-

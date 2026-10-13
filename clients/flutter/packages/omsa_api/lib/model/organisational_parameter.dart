@@ -43,27 +43,30 @@ class OrganisationalParameter {
   String? legalName;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is OrganisationalParameter &&
-    other.id == id &&
-    other.type == type &&
-    other.name == name &&
-    other.legalName == legalName;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OrganisationalParameter &&
+          other.id == id &&
+          other.type == type &&
+          other.name == name &&
+          other.legalName == legalName;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (id.hashCode) +
-    (type.hashCode) +
-    (name == null ? 0 : name!.hashCode) +
-    (legalName == null ? 0 : legalName!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (id.hashCode) +
+      (type.hashCode) +
+      (name == null ? 0 : name!.hashCode) +
+      (legalName == null ? 0 : legalName!.hashCode);
 
   @override
-  String toString() => 'OrganisationalParameter[id=$id, type=$type, name=$name, legalName=$legalName]';
+  String toString() =>
+      'OrganisationalParameter[id=$id, type=$type, name=$name, legalName=$legalName]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'id'] = this.id;
-      json[r'type'] = this.type;
+    json[r'id'] = this.id;
+    json[r'type'] = this.type;
     if (this.name != null) {
       json[r'name'] = this.name;
     } else {
@@ -89,8 +92,10 @@ class OrganisationalParameter {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "OrganisationalParameter[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "OrganisationalParameter[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "OrganisationalParameter[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "OrganisationalParameter[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -105,7 +110,10 @@ class OrganisationalParameter {
     return null;
   }
 
-  static List<OrganisationalParameter> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<OrganisationalParameter> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <OrganisationalParameter>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -133,13 +141,19 @@ class OrganisationalParameter {
   }
 
   // maps a json object with a list of OrganisationalParameter-objects as value to a dart map
-  static Map<String, List<OrganisationalParameter>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<OrganisationalParameter>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<OrganisationalParameter>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = OrganisationalParameter.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = OrganisationalParameter.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -151,4 +165,3 @@ class OrganisationalParameter {
     'type',
   };
 }
-

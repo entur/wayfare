@@ -19,6 +19,8 @@ class Ancillary {
     this.price,
     this.description,
     this.available,
+    this.service = const [],
+    this.reservationRequirements = const [],
     this.links = const [],
   });
 
@@ -68,35 +70,49 @@ class Ancillary {
   ///
   int? available;
 
+  /// Service characteristics covered by this ancillary, such as service journey, class of use, asset, or accommodation.
+  List<ServiceParameter> service;
+
+  /// Reservation rules carried by this ancillary.
+  List<ReservationRequirement> reservationRequirements;
+
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Ancillary &&
-    other.ancillaryId == ancillaryId &&
-    other.name == name &&
-    other.type == type &&
-    other.price == price &&
-    other.description == description &&
-    other.available == available &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Ancillary &&
+          other.ancillaryId == ancillaryId &&
+          other.name == name &&
+          other.type == type &&
+          other.price == price &&
+          other.description == description &&
+          other.available == available &&
+          _deepEquality.equals(other.service, service) &&
+          _deepEquality.equals(
+              other.reservationRequirements, reservationRequirements) &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (ancillaryId.hashCode) +
-    (name == null ? 0 : name!.hashCode) +
-    (type == null ? 0 : type!.hashCode) +
-    (price == null ? 0 : price!.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (available == null ? 0 : available!.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (ancillaryId.hashCode) +
+      (name == null ? 0 : name!.hashCode) +
+      (type == null ? 0 : type!.hashCode) +
+      (price == null ? 0 : price!.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (available == null ? 0 : available!.hashCode) +
+      (service.hashCode) +
+      (reservationRequirements.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'Ancillary[ancillaryId=$ancillaryId, name=$name, type=$type, price=$price, description=$description, available=$available, links=$links]';
+  String toString() =>
+      'Ancillary[ancillaryId=$ancillaryId, name=$name, type=$type, price=$price, description=$description, available=$available, service=$service, reservationRequirements=$reservationRequirements, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'ancillaryId'] = this.ancillaryId;
+    json[r'ancillaryId'] = this.ancillaryId;
     if (this.name != null) {
       json[r'name'] = this.name;
     } else {
@@ -122,7 +138,9 @@ class Ancillary {
     } else {
       json[r'available'] = null;
     }
-      json[r'links'] = this.links;
+    json[r'service'] = this.service;
+    json[r'reservationRequirements'] = this.reservationRequirements;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -138,8 +156,10 @@ class Ancillary {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Ancillary[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Ancillary[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Ancillary[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Ancillary[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -151,13 +171,19 @@ class Ancillary {
         price: AmountOfMoney.fromJson(json[r'price']),
         description: mapValueOfType<String>(json, r'description'),
         available: mapValueOfType<int>(json, r'available'),
+        service: ServiceParameter.listFromJson(json[r'service']),
+        reservationRequirements: ReservationRequirement.listFromJson(
+            json[r'reservationRequirements']),
         links: Link.listFromJson(json[r'links']),
       );
     }
     return null;
   }
 
-  static List<Ancillary> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Ancillary> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Ancillary>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -185,13 +211,19 @@ class Ancillary {
   }
 
   // maps a json object with a list of Ancillary-objects as value to a dart map
-  static Map<String, List<Ancillary>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Ancillary>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Ancillary>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Ancillary.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Ancillary.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -202,4 +234,3 @@ class Ancillary {
     'ancillaryId',
   };
 }
-

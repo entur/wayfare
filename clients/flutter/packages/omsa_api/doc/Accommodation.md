@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 **classOfUse** | [**ClassOfUse**](ClassOfUse.md) |  | [optional] 
 **name** | **String** | short string, display names (length 0-75) | [optional] 
 **gender** | **String** |  | [optional] 
-**berthType** | **String** |  | [optional] 
+**berthType** | [**BerthType**](BerthType.md) |  | [optional] 
 **nuisanceFacility** | **List<String>** |  | [optional] [default to const []]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

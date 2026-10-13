@@ -44,29 +44,32 @@ class OfferCollection {
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is OfferCollection &&
-    other.type == type &&
-    _deepEquality.equals(other.offers, offers) &&
-    other.numberMatched == numberMatched &&
-    other.numberReturned == numberReturned &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OfferCollection &&
+          other.type == type &&
+          _deepEquality.equals(other.offers, offers) &&
+          other.numberMatched == numberMatched &&
+          other.numberReturned == numberReturned &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (offers.hashCode) +
-    (numberMatched == null ? 0 : numberMatched!.hashCode) +
-    (numberReturned == null ? 0 : numberReturned!.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (offers.hashCode) +
+      (numberMatched == null ? 0 : numberMatched!.hashCode) +
+      (numberReturned == null ? 0 : numberReturned!.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'OfferCollection[type=$type, offers=$offers, numberMatched=$numberMatched, numberReturned=$numberReturned, links=$links]';
+  String toString() =>
+      'OfferCollection[type=$type, offers=$offers, numberMatched=$numberMatched, numberReturned=$numberReturned, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'offers'] = this.offers;
+    json[r'type'] = this.type;
+    json[r'offers'] = this.offers;
     if (this.numberMatched != null) {
       json[r'numberMatched'] = this.numberMatched;
     } else {
@@ -77,7 +80,7 @@ class OfferCollection {
     } else {
       json[r'numberReturned'] = null;
     }
-      json[r'links'] = this.links;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -93,8 +96,10 @@ class OfferCollection {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "OfferCollection[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "OfferCollection[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "OfferCollection[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "OfferCollection[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -110,7 +115,10 @@ class OfferCollection {
     return null;
   }
 
-  static List<OfferCollection> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<OfferCollection> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <OfferCollection>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -138,13 +146,19 @@ class OfferCollection {
   }
 
   // maps a json object with a list of OfferCollection-objects as value to a dart map
-  static Map<String, List<OfferCollection>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<OfferCollection>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<OfferCollection>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = OfferCollection.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = OfferCollection.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -155,4 +169,3 @@ class OfferCollection {
     'type',
   };
 }
-

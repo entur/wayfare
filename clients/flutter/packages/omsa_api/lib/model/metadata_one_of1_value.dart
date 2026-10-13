@@ -15,7 +15,8 @@ class MetadataOneOf1Value {
   MetadataOneOf1Value();
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is MetadataOneOf1Value;
+  bool operator ==(Object other) =>
+      identical(this, other) || other is MetadataOneOf1Value;
 
   @override
   int get hashCode => runtimeType.hashCode;
@@ -40,19 +41,23 @@ class MetadataOneOf1Value {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "MetadataOneOf1Value[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "MetadataOneOf1Value[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "MetadataOneOf1Value[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "MetadataOneOf1Value[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
-      return MetadataOneOf1Value(
-      );
+      return MetadataOneOf1Value();
     }
     return null;
   }
 
-  static List<MetadataOneOf1Value> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<MetadataOneOf1Value> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <MetadataOneOf1Value>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -80,20 +85,24 @@ class MetadataOneOf1Value {
   }
 
   // maps a json object with a list of MetadataOneOf1Value-objects as value to a dart map
-  static Map<String, List<MetadataOneOf1Value>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<MetadataOneOf1Value>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<MetadataOneOf1Value>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = MetadataOneOf1Value.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = MetadataOneOf1Value.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

@@ -29,26 +29,30 @@ class PurchaseParameter {
   List<LicenseType> requiredLicenseTypes;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PurchaseParameter &&
-    other.type == type &&
-    other.maximumPeriodBeforeDeparture == maximumPeriodBeforeDeparture &&
-    _deepEquality.equals(other.requiredLicenseTypes, requiredLicenseTypes);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PurchaseParameter &&
+          other.type == type &&
+          other.maximumPeriodBeforeDeparture == maximumPeriodBeforeDeparture &&
+          _deepEquality.equals(
+              other.requiredLicenseTypes, requiredLicenseTypes);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (maximumPeriodBeforeDeparture.hashCode) +
-    (requiredLicenseTypes.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (maximumPeriodBeforeDeparture.hashCode) +
+      (requiredLicenseTypes.hashCode);
 
   @override
-  String toString() => 'PurchaseParameter[type=$type, maximumPeriodBeforeDeparture=$maximumPeriodBeforeDeparture, requiredLicenseTypes=$requiredLicenseTypes]';
+  String toString() =>
+      'PurchaseParameter[type=$type, maximumPeriodBeforeDeparture=$maximumPeriodBeforeDeparture, requiredLicenseTypes=$requiredLicenseTypes]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'maximumPeriodBeforeDeparture'] = this.maximumPeriodBeforeDeparture;
-      json[r'requiredLicenseTypes'] = this.requiredLicenseTypes;
+    json[r'type'] = this.type;
+    json[r'maximumPeriodBeforeDeparture'] = this.maximumPeriodBeforeDeparture;
+    json[r'requiredLicenseTypes'] = this.requiredLicenseTypes;
     return json;
   }
 
@@ -64,22 +68,29 @@ class PurchaseParameter {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PurchaseParameter[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PurchaseParameter[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PurchaseParameter[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PurchaseParameter[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return PurchaseParameter(
         type: mapValueOfType<String>(json, r'type')!,
-        maximumPeriodBeforeDeparture: mapValueOfType<int>(json, r'maximumPeriodBeforeDeparture') ?? 0,
-        requiredLicenseTypes: LicenseType.listFromJson(json[r'requiredLicenseTypes']),
+        maximumPeriodBeforeDeparture:
+            mapValueOfType<int>(json, r'maximumPeriodBeforeDeparture') ?? 0,
+        requiredLicenseTypes:
+            LicenseType.listFromJson(json[r'requiredLicenseTypes']),
       );
     }
     return null;
   }
 
-  static List<PurchaseParameter> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PurchaseParameter> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PurchaseParameter>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -107,13 +118,19 @@ class PurchaseParameter {
   }
 
   // maps a json object with a list of PurchaseParameter-objects as value to a dart map
-  static Map<String, List<PurchaseParameter>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PurchaseParameter>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PurchaseParameter>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PurchaseParameter.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PurchaseParameter.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -124,4 +141,3 @@ class PurchaseParameter {
     'type',
   };
 }
-

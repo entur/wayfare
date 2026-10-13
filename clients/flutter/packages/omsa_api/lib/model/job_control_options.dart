@@ -10,7 +10,6 @@
 
 part of openapi.api;
 
-
 class JobControlOptions {
   /// Instantiate a new enum with the provided [value].
   const JobControlOptions._(this.value);
@@ -34,9 +33,13 @@ class JobControlOptions {
     dismiss,
   ];
 
-  static JobControlOptions? fromJson(dynamic value) => JobControlOptionsTypeTransformer().decode(value);
+  static JobControlOptions? fromJson(dynamic value) =>
+      JobControlOptionsTypeTransformer().decode(value);
 
-  static List<JobControlOptions> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<JobControlOptions> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <JobControlOptions>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -53,7 +56,8 @@ class JobControlOptions {
 /// Transformation class that can [encode] an instance of [JobControlOptions] to String,
 /// and [decode] dynamic data back to [JobControlOptions].
 class JobControlOptionsTypeTransformer {
-  factory JobControlOptionsTypeTransformer() => _instance ??= const JobControlOptionsTypeTransformer._();
+  factory JobControlOptionsTypeTransformer() =>
+      _instance ??= const JobControlOptionsTypeTransformer._();
 
   const JobControlOptionsTypeTransformer._();
 
@@ -70,9 +74,12 @@ class JobControlOptionsTypeTransformer {
   JobControlOptions? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'sync-execute': return JobControlOptions.syncExecute;
-        case r'async-execute': return JobControlOptions.asyncExecute;
-        case r'dismiss': return JobControlOptions.dismiss;
+        case r'sync-execute':
+          return JobControlOptions.syncExecute;
+        case r'async-execute':
+          return JobControlOptions.asyncExecute;
+        case r'dismiss':
+          return JobControlOptions.dismiss;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -85,4 +92,3 @@ class JobControlOptionsTypeTransformer {
   /// Singleton [JobControlOptionsTypeTransformer] instance.
   static JobControlOptionsTypeTransformer? _instance;
 }
-

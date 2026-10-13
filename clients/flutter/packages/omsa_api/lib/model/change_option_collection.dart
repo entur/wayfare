@@ -44,29 +44,32 @@ class ChangeOptionCollection {
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ChangeOptionCollection &&
-    other.type == type &&
-    _deepEquality.equals(other.options, options) &&
-    other.numberMatched == numberMatched &&
-    other.numberReturned == numberReturned &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChangeOptionCollection &&
+          other.type == type &&
+          _deepEquality.equals(other.options, options) &&
+          other.numberMatched == numberMatched &&
+          other.numberReturned == numberReturned &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (options.hashCode) +
-    (numberMatched == null ? 0 : numberMatched!.hashCode) +
-    (numberReturned == null ? 0 : numberReturned!.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (options.hashCode) +
+      (numberMatched == null ? 0 : numberMatched!.hashCode) +
+      (numberReturned == null ? 0 : numberReturned!.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'ChangeOptionCollection[type=$type, options=$options, numberMatched=$numberMatched, numberReturned=$numberReturned, links=$links]';
+  String toString() =>
+      'ChangeOptionCollection[type=$type, options=$options, numberMatched=$numberMatched, numberReturned=$numberReturned, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'options'] = this.options;
+    json[r'type'] = this.type;
+    json[r'options'] = this.options;
     if (this.numberMatched != null) {
       json[r'numberMatched'] = this.numberMatched;
     } else {
@@ -77,7 +80,7 @@ class ChangeOptionCollection {
     } else {
       json[r'numberReturned'] = null;
     }
-      json[r'links'] = this.links;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -93,15 +96,18 @@ class ChangeOptionCollection {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ChangeOptionCollection[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ChangeOptionCollection[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ChangeOptionCollection[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ChangeOptionCollection[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return ChangeOptionCollection(
         type: mapValueOfType<String>(json, r'type')!,
-        options: ChangeOptionCollectionOptionsInner.listFromJson(json[r'options']),
+        options:
+            ChangeOptionCollectionOptionsInner.listFromJson(json[r'options']),
         numberMatched: mapValueOfType<int>(json, r'numberMatched'),
         numberReturned: mapValueOfType<int>(json, r'numberReturned'),
         links: Link.listFromJson(json[r'links']),
@@ -110,7 +116,10 @@ class ChangeOptionCollection {
     return null;
   }
 
-  static List<ChangeOptionCollection> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ChangeOptionCollection> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ChangeOptionCollection>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -138,13 +147,19 @@ class ChangeOptionCollection {
   }
 
   // maps a json object with a list of ChangeOptionCollection-objects as value to a dart map
-  static Map<String, List<ChangeOptionCollection>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ChangeOptionCollection>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ChangeOptionCollection>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ChangeOptionCollection.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ChangeOptionCollection.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -155,4 +170,3 @@ class ChangeOptionCollection {
     'type',
   };
 }
-

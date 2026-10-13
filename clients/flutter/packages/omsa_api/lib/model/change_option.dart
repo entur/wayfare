@@ -40,22 +40,25 @@ class ChangeOption {
   List<FinancialDetail> consequences;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ChangeOption &&
-    other.type == type &&
-    other.id == id &&
-    other.changeType == changeType &&
-    _deepEquality.equals(other.consequences, consequences);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChangeOption &&
+          other.type == type &&
+          other.id == id &&
+          other.changeType == changeType &&
+          _deepEquality.equals(other.consequences, consequences);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type == null ? 0 : type!.hashCode) +
-    (id == null ? 0 : id!.hashCode) +
-    (changeType == null ? 0 : changeType!.hashCode) +
-    (consequences.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type == null ? 0 : type!.hashCode) +
+      (id == null ? 0 : id!.hashCode) +
+      (changeType == null ? 0 : changeType!.hashCode) +
+      (consequences.hashCode);
 
   @override
-  String toString() => 'ChangeOption[type=$type, id=$id, changeType=$changeType, consequences=$consequences]';
+  String toString() =>
+      'ChangeOption[type=$type, id=$id, changeType=$changeType, consequences=$consequences]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -74,7 +77,7 @@ class ChangeOption {
     } else {
       json[r'changeType'] = null;
     }
-      json[r'consequences'] = this.consequences;
+    json[r'consequences'] = this.consequences;
     return json;
   }
 
@@ -90,8 +93,10 @@ class ChangeOption {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ChangeOption[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ChangeOption[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ChangeOption[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ChangeOption[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -106,7 +111,10 @@ class ChangeOption {
     return null;
   }
 
-  static List<ChangeOption> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ChangeOption> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ChangeOption>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -134,23 +142,27 @@ class ChangeOption {
   }
 
   // maps a json object with a list of ChangeOption-objects as value to a dart map
-  static Map<String, List<ChangeOption>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ChangeOption>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ChangeOption>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ChangeOption.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ChangeOption.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-
 
 class ChangeOptionChangeTypeEnum {
   /// Instantiate a new enum with the provided [value].
@@ -164,16 +176,24 @@ class ChangeOptionChangeTypeEnum {
 
   String toJson() => value;
 
-  static const REMOVE_TRAVELLER = ChangeOptionChangeTypeEnum._(r'REMOVE_TRAVELLER');
+  static const REMOVE_TRAVELLER =
+      ChangeOptionChangeTypeEnum._(r'REMOVE_TRAVELLER');
   static const ADD_TRAVELLER = ChangeOptionChangeTypeEnum._(r'ADD_TRAVELLER');
-  static const UPDATE_TRAVELLER = ChangeOptionChangeTypeEnum._(r'UPDATE_TRAVELLER');
+  static const UPDATE_TRAVELLER =
+      ChangeOptionChangeTypeEnum._(r'UPDATE_TRAVELLER');
   static const ASSIGN_ASSET = ChangeOptionChangeTypeEnum._(r'ASSIGN_ASSET');
   static const REMOVE_ASSET = ChangeOptionChangeTypeEnum._(r'REMOVE_ASSET');
-  static const ASSIGN_ANCILLARY = ChangeOptionChangeTypeEnum._(r'ASSIGN_ANCILLARY');
-  static const REMOVE_ANCILLARY = ChangeOptionChangeTypeEnum._(r'REMOVE_ANCILLARY');
+  static const ASSIGN_ANCILLARY =
+      ChangeOptionChangeTypeEnum._(r'ASSIGN_ANCILLARY');
+  static const REMOVE_ANCILLARY =
+      ChangeOptionChangeTypeEnum._(r'REMOVE_ANCILLARY');
   static const CANCEL_PACKAGE = ChangeOptionChangeTypeEnum._(r'CANCEL_PACKAGE');
-  static const UPDATE_VALIDITY = ChangeOptionChangeTypeEnum._(r'UPDATE_VALIDITY');
-  static const UPDATE_TRAVEL_SPECIFICATION = ChangeOptionChangeTypeEnum._(r'UPDATE_TRAVEL_SPECIFICATION');
+  static const UPDATE_VALIDITY =
+      ChangeOptionChangeTypeEnum._(r'UPDATE_VALIDITY');
+  static const UPDATE_TRAVEL_SPECIFICATION =
+      ChangeOptionChangeTypeEnum._(r'UPDATE_TRAVEL_SPECIFICATION');
+  static const TRANSFER_TICKET =
+      ChangeOptionChangeTypeEnum._(r'TRANSFER_TICKET');
 
   /// List of all possible values in this [enum][ChangeOptionChangeTypeEnum].
   static const values = <ChangeOptionChangeTypeEnum>[
@@ -187,11 +207,16 @@ class ChangeOptionChangeTypeEnum {
     CANCEL_PACKAGE,
     UPDATE_VALIDITY,
     UPDATE_TRAVEL_SPECIFICATION,
+    TRANSFER_TICKET,
   ];
 
-  static ChangeOptionChangeTypeEnum? fromJson(dynamic value) => ChangeOptionChangeTypeEnumTypeTransformer().decode(value);
+  static ChangeOptionChangeTypeEnum? fromJson(dynamic value) =>
+      ChangeOptionChangeTypeEnumTypeTransformer().decode(value);
 
-  static List<ChangeOptionChangeTypeEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ChangeOptionChangeTypeEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ChangeOptionChangeTypeEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -208,7 +233,8 @@ class ChangeOptionChangeTypeEnum {
 /// Transformation class that can [encode] an instance of [ChangeOptionChangeTypeEnum] to String,
 /// and [decode] dynamic data back to [ChangeOptionChangeTypeEnum].
 class ChangeOptionChangeTypeEnumTypeTransformer {
-  factory ChangeOptionChangeTypeEnumTypeTransformer() => _instance ??= const ChangeOptionChangeTypeEnumTypeTransformer._();
+  factory ChangeOptionChangeTypeEnumTypeTransformer() =>
+      _instance ??= const ChangeOptionChangeTypeEnumTypeTransformer._();
 
   const ChangeOptionChangeTypeEnumTypeTransformer._();
 
@@ -225,16 +251,28 @@ class ChangeOptionChangeTypeEnumTypeTransformer {
   ChangeOptionChangeTypeEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'REMOVE_TRAVELLER': return ChangeOptionChangeTypeEnum.REMOVE_TRAVELLER;
-        case r'ADD_TRAVELLER': return ChangeOptionChangeTypeEnum.ADD_TRAVELLER;
-        case r'UPDATE_TRAVELLER': return ChangeOptionChangeTypeEnum.UPDATE_TRAVELLER;
-        case r'ASSIGN_ASSET': return ChangeOptionChangeTypeEnum.ASSIGN_ASSET;
-        case r'REMOVE_ASSET': return ChangeOptionChangeTypeEnum.REMOVE_ASSET;
-        case r'ASSIGN_ANCILLARY': return ChangeOptionChangeTypeEnum.ASSIGN_ANCILLARY;
-        case r'REMOVE_ANCILLARY': return ChangeOptionChangeTypeEnum.REMOVE_ANCILLARY;
-        case r'CANCEL_PACKAGE': return ChangeOptionChangeTypeEnum.CANCEL_PACKAGE;
-        case r'UPDATE_VALIDITY': return ChangeOptionChangeTypeEnum.UPDATE_VALIDITY;
-        case r'UPDATE_TRAVEL_SPECIFICATION': return ChangeOptionChangeTypeEnum.UPDATE_TRAVEL_SPECIFICATION;
+        case r'REMOVE_TRAVELLER':
+          return ChangeOptionChangeTypeEnum.REMOVE_TRAVELLER;
+        case r'ADD_TRAVELLER':
+          return ChangeOptionChangeTypeEnum.ADD_TRAVELLER;
+        case r'UPDATE_TRAVELLER':
+          return ChangeOptionChangeTypeEnum.UPDATE_TRAVELLER;
+        case r'ASSIGN_ASSET':
+          return ChangeOptionChangeTypeEnum.ASSIGN_ASSET;
+        case r'REMOVE_ASSET':
+          return ChangeOptionChangeTypeEnum.REMOVE_ASSET;
+        case r'ASSIGN_ANCILLARY':
+          return ChangeOptionChangeTypeEnum.ASSIGN_ANCILLARY;
+        case r'REMOVE_ANCILLARY':
+          return ChangeOptionChangeTypeEnum.REMOVE_ANCILLARY;
+        case r'CANCEL_PACKAGE':
+          return ChangeOptionChangeTypeEnum.CANCEL_PACKAGE;
+        case r'UPDATE_VALIDITY':
+          return ChangeOptionChangeTypeEnum.UPDATE_VALIDITY;
+        case r'UPDATE_TRAVEL_SPECIFICATION':
+          return ChangeOptionChangeTypeEnum.UPDATE_TRAVEL_SPECIFICATION;
+        case r'TRANSFER_TICKET':
+          return ChangeOptionChangeTypeEnum.TRANSFER_TICKET;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -247,5 +285,3 @@ class ChangeOptionChangeTypeEnumTypeTransformer {
   /// Singleton [ChangeOptionChangeTypeEnumTypeTransformer] instance.
   static ChangeOptionChangeTypeEnumTypeTransformer? _instance;
 }
-
-

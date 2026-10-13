@@ -52,30 +52,33 @@ class ProcessSummary {
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ProcessSummary &&
-    other.title == title &&
-    other.description == description &&
-    _deepEquality.equals(other.keywords, keywords) &&
-    _deepEquality.equals(other.metadata, metadata) &&
-    other.id == id &&
-    other.version == version &&
-    _deepEquality.equals(other.jobControlOptions, jobControlOptions) &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProcessSummary &&
+          other.title == title &&
+          other.description == description &&
+          _deepEquality.equals(other.keywords, keywords) &&
+          _deepEquality.equals(other.metadata, metadata) &&
+          other.id == id &&
+          other.version == version &&
+          _deepEquality.equals(other.jobControlOptions, jobControlOptions) &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (title == null ? 0 : title!.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (keywords.hashCode) +
-    (metadata.hashCode) +
-    (id.hashCode) +
-    (version.hashCode) +
-    (jobControlOptions.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (title == null ? 0 : title!.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (keywords.hashCode) +
+      (metadata.hashCode) +
+      (id.hashCode) +
+      (version.hashCode) +
+      (jobControlOptions.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'ProcessSummary[title=$title, description=$description, keywords=$keywords, metadata=$metadata, id=$id, version=$version, jobControlOptions=$jobControlOptions, links=$links]';
+  String toString() =>
+      'ProcessSummary[title=$title, description=$description, keywords=$keywords, metadata=$metadata, id=$id, version=$version, jobControlOptions=$jobControlOptions, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -89,12 +92,12 @@ class ProcessSummary {
     } else {
       json[r'description'] = null;
     }
-      json[r'keywords'] = this.keywords;
-      json[r'metadata'] = this.metadata;
-      json[r'id'] = this.id;
-      json[r'version'] = this.version;
-      json[r'jobControlOptions'] = this.jobControlOptions;
-      json[r'links'] = this.links;
+    json[r'keywords'] = this.keywords;
+    json[r'metadata'] = this.metadata;
+    json[r'id'] = this.id;
+    json[r'version'] = this.version;
+    json[r'jobControlOptions'] = this.jobControlOptions;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -110,8 +113,10 @@ class ProcessSummary {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ProcessSummary[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ProcessSummary[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ProcessSummary[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ProcessSummary[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -120,19 +125,25 @@ class ProcessSummary {
         title: mapValueOfType<String>(json, r'title'),
         description: mapValueOfType<String>(json, r'description'),
         keywords: json[r'keywords'] is Iterable
-            ? (json[r'keywords'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'keywords'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
         metadata: Metadata.listFromJson(json[r'metadata']),
         id: mapValueOfType<String>(json, r'id')!,
         version: mapValueOfType<String>(json, r'version')!,
-        jobControlOptions: JobControlOptions.listFromJson(json[r'jobControlOptions']),
+        jobControlOptions:
+            JobControlOptions.listFromJson(json[r'jobControlOptions']),
         links: Link.listFromJson(json[r'links']),
       );
     }
     return null;
   }
 
-  static List<ProcessSummary> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ProcessSummary> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ProcessSummary>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -160,13 +171,19 @@ class ProcessSummary {
   }
 
   // maps a json object with a list of ProcessSummary-objects as value to a dart map
-  static Map<String, List<ProcessSummary>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ProcessSummary>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ProcessSummary>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ProcessSummary.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ProcessSummary.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -178,4 +195,3 @@ class ProcessSummary {
     'version',
   };
 }
-

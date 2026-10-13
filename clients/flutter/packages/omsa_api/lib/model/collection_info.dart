@@ -122,44 +122,47 @@ class CollectionInfo {
   num? maxCellSize;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is CollectionInfo &&
-    other.id == id &&
-    other.title == title &&
-    other.description == description &&
-    _deepEquality.equals(other.links, links) &&
-    other.extent == extent &&
-    other.itemType == itemType &&
-    _deepEquality.equals(other.crs, crs) &&
-    other.dataType == dataType &&
-    other.geometryDimension == geometryDimension &&
-    other.minScaleDenominator == minScaleDenominator &&
-    other.maxScaleDenominator == maxScaleDenominator &&
-    other.minCellSize == minCellSize &&
-    other.maxCellSize == maxCellSize;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CollectionInfo &&
+          other.id == id &&
+          other.title == title &&
+          other.description == description &&
+          _deepEquality.equals(other.links, links) &&
+          other.extent == extent &&
+          other.itemType == itemType &&
+          _deepEquality.equals(other.crs, crs) &&
+          other.dataType == dataType &&
+          other.geometryDimension == geometryDimension &&
+          other.minScaleDenominator == minScaleDenominator &&
+          other.maxScaleDenominator == maxScaleDenominator &&
+          other.minCellSize == minCellSize &&
+          other.maxCellSize == maxCellSize;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (id.hashCode) +
-    (title == null ? 0 : title!.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (links.hashCode) +
-    (extent == null ? 0 : extent!.hashCode) +
-    (itemType.hashCode) +
-    (crs.hashCode) +
-    (dataType == null ? 0 : dataType!.hashCode) +
-    (geometryDimension == null ? 0 : geometryDimension!.hashCode) +
-    (minScaleDenominator == null ? 0 : minScaleDenominator!.hashCode) +
-    (maxScaleDenominator == null ? 0 : maxScaleDenominator!.hashCode) +
-    (minCellSize == null ? 0 : minCellSize!.hashCode) +
-    (maxCellSize == null ? 0 : maxCellSize!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (id.hashCode) +
+      (title == null ? 0 : title!.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (links.hashCode) +
+      (extent == null ? 0 : extent!.hashCode) +
+      (itemType.hashCode) +
+      (crs.hashCode) +
+      (dataType == null ? 0 : dataType!.hashCode) +
+      (geometryDimension == null ? 0 : geometryDimension!.hashCode) +
+      (minScaleDenominator == null ? 0 : minScaleDenominator!.hashCode) +
+      (maxScaleDenominator == null ? 0 : maxScaleDenominator!.hashCode) +
+      (minCellSize == null ? 0 : minCellSize!.hashCode) +
+      (maxCellSize == null ? 0 : maxCellSize!.hashCode);
 
   @override
-  String toString() => 'CollectionInfo[id=$id, title=$title, description=$description, links=$links, extent=$extent, itemType=$itemType, crs=$crs, dataType=$dataType, geometryDimension=$geometryDimension, minScaleDenominator=$minScaleDenominator, maxScaleDenominator=$maxScaleDenominator, minCellSize=$minCellSize, maxCellSize=$maxCellSize]';
+  String toString() =>
+      'CollectionInfo[id=$id, title=$title, description=$description, links=$links, extent=$extent, itemType=$itemType, crs=$crs, dataType=$dataType, geometryDimension=$geometryDimension, minScaleDenominator=$minScaleDenominator, maxScaleDenominator=$maxScaleDenominator, minCellSize=$minCellSize, maxCellSize=$maxCellSize]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'id'] = this.id;
+    json[r'id'] = this.id;
     if (this.title != null) {
       json[r'title'] = this.title;
     } else {
@@ -170,14 +173,14 @@ class CollectionInfo {
     } else {
       json[r'description'] = null;
     }
-      json[r'links'] = this.links;
+    json[r'links'] = this.links;
     if (this.extent != null) {
       json[r'extent'] = this.extent;
     } else {
       json[r'extent'] = null;
     }
-      json[r'itemType'] = this.itemType;
-      json[r'crs'] = this.crs;
+    json[r'itemType'] = this.itemType;
+    json[r'crs'] = this.crs;
     if (this.dataType != null) {
       json[r'dataType'] = this.dataType;
     } else {
@@ -223,8 +226,10 @@ class CollectionInfo {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "CollectionInfo[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "CollectionInfo[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "CollectionInfo[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "CollectionInfo[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -250,7 +255,10 @@ class CollectionInfo {
     return null;
   }
 
-  static List<CollectionInfo> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<CollectionInfo> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <CollectionInfo>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -278,13 +286,19 @@ class CollectionInfo {
   }
 
   // maps a json object with a list of CollectionInfo-objects as value to a dart map
-  static Map<String, List<CollectionInfo>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<CollectionInfo>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<CollectionInfo>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = CollectionInfo.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = CollectionInfo.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -296,4 +310,3 @@ class CollectionInfo {
     'links',
   };
 }
-

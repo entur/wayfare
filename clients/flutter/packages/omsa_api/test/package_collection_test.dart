@@ -43,8 +43,5 @@ void main() {
     test('to test the property `links`', () async {
       // TODO
     });
-
-
   });
-
 }

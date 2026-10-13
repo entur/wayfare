@@ -37,8 +37,5 @@ void main() {
     test('to test the property `cancellationFeePercentage`', () async {
       // TODO
     });
-
-
   });
-
 }

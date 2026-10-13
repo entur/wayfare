@@ -46,29 +46,32 @@ class PackageCollection {
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PackageCollection &&
-    other.type == type &&
-    _deepEquality.equals(other.packages, packages) &&
-    other.numberMatched == numberMatched &&
-    other.numberReturned == numberReturned &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PackageCollection &&
+          other.type == type &&
+          _deepEquality.equals(other.packages, packages) &&
+          other.numberMatched == numberMatched &&
+          other.numberReturned == numberReturned &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (packages.hashCode) +
-    (numberMatched == null ? 0 : numberMatched!.hashCode) +
-    (numberReturned == null ? 0 : numberReturned!.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (packages.hashCode) +
+      (numberMatched == null ? 0 : numberMatched!.hashCode) +
+      (numberReturned == null ? 0 : numberReturned!.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'PackageCollection[type=$type, packages=$packages, numberMatched=$numberMatched, numberReturned=$numberReturned, links=$links]';
+  String toString() =>
+      'PackageCollection[type=$type, packages=$packages, numberMatched=$numberMatched, numberReturned=$numberReturned, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'packages'] = this.packages;
+    json[r'type'] = this.type;
+    json[r'packages'] = this.packages;
     if (this.numberMatched != null) {
       json[r'numberMatched'] = this.numberMatched;
     } else {
@@ -79,7 +82,7 @@ class PackageCollection {
     } else {
       json[r'numberReturned'] = null;
     }
-      json[r'links'] = this.links;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -95,8 +98,10 @@ class PackageCollection {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PackageCollection[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PackageCollection[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PackageCollection[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PackageCollection[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -112,7 +117,10 @@ class PackageCollection {
     return null;
   }
 
-  static List<PackageCollection> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PackageCollection> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PackageCollection>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -140,13 +148,19 @@ class PackageCollection {
   }
 
   // maps a json object with a list of PackageCollection-objects as value to a dart map
-  static Map<String, List<PackageCollection>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PackageCollection>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PackageCollection>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PackageCollection.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PackageCollection.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -158,7 +172,6 @@ class PackageCollection {
     'packages',
   };
 }
-
 
 class PackageCollectionTypeEnum {
   /// Instantiate a new enum with the provided [value].
@@ -172,16 +185,21 @@ class PackageCollectionTypeEnum {
 
   String toJson() => value;
 
-  static const packageCollection = PackageCollectionTypeEnum._(r'PackageCollection');
+  static const packageCollection =
+      PackageCollectionTypeEnum._(r'PackageCollection');
 
   /// List of all possible values in this [enum][PackageCollectionTypeEnum].
   static const values = <PackageCollectionTypeEnum>[
     packageCollection,
   ];
 
-  static PackageCollectionTypeEnum? fromJson(dynamic value) => PackageCollectionTypeEnumTypeTransformer().decode(value);
+  static PackageCollectionTypeEnum? fromJson(dynamic value) =>
+      PackageCollectionTypeEnumTypeTransformer().decode(value);
 
-  static List<PackageCollectionTypeEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PackageCollectionTypeEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PackageCollectionTypeEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -198,7 +216,8 @@ class PackageCollectionTypeEnum {
 /// Transformation class that can [encode] an instance of [PackageCollectionTypeEnum] to String,
 /// and [decode] dynamic data back to [PackageCollectionTypeEnum].
 class PackageCollectionTypeEnumTypeTransformer {
-  factory PackageCollectionTypeEnumTypeTransformer() => _instance ??= const PackageCollectionTypeEnumTypeTransformer._();
+  factory PackageCollectionTypeEnumTypeTransformer() =>
+      _instance ??= const PackageCollectionTypeEnumTypeTransformer._();
 
   const PackageCollectionTypeEnumTypeTransformer._();
 
@@ -215,7 +234,8 @@ class PackageCollectionTypeEnumTypeTransformer {
   PackageCollectionTypeEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'PackageCollection': return PackageCollectionTypeEnum.packageCollection;
+        case r'PackageCollection':
+          return PackageCollectionTypeEnum.packageCollection;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -228,5 +248,3 @@ class PackageCollectionTypeEnumTypeTransformer {
   /// Singleton [PackageCollectionTypeEnumTypeTransformer] instance.
   static PackageCollectionTypeEnumTypeTransformer? _instance;
 }
-
-

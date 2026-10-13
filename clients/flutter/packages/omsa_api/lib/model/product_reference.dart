@@ -24,23 +24,24 @@ class ProductReference {
   String name;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ProductReference &&
-    other.productId == productId &&
-    other.name == name;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProductReference &&
+          other.productId == productId &&
+          other.name == name;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (productId.hashCode) +
-    (name.hashCode);
+      // ignore: unnecessary_parenthesis
+      (productId.hashCode) + (name.hashCode);
 
   @override
   String toString() => 'ProductReference[productId=$productId, name=$name]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'productId'] = this.productId;
-      json[r'name'] = this.name;
+    json[r'productId'] = this.productId;
+    json[r'name'] = this.name;
     return json;
   }
 
@@ -56,8 +57,10 @@ class ProductReference {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ProductReference[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ProductReference[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ProductReference[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ProductReference[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -70,7 +73,10 @@ class ProductReference {
     return null;
   }
 
-  static List<ProductReference> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ProductReference> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ProductReference>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -98,13 +104,19 @@ class ProductReference {
   }
 
   // maps a json object with a list of ProductReference-objects as value to a dart map
-  static Map<String, List<ProductReference>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ProductReference>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ProductReference>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ProductReference.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ProductReference.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -116,4 +128,3 @@ class ProductReference {
     'name',
   };
 }
-

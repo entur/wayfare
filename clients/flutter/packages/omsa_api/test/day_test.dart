@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for Day
 void main() {
-
-  group('test Day', () {
-
-  });
-
+  group('test Day', () {});
 }

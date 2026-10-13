@@ -46,29 +46,32 @@ class LicenseType {
   Map<String, Object> customFields;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is LicenseType &&
-    other.type == type &&
-    _deepEquality.equals(other.modes, modes) &&
-    other.licenseCode == licenseCode &&
-    other.issuingCountry == issuingCountry &&
-    _deepEquality.equals(other.customFields, customFields);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LicenseType &&
+          other.type == type &&
+          _deepEquality.equals(other.modes, modes) &&
+          other.licenseCode == licenseCode &&
+          other.issuingCountry == issuingCountry &&
+          _deepEquality.equals(other.customFields, customFields);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (modes.hashCode) +
-    (licenseCode == null ? 0 : licenseCode!.hashCode) +
-    (issuingCountry == null ? 0 : issuingCountry!.hashCode) +
-    (customFields.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (modes.hashCode) +
+      (licenseCode == null ? 0 : licenseCode!.hashCode) +
+      (issuingCountry == null ? 0 : issuingCountry!.hashCode) +
+      (customFields.hashCode);
 
   @override
-  String toString() => 'LicenseType[type=$type, modes=$modes, licenseCode=$licenseCode, issuingCountry=$issuingCountry, customFields=$customFields]';
+  String toString() =>
+      'LicenseType[type=$type, modes=$modes, licenseCode=$licenseCode, issuingCountry=$issuingCountry, customFields=$customFields]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'modes'] = this.modes;
+    json[r'type'] = this.type;
+    json[r'modes'] = this.modes;
     if (this.licenseCode != null) {
       json[r'licenseCode'] = this.licenseCode;
     } else {
@@ -79,7 +82,7 @@ class LicenseType {
     } else {
       json[r'issuingCountry'] = null;
     }
-      json[r'customFields'] = this.customFields;
+    json[r'customFields'] = this.customFields;
     return json;
   }
 
@@ -95,8 +98,10 @@ class LicenseType {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "LicenseType[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "LicenseType[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "LicenseType[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "LicenseType[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -106,13 +111,17 @@ class LicenseType {
         modes: Mode.listFromJson(json[r'modes']),
         licenseCode: mapValueOfType<String>(json, r'licenseCode'),
         issuingCountry: mapValueOfType<String>(json, r'issuingCountry'),
-        customFields: mapCastOfType<String, Object>(json, r'customFields') ?? const {},
+        customFields:
+            mapCastOfType<String, Object>(json, r'customFields') ?? const {},
       );
     }
     return null;
   }
 
-  static List<LicenseType> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<LicenseType> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <LicenseType>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -140,13 +149,19 @@ class LicenseType {
   }
 
   // maps a json object with a list of LicenseType-objects as value to a dart map
-  static Map<String, List<LicenseType>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<LicenseType>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<LicenseType>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = LicenseType.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = LicenseType.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -157,4 +172,3 @@ class LicenseType {
     'type',
   };
 }
-

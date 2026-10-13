@@ -15,7 +15,6 @@ class PackageInput {
   PackageInput({
     required this.packageId,
     required this.type,
-    this.timestamp,
   });
 
   /// default string, full names etc (length 0-200)
@@ -23,40 +22,25 @@ class PackageInput {
 
   String type;
 
-  /// https://www.rfc-editor.org/rfc/rfc3339#section-5.6, date-time (2019-10-12T07:20:50.52Z)
-  ///
-  /// Please note: This property should have been non-nullable! Since the specification file
-  /// does not include a default value (using the "default:" property), however, the generated
-  /// source code must fall back to having a nullable type.
-  /// Consider adding a "default:" property in the specification file to hide this note.
-  ///
-  DateTime? timestamp;
-
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PackageInput &&
-    other.packageId == packageId &&
-    other.type == type &&
-    other.timestamp == timestamp;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PackageInput &&
+          other.packageId == packageId &&
+          other.type == type;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (packageId.hashCode) +
-    (type.hashCode) +
-    (timestamp == null ? 0 : timestamp!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (packageId.hashCode) + (type.hashCode);
 
   @override
-  String toString() => 'PackageInput[packageId=$packageId, type=$type, timestamp=$timestamp]';
+  String toString() => 'PackageInput[packageId=$packageId, type=$type]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'packageId'] = this.packageId;
-      json[r'type'] = this.type;
-    if (this.timestamp != null) {
-      json[r'timestamp'] = this.timestamp!.toUtc().toIso8601String();
-    } else {
-      json[r'timestamp'] = null;
-    }
+    json[r'packageId'] = this.packageId;
+    json[r'type'] = this.type;
     return json;
   }
 
@@ -72,8 +56,10 @@ class PackageInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PackageInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PackageInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PackageInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PackageInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -81,13 +67,15 @@ class PackageInput {
       return PackageInput(
         packageId: mapValueOfType<String>(json, r'packageId')!,
         type: mapValueOfType<String>(json, r'type')!,
-        timestamp: mapDateTime(json, r'timestamp', r''),
       );
     }
     return null;
   }
 
-  static List<PackageInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PackageInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PackageInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -115,13 +103,19 @@ class PackageInput {
   }
 
   // maps a json object with a list of PackageInput-objects as value to a dart map
-  static Map<String, List<PackageInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PackageInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PackageInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PackageInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PackageInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -133,4 +127,3 @@ class PackageInput {
     'type',
   };
 }
-

@@ -15,7 +15,6 @@ class LegInput {
   LegInput({
     required this.packageId,
     required this.type,
-    this.timestamp,
     this.offerId,
     required this.legId,
     this.location,
@@ -25,15 +24,6 @@ class LegInput {
   String packageId;
 
   String type;
-
-  /// https://www.rfc-editor.org/rfc/rfc3339#section-5.6, date-time (2019-10-12T07:20:50.52Z)
-  ///
-  /// Please note: This property should have been non-nullable! Since the specification file
-  /// does not include a default value (using the "default:" property), however, the generated
-  /// source code must fall back to having a nullable type.
-  /// Consider adding a "default:" property in the specification file to hide this note.
-  ///
-  DateTime? timestamp;
 
   /// default string, full names etc (length 0-200)
   ///
@@ -56,42 +46,38 @@ class LegInput {
   PlaceReference? location;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is LegInput &&
-    other.packageId == packageId &&
-    other.type == type &&
-    other.timestamp == timestamp &&
-    other.offerId == offerId &&
-    other.legId == legId &&
-    other.location == location;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LegInput &&
+          other.packageId == packageId &&
+          other.type == type &&
+          other.offerId == offerId &&
+          other.legId == legId &&
+          other.location == location;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (packageId.hashCode) +
-    (type.hashCode) +
-    (timestamp == null ? 0 : timestamp!.hashCode) +
-    (offerId == null ? 0 : offerId!.hashCode) +
-    (legId.hashCode) +
-    (location == null ? 0 : location!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (packageId.hashCode) +
+      (type.hashCode) +
+      (offerId == null ? 0 : offerId!.hashCode) +
+      (legId.hashCode) +
+      (location == null ? 0 : location!.hashCode);
 
   @override
-  String toString() => 'LegInput[packageId=$packageId, type=$type, timestamp=$timestamp, offerId=$offerId, legId=$legId, location=$location]';
+  String toString() =>
+      'LegInput[packageId=$packageId, type=$type, offerId=$offerId, legId=$legId, location=$location]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'packageId'] = this.packageId;
-      json[r'type'] = this.type;
-    if (this.timestamp != null) {
-      json[r'timestamp'] = this.timestamp!.toUtc().toIso8601String();
-    } else {
-      json[r'timestamp'] = null;
-    }
+    json[r'packageId'] = this.packageId;
+    json[r'type'] = this.type;
     if (this.offerId != null) {
       json[r'offerId'] = this.offerId;
     } else {
       json[r'offerId'] = null;
     }
-      json[r'legId'] = this.legId;
+    json[r'legId'] = this.legId;
     if (this.location != null) {
       json[r'location'] = this.location;
     } else {
@@ -112,8 +98,10 @@ class LegInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "LegInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "LegInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "LegInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "LegInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -121,7 +109,6 @@ class LegInput {
       return LegInput(
         packageId: mapValueOfType<String>(json, r'packageId')!,
         type: mapValueOfType<String>(json, r'type')!,
-        timestamp: mapDateTime(json, r'timestamp', r''),
         offerId: mapValueOfType<String>(json, r'offerId'),
         legId: mapValueOfType<String>(json, r'legId')!,
         location: PlaceReference.fromJson(json[r'location']),
@@ -130,7 +117,10 @@ class LegInput {
     return null;
   }
 
-  static List<LegInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<LegInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <LegInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -158,13 +148,19 @@ class LegInput {
   }
 
   // maps a json object with a list of LegInput-objects as value to a dart map
-  static Map<String, List<LegInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<LegInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<LegInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = LegInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = LegInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -177,4 +173,3 @@ class LegInput {
     'legId',
   };
 }
-

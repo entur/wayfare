@@ -5,35 +5,37 @@
 import 'package:omsa_api/api.dart';
 ```
 
-All URIs are relative to *https://example.b5*
+All URIs are relative to *https://api.entur.io/sales/v2*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**apiGet**](DiscoveryApi.md#apiget) | **GET** /api | This document
-[**describeCollection**](DiscoveryApi.md#describecollection) | **GET** /collections/{collectionId} | describe the feature collection with id `collectionId`
-[**getCollections**](DiscoveryApi.md#getcollections) | **GET** /collections | the feature collections in the dataset
-[**getConformanceDeclaration**](DiscoveryApi.md#getconformancedeclaration) | **GET** /conformance | API conformance definition
-[**getProcessDescription**](DiscoveryApi.md#getprocessdescription) | **GET** /processes/{processID} | retrieve a process description
-[**getProcesses**](DiscoveryApi.md#getprocesses) | **GET** /processes | retrieve the list of available processes
-[**landingPage**](DiscoveryApi.md#landingpage) | **GET** / | Landing page
+[**apiGet**](DiscoveryApi.md#apiget) | **GET** /api | Get OpenAPI specification document
+[**describeCollection**](DiscoveryApi.md#describecollection) | **GET** /collections/{collectionId} | Get collection metadata
+[**getCollections**](DiscoveryApi.md#getcollections) | **GET** /collections | List available collections
+[**getConformanceDeclaration**](DiscoveryApi.md#getconformancedeclaration) | **GET** /conformance | Get API conformance declaration
+[**getProcessDescription**](DiscoveryApi.md#getprocessdescription) | **GET** /processes/{processID} | Get process description
+[**getProcesses**](DiscoveryApi.md#getprocesses) | **GET** /processes | List available processes
+[**landingPage**](DiscoveryApi.md#landingpage) | **GET** / | Get API landing page
 
 
 # **apiGet**
-> String apiGet(f)
+> String apiGet(f, eTClientName, xCorrelationId)
 
-This document
+Get OpenAPI specification document
 
-This document
+Returns this OpenAPI document in JSON or YAML format.
 
 ### Example
 ```dart
 import 'package:omsa_api/api.dart';
 
 final api_instance = DiscoveryApi();
-final f = f_example; // String | The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON.
+final f = f_example; // String | Output format for the OpenAPI document.
+final eTClientName = eTClientName_example; // String | Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+final xCorrelationId = xCorrelationId_example; // String | Correlation id
 
 try {
-    final result = api_instance.apiGet(f);
+    final result = api_instance.apiGet(f, eTClientName, xCorrelationId);
     print(result);
 } catch (e) {
     print('Exception when calling DiscoveryApi->apiGet: $e\n');
@@ -44,7 +46,9 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **f** | **String**| The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON. | [optional] [default to 'json']
+ **f** | **String**| Output format for the OpenAPI document. | [optional] [default to 'json']
+ **eTClientName** | **String**| Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`. | [optional] 
+ **xCorrelationId** | **String**| Correlation id | [optional] 
 
 ### Return type
 
@@ -57,14 +61,14 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: application/yaml, application/json
+ - **Accept**: application/json, application/x-yaml
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **describeCollection**
-> CollectionInfo describeCollection(collectionId, acceptLanguage)
+> CollectionInfo describeCollection(collectionId, acceptLanguage, eTClientName, xCorrelationId)
 
-describe the feature collection with id `collectionId`
+Get collection metadata
 
 a (machine or human) readable description of this collection
 
@@ -75,9 +79,11 @@ import 'package:omsa_api/api.dart';
 final api_instance = DiscoveryApi();
 final collectionId = collectionId_example; // String | local identifier of a collection
 final acceptLanguage = acceptLanguage_example; // String | 
+final eTClientName = eTClientName_example; // String | Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+final xCorrelationId = xCorrelationId_example; // String | Correlation id
 
 try {
-    final result = api_instance.describeCollection(collectionId, acceptLanguage);
+    final result = api_instance.describeCollection(collectionId, acceptLanguage, eTClientName, xCorrelationId);
     print(result);
 } catch (e) {
     print('Exception when calling DiscoveryApi->describeCollection: $e\n');
@@ -90,6 +96,8 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **collectionId** | **String**| local identifier of a collection | 
  **acceptLanguage** | **String**|  | 
+ **eTClientName** | **String**| Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`. | [optional] 
+ **xCorrelationId** | **String**| Correlation id | [optional] 
 
 ### Return type
 
@@ -107,9 +115,9 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getCollections**
-> Collections getCollections()
+> Collections getCollections(eTClientName, xCorrelationId)
 
-the feature collections in the dataset
+List available collections
 
 returns a collection of available collection (like offers, packages, legs, support-requests and payments)
 
@@ -118,9 +126,11 @@ returns a collection of available collection (like offers, packages, legs, suppo
 import 'package:omsa_api/api.dart';
 
 final api_instance = DiscoveryApi();
+final eTClientName = eTClientName_example; // String | Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+final xCorrelationId = xCorrelationId_example; // String | Correlation id
 
 try {
-    final result = api_instance.getCollections();
+    final result = api_instance.getCollections(eTClientName, xCorrelationId);
     print(result);
 } catch (e) {
     print('Exception when calling DiscoveryApi->getCollections: $e\n');
@@ -128,7 +138,11 @@ try {
 ```
 
 ### Parameters
-This endpoint does not need any parameter.
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **eTClientName** | **String**| Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`. | [optional] 
+ **xCorrelationId** | **String**| Correlation id | [optional] 
 
 ### Return type
 
@@ -146,9 +160,9 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getConformanceDeclaration**
-> ConfClasses getConformanceDeclaration(acceptLanguage, f)
+> ConfClasses getConformanceDeclaration(acceptLanguage, f, eTClientName, xCorrelationId)
 
-API conformance definition
+Get API conformance declaration
 
 A list of all conformance classes specified in a standard that the server conforms to.
 
@@ -159,9 +173,11 @@ import 'package:omsa_api/api.dart';
 final api_instance = DiscoveryApi();
 final acceptLanguage = acceptLanguage_example; // String | 
 final f = f_example; // String | The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON.
+final eTClientName = eTClientName_example; // String | Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+final xCorrelationId = xCorrelationId_example; // String | Correlation id
 
 try {
-    final result = api_instance.getConformanceDeclaration(acceptLanguage, f);
+    final result = api_instance.getConformanceDeclaration(acceptLanguage, f, eTClientName, xCorrelationId);
     print(result);
 } catch (e) {
     print('Exception when calling DiscoveryApi->getConformanceDeclaration: $e\n');
@@ -174,6 +190,8 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **acceptLanguage** | **String**|  | 
  **f** | **String**| The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON. | [optional] [default to 'json']
+ **eTClientName** | **String**| Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`. | [optional] 
+ **xCorrelationId** | **String**| Correlation id | [optional] 
 
 ### Return type
 
@@ -191,9 +209,9 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getProcessDescription**
-> Object getProcessDescription(acceptLanguage, processID)
+> Object getProcessDescription(acceptLanguage, processID, eTClientName, xCorrelationId)
 
-retrieve a process description
+Get process description
 
 The process description contains information about inputs and outputs and a link to the execution-endpoint for the process. The Core does not mandate the use of a specific process description to specify the interface of a process. That said, the Core requirements class makes the following recommendation: Implementations SHOULD consider supporting the OGC process description. For more information, see [Section 7.10](https://docs.ogc.org/is/18-062/18-062.html#sc_process_description). 
 
@@ -204,9 +222,11 @@ import 'package:omsa_api/api.dart';
 final api_instance = DiscoveryApi();
 final acceptLanguage = acceptLanguage_example; // String | 
 final processID = processID_example; // String | 
+final eTClientName = eTClientName_example; // String | Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+final xCorrelationId = xCorrelationId_example; // String | Correlation id
 
 try {
-    final result = api_instance.getProcessDescription(acceptLanguage, processID);
+    final result = api_instance.getProcessDescription(acceptLanguage, processID, eTClientName, xCorrelationId);
     print(result);
 } catch (e) {
     print('Exception when calling DiscoveryApi->getProcessDescription: $e\n');
@@ -219,6 +239,8 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **acceptLanguage** | **String**|  | 
  **processID** | **String**|  | 
+ **eTClientName** | **String**| Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`. | [optional] 
+ **xCorrelationId** | **String**| Correlation id | [optional] 
 
 ### Return type
 
@@ -236,9 +258,9 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getProcesses**
-> ProcessList getProcesses(acceptLanguage)
+> ProcessList getProcesses(acceptLanguage, eTClientName, xCorrelationId)
 
-retrieve the list of available processes
+List available processes
 
 The list of processes contains a summary of each process the OGC API - Processes offers, including the link to a more detailed description of the process.  For more information, see [Section 7.9](https://docs.ogc.org/is/18-062/18-062.html#sc_process_list). 
 
@@ -248,9 +270,11 @@ import 'package:omsa_api/api.dart';
 
 final api_instance = DiscoveryApi();
 final acceptLanguage = acceptLanguage_example; // String | 
+final eTClientName = eTClientName_example; // String | Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+final xCorrelationId = xCorrelationId_example; // String | Correlation id
 
 try {
-    final result = api_instance.getProcesses(acceptLanguage);
+    final result = api_instance.getProcesses(acceptLanguage, eTClientName, xCorrelationId);
     print(result);
 } catch (e) {
     print('Exception when calling DiscoveryApi->getProcesses: $e\n');
@@ -262,6 +286,8 @@ try {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **acceptLanguage** | **String**|  | 
+ **eTClientName** | **String**| Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`. | [optional] 
+ **xCorrelationId** | **String**| Correlation id | [optional] 
 
 ### Return type
 
@@ -279,9 +305,9 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **landingPage**
-> LandingPage landingPage(acceptLanguage, f)
+> LandingPage landingPage(acceptLanguage, f, eTClientName, xCorrelationId)
 
-Landing page
+Get API landing page
 
 Gives a (technical & human readable) output describing how this API must be used. If  the parameter f=html is supplied, a human readable page must be responded.
 
@@ -292,9 +318,11 @@ import 'package:omsa_api/api.dart';
 final api_instance = DiscoveryApi();
 final acceptLanguage = acceptLanguage_example; // String | 
 final f = f_example; // String | The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON.
+final eTClientName = eTClientName_example; // String | Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+final xCorrelationId = xCorrelationId_example; // String | Correlation id
 
 try {
-    final result = api_instance.landingPage(acceptLanguage, f);
+    final result = api_instance.landingPage(acceptLanguage, f, eTClientName, xCorrelationId);
     print(result);
 } catch (e) {
     print('Exception when calling DiscoveryApi->landingPage: $e\n');
@@ -307,6 +335,8 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **acceptLanguage** | **String**|  | 
  **f** | **String**| The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON. | [optional] [default to 'json']
+ **eTClientName** | **String**| Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`. | [optional] 
+ **xCorrelationId** | **String**| Correlation id | [optional] 
 
 ### Return type
 

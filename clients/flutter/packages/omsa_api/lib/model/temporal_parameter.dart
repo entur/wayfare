@@ -55,28 +55,31 @@ class TemporalParameter {
   Day? dayType;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is TemporalParameter &&
-    other.type == type &&
-    other.startTime == startTime &&
-    other.endTime == endTime &&
-    other.duration == duration &&
-    other.dayType == dayType;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TemporalParameter &&
+          other.type == type &&
+          other.startTime == startTime &&
+          other.endTime == endTime &&
+          other.duration == duration &&
+          other.dayType == dayType;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (startTime == null ? 0 : startTime!.hashCode) +
-    (endTime == null ? 0 : endTime!.hashCode) +
-    (duration.hashCode) +
-    (dayType == null ? 0 : dayType!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (startTime == null ? 0 : startTime!.hashCode) +
+      (endTime == null ? 0 : endTime!.hashCode) +
+      (duration.hashCode) +
+      (dayType == null ? 0 : dayType!.hashCode);
 
   @override
-  String toString() => 'TemporalParameter[type=$type, startTime=$startTime, endTime=$endTime, duration=$duration, dayType=$dayType]';
+  String toString() =>
+      'TemporalParameter[type=$type, startTime=$startTime, endTime=$endTime, duration=$duration, dayType=$dayType]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.startTime != null) {
       json[r'startTime'] = this.startTime!.toUtc().toIso8601String();
     } else {
@@ -87,7 +90,7 @@ class TemporalParameter {
     } else {
       json[r'endTime'] = null;
     }
-      json[r'duration'] = this.duration;
+    json[r'duration'] = this.duration;
     if (this.dayType != null) {
       json[r'dayType'] = this.dayType;
     } else {
@@ -108,8 +111,10 @@ class TemporalParameter {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "TemporalParameter[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "TemporalParameter[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "TemporalParameter[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "TemporalParameter[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -125,7 +130,10 @@ class TemporalParameter {
     return null;
   }
 
-  static List<TemporalParameter> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TemporalParameter> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TemporalParameter>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -153,13 +161,19 @@ class TemporalParameter {
   }
 
   // maps a json object with a list of TemporalParameter-objects as value to a dart map
-  static Map<String, List<TemporalParameter>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<TemporalParameter>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<TemporalParameter>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = TemporalParameter.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = TemporalParameter.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -170,4 +184,3 @@ class TemporalParameter {
     'type',
   };
 }
-

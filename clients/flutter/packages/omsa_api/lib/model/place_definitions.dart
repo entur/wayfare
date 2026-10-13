@@ -20,20 +20,22 @@ class PlaceDefinitions {
   List<PostalAddress> placeDefinitions;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PlaceDefinitions &&
-    _deepEquality.equals(other.placeDefinitions, placeDefinitions);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PlaceDefinitions &&
+          _deepEquality.equals(other.placeDefinitions, placeDefinitions);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (placeDefinitions.hashCode);
+      // ignore: unnecessary_parenthesis
+      (placeDefinitions.hashCode);
 
   @override
   String toString() => 'PlaceDefinitions[placeDefinitions=$placeDefinitions]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'placeDefinitions'] = this.placeDefinitions;
+    json[r'placeDefinitions'] = this.placeDefinitions;
     return json;
   }
 
@@ -49,8 +51,10 @@ class PlaceDefinitions {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PlaceDefinitions[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PlaceDefinitions[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PlaceDefinitions[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PlaceDefinitions[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -62,7 +66,10 @@ class PlaceDefinitions {
     return null;
   }
 
-  static List<PlaceDefinitions> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PlaceDefinitions> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PlaceDefinitions>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -90,20 +97,24 @@ class PlaceDefinitions {
   }
 
   // maps a json object with a list of PlaceDefinitions-objects as value to a dart map
-  static Map<String, List<PlaceDefinitions>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PlaceDefinitions>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PlaceDefinitions>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PlaceDefinitions.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PlaceDefinitions.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

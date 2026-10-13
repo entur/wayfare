@@ -15,7 +15,8 @@ class TravelDocument {
   TravelDocument({
     required this.startvalidity,
     required this.endvalidity,
-    required this.travelDocumentType,
+    required this.format,
+    this.status,
   });
 
   /// https://www.rfc-editor.org/rfc/rfc3339#section-5.6, date-time (2019-10-12T07:20:50.52Z)
@@ -24,29 +25,47 @@ class TravelDocument {
   /// https://www.rfc-editor.org/rfc/rfc3339#section-5.6, date-time (2019-10-12T07:20:50.52Z)
   DateTime endvalidity;
 
-  TypeOfTravelDocument travelDocumentType;
+  TravelDocumentFormat format;
+
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  TravelDocumentStatus? status;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is TravelDocument &&
-    other.startvalidity == startvalidity &&
-    other.endvalidity == endvalidity &&
-    other.travelDocumentType == travelDocumentType;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TravelDocument &&
+          other.startvalidity == startvalidity &&
+          other.endvalidity == endvalidity &&
+          other.format == format &&
+          other.status == status;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (startvalidity.hashCode) +
-    (endvalidity.hashCode) +
-    (travelDocumentType.hashCode);
+      // ignore: unnecessary_parenthesis
+      (startvalidity.hashCode) +
+      (endvalidity.hashCode) +
+      (format.hashCode) +
+      (status == null ? 0 : status!.hashCode);
 
   @override
-  String toString() => 'TravelDocument[startvalidity=$startvalidity, endvalidity=$endvalidity, travelDocumentType=$travelDocumentType]';
+  String toString() =>
+      'TravelDocument[startvalidity=$startvalidity, endvalidity=$endvalidity, format=$format, status=$status]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'startvalidity'] = this.startvalidity.toUtc().toIso8601String();
-      json[r'endvalidity'] = this.endvalidity.toUtc().toIso8601String();
-      json[r'travelDocumentType'] = this.travelDocumentType;
+    json[r'startvalidity'] = this.startvalidity.toUtc().toIso8601String();
+    json[r'endvalidity'] = this.endvalidity.toUtc().toIso8601String();
+    json[r'format'] = this.format;
+    if (this.status != null) {
+      json[r'status'] = this.status;
+    } else {
+      json[r'status'] = null;
+    }
     return json;
   }
 
@@ -62,8 +81,10 @@ class TravelDocument {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "TravelDocument[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "TravelDocument[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "TravelDocument[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "TravelDocument[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -71,13 +92,17 @@ class TravelDocument {
       return TravelDocument(
         startvalidity: mapDateTime(json, r'startvalidity', r'')!,
         endvalidity: mapDateTime(json, r'endvalidity', r'')!,
-        travelDocumentType: TypeOfTravelDocument.fromJson(json[r'travelDocumentType'])!,
+        format: TravelDocumentFormat.fromJson(json[r'format'])!,
+        status: TravelDocumentStatus.fromJson(json[r'status']),
       );
     }
     return null;
   }
 
-  static List<TravelDocument> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TravelDocument> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TravelDocument>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -105,13 +130,19 @@ class TravelDocument {
   }
 
   // maps a json object with a list of TravelDocument-objects as value to a dart map
-  static Map<String, List<TravelDocument>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<TravelDocument>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<TravelDocument>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = TravelDocument.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = TravelDocument.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -121,7 +152,6 @@ class TravelDocument {
   static const requiredKeys = <String>{
     'startvalidity',
     'endvalidity',
-    'travelDocumentType',
+    'format',
   };
 }
-

@@ -19,20 +19,22 @@ class GeojsonPoint {
   List<double> coordinates;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is GeojsonPoint &&
-    _deepEquality.equals(other.coordinates, coordinates);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GeojsonPoint &&
+          _deepEquality.equals(other.coordinates, coordinates);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (coordinates.hashCode);
+      // ignore: unnecessary_parenthesis
+      (coordinates.hashCode);
 
   @override
   String toString() => 'GeojsonPoint[coordinates=$coordinates]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'coordinates'] = this.coordinates;
+    json[r'coordinates'] = this.coordinates;
     return json;
   }
 
@@ -48,22 +50,29 @@ class GeojsonPoint {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "GeojsonPoint[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "GeojsonPoint[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "GeojsonPoint[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "GeojsonPoint[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return GeojsonPoint(
         coordinates: json[r'coordinates'] is Iterable
-            ? (json[r'coordinates'] as Iterable).cast<double>().toList(growable: false)
+            ? (json[r'coordinates'] as Iterable)
+                .cast<double>()
+                .toList(growable: false)
             : const [],
       );
     }
     return null;
   }
 
-  static List<GeojsonPoint> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<GeojsonPoint> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <GeojsonPoint>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -91,13 +100,19 @@ class GeojsonPoint {
   }
 
   // maps a json object with a list of GeojsonPoint-objects as value to a dart map
-  static Map<String, List<GeojsonPoint>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<GeojsonPoint>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<GeojsonPoint>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = GeojsonPoint.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = GeojsonPoint.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -108,4 +123,3 @@ class GeojsonPoint {
     'coordinates',
   };
 }
-

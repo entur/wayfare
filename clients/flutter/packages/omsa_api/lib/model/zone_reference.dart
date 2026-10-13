@@ -30,22 +30,21 @@ class ZoneReference {
   String? name;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ZoneReference &&
-    other.zoneId == zoneId &&
-    other.name == name;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ZoneReference && other.zoneId == zoneId && other.name == name;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (zoneId.hashCode) +
-    (name == null ? 0 : name!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (zoneId.hashCode) + (name == null ? 0 : name!.hashCode);
 
   @override
   String toString() => 'ZoneReference[zoneId=$zoneId, name=$name]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'zoneId'] = this.zoneId;
+    json[r'zoneId'] = this.zoneId;
     if (this.name != null) {
       json[r'name'] = this.name;
     } else {
@@ -66,8 +65,10 @@ class ZoneReference {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ZoneReference[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ZoneReference[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ZoneReference[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ZoneReference[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -80,7 +81,10 @@ class ZoneReference {
     return null;
   }
 
-  static List<ZoneReference> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ZoneReference> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ZoneReference>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -108,13 +112,19 @@ class ZoneReference {
   }
 
   // maps a json object with a list of ZoneReference-objects as value to a dart map
-  static Map<String, List<ZoneReference>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ZoneReference>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ZoneReference>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ZoneReference.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ZoneReference.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -125,4 +135,3 @@ class ZoneReference {
     'zoneId',
   };
 }
-

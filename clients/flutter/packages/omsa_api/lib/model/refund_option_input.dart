@@ -29,22 +29,23 @@ class RefundOptionInput {
   String? optionId;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is RefundOptionInput &&
-    other.type == type &&
-    other.optionId == optionId;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RefundOptionInput &&
+          other.type == type &&
+          other.optionId == optionId;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (optionId == null ? 0 : optionId!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) + (optionId == null ? 0 : optionId!.hashCode);
 
   @override
   String toString() => 'RefundOptionInput[type=$type, optionId=$optionId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.optionId != null) {
       json[r'optionId'] = this.optionId;
     } else {
@@ -65,8 +66,10 @@ class RefundOptionInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "RefundOptionInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "RefundOptionInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "RefundOptionInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "RefundOptionInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -79,7 +82,10 @@ class RefundOptionInput {
     return null;
   }
 
-  static List<RefundOptionInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<RefundOptionInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <RefundOptionInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -107,13 +113,19 @@ class RefundOptionInput {
   }
 
   // maps a json object with a list of RefundOptionInput-objects as value to a dart map
-  static Map<String, List<RefundOptionInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<RefundOptionInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<RefundOptionInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RefundOptionInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = RefundOptionInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -124,4 +136,3 @@ class RefundOptionInput {
     'type',
   };
 }
-

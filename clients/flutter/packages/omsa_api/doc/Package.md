@@ -16,6 +16,7 @@ Name | Type | Description | Notes
 **placeDefinitions** | [**List<PostalAddress>**](PostalAddress.md) | Places that are not specified in an external data source (like a home address) | [optional] [default to const []]
 **type** | **String** |  | 
 **id** | **String** |  | [optional] 
+**externalReference** | **String** | default string, full names etc (length 0-200) | [optional] 
 **status** | [**PackageStatus**](PackageStatus.md) |  | 
 **price** | [**AmountOfMoney**](AmountOfMoney.md) |  | 
 **offers** | [**List<Offer>**](Offer.md) |  | [default to const []]

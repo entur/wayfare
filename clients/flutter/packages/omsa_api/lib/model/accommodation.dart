@@ -58,33 +58,42 @@ class Accommodation {
 
   AccommodationGenderEnum? gender;
 
-  AccommodationBerthTypeEnum? berthType;
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
+  BerthType? berthType;
 
   List<String> nuisanceFacility;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Accommodation &&
-    other.type == type &&
-    other.description == description &&
-    other.classOfUse == classOfUse &&
-    other.name == name &&
-    other.gender == gender &&
-    other.berthType == berthType &&
-    _deepEquality.equals(other.nuisanceFacility, nuisanceFacility);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Accommodation &&
+          other.type == type &&
+          other.description == description &&
+          other.classOfUse == classOfUse &&
+          other.name == name &&
+          other.gender == gender &&
+          other.berthType == berthType &&
+          _deepEquality.equals(other.nuisanceFacility, nuisanceFacility);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type == null ? 0 : type!.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (classOfUse == null ? 0 : classOfUse!.hashCode) +
-    (name == null ? 0 : name!.hashCode) +
-    (gender == null ? 0 : gender!.hashCode) +
-    (berthType == null ? 0 : berthType!.hashCode) +
-    (nuisanceFacility.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type == null ? 0 : type!.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (classOfUse == null ? 0 : classOfUse!.hashCode) +
+      (name == null ? 0 : name!.hashCode) +
+      (gender == null ? 0 : gender!.hashCode) +
+      (berthType == null ? 0 : berthType!.hashCode) +
+      (nuisanceFacility.hashCode);
 
   @override
-  String toString() => 'Accommodation[type=$type, description=$description, classOfUse=$classOfUse, name=$name, gender=$gender, berthType=$berthType, nuisanceFacility=$nuisanceFacility]';
+  String toString() =>
+      'Accommodation[type=$type, description=$description, classOfUse=$classOfUse, name=$name, gender=$gender, berthType=$berthType, nuisanceFacility=$nuisanceFacility]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -118,7 +127,7 @@ class Accommodation {
     } else {
       json[r'berthType'] = null;
     }
-      json[r'nuisanceFacility'] = this.nuisanceFacility;
+    json[r'nuisanceFacility'] = this.nuisanceFacility;
     return json;
   }
 
@@ -134,8 +143,10 @@ class Accommodation {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Accommodation[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Accommodation[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Accommodation[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Accommodation[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -146,16 +157,21 @@ class Accommodation {
         classOfUse: ClassOfUse.fromJson(json[r'classOfUse']),
         name: mapValueOfType<String>(json, r'name'),
         gender: AccommodationGenderEnum.fromJson(json[r'gender']),
-        berthType: AccommodationBerthTypeEnum.fromJson(json[r'berthType']),
+        berthType: BerthType.fromJson(json[r'berthType']),
         nuisanceFacility: json[r'nuisanceFacility'] is Iterable
-            ? (json[r'nuisanceFacility'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'nuisanceFacility'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
       );
     }
     return null;
   }
 
-  static List<Accommodation> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Accommodation> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Accommodation>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -183,23 +199,27 @@ class Accommodation {
   }
 
   // maps a json object with a list of Accommodation-objects as value to a dart map
-  static Map<String, List<Accommodation>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Accommodation>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Accommodation>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Accommodation.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Accommodation.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-
 
 class AccommodationGenderEnum {
   /// Instantiate a new enum with the provided [value].
@@ -226,9 +246,13 @@ class AccommodationGenderEnum {
     U,
   ];
 
-  static AccommodationGenderEnum? fromJson(dynamic value) => AccommodationGenderEnumTypeTransformer().decode(value);
+  static AccommodationGenderEnum? fromJson(dynamic value) =>
+      AccommodationGenderEnumTypeTransformer().decode(value);
 
-  static List<AccommodationGenderEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<AccommodationGenderEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <AccommodationGenderEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -245,7 +269,8 @@ class AccommodationGenderEnum {
 /// Transformation class that can [encode] an instance of [AccommodationGenderEnum] to String,
 /// and [decode] dynamic data back to [AccommodationGenderEnum].
 class AccommodationGenderEnumTypeTransformer {
-  factory AccommodationGenderEnumTypeTransformer() => _instance ??= const AccommodationGenderEnumTypeTransformer._();
+  factory AccommodationGenderEnumTypeTransformer() =>
+      _instance ??= const AccommodationGenderEnumTypeTransformer._();
 
   const AccommodationGenderEnumTypeTransformer._();
 
@@ -262,10 +287,14 @@ class AccommodationGenderEnumTypeTransformer {
   AccommodationGenderEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'M': return AccommodationGenderEnum.M;
-        case r'F': return AccommodationGenderEnum.F;
-        case r'X': return AccommodationGenderEnum.X;
-        case r'U': return AccommodationGenderEnum.U;
+        case r'M':
+          return AccommodationGenderEnum.M;
+        case r'F':
+          return AccommodationGenderEnum.F;
+        case r'X':
+          return AccommodationGenderEnum.X;
+        case r'U':
+          return AccommodationGenderEnum.U;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -278,85 +307,3 @@ class AccommodationGenderEnumTypeTransformer {
   /// Singleton [AccommodationGenderEnumTypeTransformer] instance.
   static AccommodationGenderEnumTypeTransformer? _instance;
 }
-
-
-
-class AccommodationBerthTypeEnum {
-  /// Instantiate a new enum with the provided [value].
-  const AccommodationBerthTypeEnum._(this.value);
-
-  /// The underlying value of this enum member.
-  final String value;
-
-  @override
-  String toString() => value;
-
-  String toJson() => value;
-
-  static const SLEEPER = AccommodationBerthTypeEnum._(r'SLEEPER');
-  static const COUCHETTE = AccommodationBerthTypeEnum._(r'COUCHETTE');
-  static const SEAT = AccommodationBerthTypeEnum._(r'SEAT');
-  static const OTHER = AccommodationBerthTypeEnum._(r'OTHER');
-
-  /// List of all possible values in this [enum][AccommodationBerthTypeEnum].
-  static const values = <AccommodationBerthTypeEnum>[
-    SLEEPER,
-    COUCHETTE,
-    SEAT,
-    OTHER,
-  ];
-
-  static AccommodationBerthTypeEnum? fromJson(dynamic value) => AccommodationBerthTypeEnumTypeTransformer().decode(value);
-
-  static List<AccommodationBerthTypeEnum> listFromJson(dynamic json, {bool growable = false,}) {
-    final result = <AccommodationBerthTypeEnum>[];
-    if (json is List && json.isNotEmpty) {
-      for (final row in json) {
-        final value = AccommodationBerthTypeEnum.fromJson(row);
-        if (value != null) {
-          result.add(value);
-        }
-      }
-    }
-    return result.toList(growable: growable);
-  }
-}
-
-/// Transformation class that can [encode] an instance of [AccommodationBerthTypeEnum] to String,
-/// and [decode] dynamic data back to [AccommodationBerthTypeEnum].
-class AccommodationBerthTypeEnumTypeTransformer {
-  factory AccommodationBerthTypeEnumTypeTransformer() => _instance ??= const AccommodationBerthTypeEnumTypeTransformer._();
-
-  const AccommodationBerthTypeEnumTypeTransformer._();
-
-  String encode(AccommodationBerthTypeEnum data) => data.value;
-
-  /// Decodes a [dynamic value][data] to a AccommodationBerthTypeEnum.
-  ///
-  /// If [allowNull] is true and the [dynamic value][data] cannot be decoded successfully,
-  /// then null is returned. However, if [allowNull] is false and the [dynamic value][data]
-  /// cannot be decoded successfully, then an [UnimplementedError] is thrown.
-  ///
-  /// The [allowNull] is very handy when an API changes and a new enum value is added or removed,
-  /// and users are still using an old app with the old code.
-  AccommodationBerthTypeEnum? decode(dynamic data, {bool allowNull = true}) {
-    if (data != null) {
-      switch (data) {
-        case r'SLEEPER': return AccommodationBerthTypeEnum.SLEEPER;
-        case r'COUCHETTE': return AccommodationBerthTypeEnum.COUCHETTE;
-        case r'SEAT': return AccommodationBerthTypeEnum.SEAT;
-        case r'OTHER': return AccommodationBerthTypeEnum.OTHER;
-        default:
-          if (!allowNull) {
-            throw ArgumentError('Unknown enum value to decode: $data');
-          }
-      }
-    }
-    return null;
-  }
-
-  /// Singleton [AccommodationBerthTypeEnumTypeTransformer] instance.
-  static AccommodationBerthTypeEnumTypeTransformer? _instance;
-}
-
-

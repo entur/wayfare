@@ -30,8 +30,5 @@ void main() {
     test('to test the property `failedUri`', () async {
       // TODO
     });
-
-
   });
-
 }

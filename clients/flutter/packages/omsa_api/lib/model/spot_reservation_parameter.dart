@@ -48,7 +48,7 @@ class SpotReservationParameter {
   ///
   String? space;
 
-  /// default string, full names etc (length 0-200)
+  /// For LUGGAGE_SPOT and VEHICLE_SPOT, supported values are: HANDBAG, HAND_LUGGAGE, SMALL_SUITCASE, SUITCASE, TRUNK, OVERSIZE_ITEM, BICYCLE, SPORTING_EQUIPMENT, SKIS, MUSICAL_INSTRUMENT, PUSH_CHAIR, MOTORIZED_WHEELCHAIR, LARGE_MOTORIZED_WHEELCHAIR, WHEELCHAIR, SMALL_ANIMAL, ANIMAL, GAME, MOTORCYCLE, OTHER, GUIDE_DOG. Unknown values are ignored. Use VEHICLE_SPOT for vehicles transported as cargo (e.g. motorcycle on a ferry). For PASSENGER_SPOT, the value is an operator-specific seat identifier and is not used for requirement mapping.
   String spot;
 
   ///
@@ -100,41 +100,44 @@ class SpotReservationParameter {
   Mode? mode;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is SpotReservationParameter &&
-    other.type == type &&
-    other.spotType == spotType &&
-    other.deck == deck &&
-    other.space == space &&
-    other.spot == spot &&
-    other.width == width &&
-    other.length == length &&
-    other.height == height &&
-    other.fuel == fuel &&
-    other.weight == weight &&
-    other.mode == mode;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SpotReservationParameter &&
+          other.type == type &&
+          other.spotType == spotType &&
+          other.deck == deck &&
+          other.space == space &&
+          other.spot == spot &&
+          other.width == width &&
+          other.length == length &&
+          other.height == height &&
+          other.fuel == fuel &&
+          other.weight == weight &&
+          other.mode == mode;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (spotType.hashCode) +
-    (deck == null ? 0 : deck!.hashCode) +
-    (space == null ? 0 : space!.hashCode) +
-    (spot.hashCode) +
-    (width == null ? 0 : width!.hashCode) +
-    (length == null ? 0 : length!.hashCode) +
-    (height == null ? 0 : height!.hashCode) +
-    (fuel == null ? 0 : fuel!.hashCode) +
-    (weight == null ? 0 : weight!.hashCode) +
-    (mode == null ? 0 : mode!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (spotType.hashCode) +
+      (deck == null ? 0 : deck!.hashCode) +
+      (space == null ? 0 : space!.hashCode) +
+      (spot.hashCode) +
+      (width == null ? 0 : width!.hashCode) +
+      (length == null ? 0 : length!.hashCode) +
+      (height == null ? 0 : height!.hashCode) +
+      (fuel == null ? 0 : fuel!.hashCode) +
+      (weight == null ? 0 : weight!.hashCode) +
+      (mode == null ? 0 : mode!.hashCode);
 
   @override
-  String toString() => 'SpotReservationParameter[type=$type, spotType=$spotType, deck=$deck, space=$space, spot=$spot, width=$width, length=$length, height=$height, fuel=$fuel, weight=$weight, mode=$mode]';
+  String toString() =>
+      'SpotReservationParameter[type=$type, spotType=$spotType, deck=$deck, space=$space, spot=$spot, width=$width, length=$length, height=$height, fuel=$fuel, weight=$weight, mode=$mode]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'spotType'] = this.spotType;
+    json[r'type'] = this.type;
+    json[r'spotType'] = this.spotType;
     if (this.deck != null) {
       json[r'deck'] = this.deck;
     } else {
@@ -145,7 +148,7 @@ class SpotReservationParameter {
     } else {
       json[r'space'] = null;
     }
-      json[r'spot'] = this.spot;
+    json[r'spot'] = this.spot;
     if (this.width != null) {
       json[r'width'] = this.width;
     } else {
@@ -191,15 +194,18 @@ class SpotReservationParameter {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "SpotReservationParameter[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "SpotReservationParameter[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "SpotReservationParameter[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "SpotReservationParameter[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return SpotReservationParameter(
         type: mapValueOfType<String>(json, r'type')!,
-        spotType: SpotReservationParameterSpotTypeEnum.fromJson(json[r'spotType'])!,
+        spotType:
+            SpotReservationParameterSpotTypeEnum.fromJson(json[r'spotType'])!,
         deck: mapValueOfType<String>(json, r'deck'),
         space: mapValueOfType<String>(json, r'space'),
         spot: mapValueOfType<String>(json, r'spot')!,
@@ -214,7 +220,10 @@ class SpotReservationParameter {
     return null;
   }
 
-  static List<SpotReservationParameter> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<SpotReservationParameter> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <SpotReservationParameter>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -242,13 +251,19 @@ class SpotReservationParameter {
   }
 
   // maps a json object with a list of SpotReservationParameter-objects as value to a dart map
-  static Map<String, List<SpotReservationParameter>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<SpotReservationParameter>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<SpotReservationParameter>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = SpotReservationParameter.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = SpotReservationParameter.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -262,7 +277,6 @@ class SpotReservationParameter {
   };
 }
 
-
 class SpotReservationParameterSpotTypeEnum {
   /// Instantiate a new enum with the provided [value].
   const SpotReservationParameterSpotTypeEnum._(this.value);
@@ -275,9 +289,12 @@ class SpotReservationParameterSpotTypeEnum {
 
   String toJson() => value;
 
-  static const VEHICLE_SPOT = SpotReservationParameterSpotTypeEnum._(r'VEHICLE_SPOT');
-  static const PASSENGER_SPOT = SpotReservationParameterSpotTypeEnum._(r'PASSENGER_SPOT');
-  static const LUGGAGE_SPOT = SpotReservationParameterSpotTypeEnum._(r'LUGGAGE_SPOT');
+  static const VEHICLE_SPOT =
+      SpotReservationParameterSpotTypeEnum._(r'VEHICLE_SPOT');
+  static const PASSENGER_SPOT =
+      SpotReservationParameterSpotTypeEnum._(r'PASSENGER_SPOT');
+  static const LUGGAGE_SPOT =
+      SpotReservationParameterSpotTypeEnum._(r'LUGGAGE_SPOT');
 
   /// List of all possible values in this [enum][SpotReservationParameterSpotTypeEnum].
   static const values = <SpotReservationParameterSpotTypeEnum>[
@@ -286,9 +303,13 @@ class SpotReservationParameterSpotTypeEnum {
     LUGGAGE_SPOT,
   ];
 
-  static SpotReservationParameterSpotTypeEnum? fromJson(dynamic value) => SpotReservationParameterSpotTypeEnumTypeTransformer().decode(value);
+  static SpotReservationParameterSpotTypeEnum? fromJson(dynamic value) =>
+      SpotReservationParameterSpotTypeEnumTypeTransformer().decode(value);
 
-  static List<SpotReservationParameterSpotTypeEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<SpotReservationParameterSpotTypeEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <SpotReservationParameterSpotTypeEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -305,7 +326,8 @@ class SpotReservationParameterSpotTypeEnum {
 /// Transformation class that can [encode] an instance of [SpotReservationParameterSpotTypeEnum] to String,
 /// and [decode] dynamic data back to [SpotReservationParameterSpotTypeEnum].
 class SpotReservationParameterSpotTypeEnumTypeTransformer {
-  factory SpotReservationParameterSpotTypeEnumTypeTransformer() => _instance ??= const SpotReservationParameterSpotTypeEnumTypeTransformer._();
+  factory SpotReservationParameterSpotTypeEnumTypeTransformer() => _instance ??=
+      const SpotReservationParameterSpotTypeEnumTypeTransformer._();
 
   const SpotReservationParameterSpotTypeEnumTypeTransformer._();
 
@@ -319,12 +341,16 @@ class SpotReservationParameterSpotTypeEnumTypeTransformer {
   ///
   /// The [allowNull] is very handy when an API changes and a new enum value is added or removed,
   /// and users are still using an old app with the old code.
-  SpotReservationParameterSpotTypeEnum? decode(dynamic data, {bool allowNull = true}) {
+  SpotReservationParameterSpotTypeEnum? decode(dynamic data,
+      {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'VEHICLE_SPOT': return SpotReservationParameterSpotTypeEnum.VEHICLE_SPOT;
-        case r'PASSENGER_SPOT': return SpotReservationParameterSpotTypeEnum.PASSENGER_SPOT;
-        case r'LUGGAGE_SPOT': return SpotReservationParameterSpotTypeEnum.LUGGAGE_SPOT;
+        case r'VEHICLE_SPOT':
+          return SpotReservationParameterSpotTypeEnum.VEHICLE_SPOT;
+        case r'PASSENGER_SPOT':
+          return SpotReservationParameterSpotTypeEnum.PASSENGER_SPOT;
+        case r'LUGGAGE_SPOT':
+          return SpotReservationParameterSpotTypeEnum.LUGGAGE_SPOT;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -337,5 +363,3 @@ class SpotReservationParameterSpotTypeEnumTypeTransformer {
   /// Singleton [SpotReservationParameterSpotTypeEnumTypeTransformer] instance.
   static SpotReservationParameterSpotTypeEnumTypeTransformer? _instance;
 }
-
-

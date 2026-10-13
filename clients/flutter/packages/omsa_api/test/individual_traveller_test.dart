@@ -71,8 +71,5 @@ void main() {
     test('to test the property `customFields`', () async {
       // TODO
     });
-
-
   });
-
 }

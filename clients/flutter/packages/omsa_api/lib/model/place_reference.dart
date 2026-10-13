@@ -30,22 +30,21 @@ class PlaceReference {
   String? name;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PlaceReference &&
-    other.placeId == placeId &&
-    other.name == name;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PlaceReference && other.placeId == placeId && other.name == name;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (placeId.hashCode) +
-    (name == null ? 0 : name!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (placeId.hashCode) + (name == null ? 0 : name!.hashCode);
 
   @override
   String toString() => 'PlaceReference[placeId=$placeId, name=$name]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'placeId'] = this.placeId;
+    json[r'placeId'] = this.placeId;
     if (this.name != null) {
       json[r'name'] = this.name;
     } else {
@@ -66,8 +65,10 @@ class PlaceReference {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PlaceReference[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PlaceReference[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PlaceReference[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PlaceReference[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -80,7 +81,10 @@ class PlaceReference {
     return null;
   }
 
-  static List<PlaceReference> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PlaceReference> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PlaceReference>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -108,13 +112,19 @@ class PlaceReference {
   }
 
   // maps a json object with a list of PlaceReference-objects as value to a dart map
-  static Map<String, List<PlaceReference>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PlaceReference>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PlaceReference>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PlaceReference.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PlaceReference.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -125,4 +135,3 @@ class PlaceReference {
     'placeId',
   };
 }
-

@@ -14,6 +14,8 @@ class OfferProperties {
   /// Returns a new [OfferProperties] instance.
   OfferProperties({
     this.legs = const [],
+    this.usageValidityPeriods = const [],
+    this.frequenciesOfUse = const [],
     this.ancillaries = const [],
     this.products = const [],
     this.price,
@@ -23,6 +25,12 @@ class OfferProperties {
   });
 
   List<Leg> legs;
+
+  /// Usage validity periods referenced by the offer's legs.
+  List<UsageValidityPeriod> usageValidityPeriods;
+
+  /// Frequency-of-use parameters referenced by the offer's legs.
+  List<FrequencyOfUse> frequenciesOfUse;
 
   List<Ancillary> ancillaries;
 
@@ -36,6 +44,7 @@ class OfferProperties {
   ///
   AmountOfMoney? price;
 
+  /// Flexible summary metadata for the offer. Known keys include:   - `name`: offer display name   - `description`: human-readable offer description   - `isRefundable`: whether included products are refundable   - `isExchangeable`: whether included products are exchangeable   - `geographicalValidity`: zonal validity details, including labeled `fareZones` and `groups`   - `recommendationType`: recommendation category from Offers (for example `CHEAPEST`)   - `recommendationGroup`: 1-based recommendation index in Offers response order   - `recommendationRank`: 1-based `offersToBuy` index within a recommendation
   Map<String, Object> summary;
 
   List<Guarantee> guarantees;
@@ -50,41 +59,51 @@ class OfferProperties {
   DateTime? expiryTime;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is OfferProperties &&
-    _deepEquality.equals(other.legs, legs) &&
-    _deepEquality.equals(other.ancillaries, ancillaries) &&
-    _deepEquality.equals(other.products, products) &&
-    other.price == price &&
-    _deepEquality.equals(other.summary, summary) &&
-    _deepEquality.equals(other.guarantees, guarantees) &&
-    other.expiryTime == expiryTime;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OfferProperties &&
+          _deepEquality.equals(other.legs, legs) &&
+          _deepEquality.equals(
+              other.usageValidityPeriods, usageValidityPeriods) &&
+          _deepEquality.equals(other.frequenciesOfUse, frequenciesOfUse) &&
+          _deepEquality.equals(other.ancillaries, ancillaries) &&
+          _deepEquality.equals(other.products, products) &&
+          other.price == price &&
+          _deepEquality.equals(other.summary, summary) &&
+          _deepEquality.equals(other.guarantees, guarantees) &&
+          other.expiryTime == expiryTime;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (legs.hashCode) +
-    (ancillaries.hashCode) +
-    (products.hashCode) +
-    (price == null ? 0 : price!.hashCode) +
-    (summary.hashCode) +
-    (guarantees.hashCode) +
-    (expiryTime == null ? 0 : expiryTime!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (legs.hashCode) +
+      (usageValidityPeriods.hashCode) +
+      (frequenciesOfUse.hashCode) +
+      (ancillaries.hashCode) +
+      (products.hashCode) +
+      (price == null ? 0 : price!.hashCode) +
+      (summary.hashCode) +
+      (guarantees.hashCode) +
+      (expiryTime == null ? 0 : expiryTime!.hashCode);
 
   @override
-  String toString() => 'OfferProperties[legs=$legs, ancillaries=$ancillaries, products=$products, price=$price, summary=$summary, guarantees=$guarantees, expiryTime=$expiryTime]';
+  String toString() =>
+      'OfferProperties[legs=$legs, usageValidityPeriods=$usageValidityPeriods, frequenciesOfUse=$frequenciesOfUse, ancillaries=$ancillaries, products=$products, price=$price, summary=$summary, guarantees=$guarantees, expiryTime=$expiryTime]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'legs'] = this.legs;
-      json[r'ancillaries'] = this.ancillaries;
-      json[r'products'] = this.products;
+    json[r'legs'] = this.legs;
+    json[r'usageValidityPeriods'] = this.usageValidityPeriods;
+    json[r'frequenciesOfUse'] = this.frequenciesOfUse;
+    json[r'ancillaries'] = this.ancillaries;
+    json[r'products'] = this.products;
     if (this.price != null) {
       json[r'price'] = this.price;
     } else {
       json[r'price'] = null;
     }
-      json[r'summary'] = this.summary;
-      json[r'guarantees'] = this.guarantees;
+    json[r'summary'] = this.summary;
+    json[r'guarantees'] = this.guarantees;
     if (this.expiryTime != null) {
       json[r'expiryTime'] = this.expiryTime!.toUtc().toIso8601String();
     } else {
@@ -105,14 +124,20 @@ class OfferProperties {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "OfferProperties[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "OfferProperties[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "OfferProperties[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "OfferProperties[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return OfferProperties(
         legs: Leg.listFromJson(json[r'legs']),
+        usageValidityPeriods:
+            UsageValidityPeriod.listFromJson(json[r'usageValidityPeriods']),
+        frequenciesOfUse:
+            FrequencyOfUse.listFromJson(json[r'frequenciesOfUse']),
         ancillaries: Ancillary.listFromJson(json[r'ancillaries']),
         products: Product.listFromJson(json[r'products']),
         price: AmountOfMoney.fromJson(json[r'price']),
@@ -124,7 +149,10 @@ class OfferProperties {
     return null;
   }
 
-  static List<OfferProperties> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<OfferProperties> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <OfferProperties>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -152,20 +180,24 @@ class OfferProperties {
   }
 
   // maps a json object with a list of OfferProperties-objects as value to a dart map
-  static Map<String, List<OfferProperties>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<OfferProperties>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<OfferProperties>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = OfferProperties.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = OfferProperties.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

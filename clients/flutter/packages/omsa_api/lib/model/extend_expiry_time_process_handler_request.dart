@@ -34,18 +34,21 @@ class ExtendExpiryTimeProcessHandlerRequest {
   Subscriber? subscriber;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ExtendExpiryTimeProcessHandlerRequest &&
-    other.inputs == inputs &&
-    other.subscriber == subscriber;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ExtendExpiryTimeProcessHandlerRequest &&
+          other.inputs == inputs &&
+          other.subscriber == subscriber;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (inputs == null ? 0 : inputs!.hashCode) +
-    (subscriber == null ? 0 : subscriber!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (inputs == null ? 0 : inputs!.hashCode) +
+      (subscriber == null ? 0 : subscriber!.hashCode);
 
   @override
-  String toString() => 'ExtendExpiryTimeProcessHandlerRequest[inputs=$inputs, subscriber=$subscriber]';
+  String toString() =>
+      'ExtendExpiryTimeProcessHandlerRequest[inputs=$inputs, subscriber=$subscriber]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -74,8 +77,10 @@ class ExtendExpiryTimeProcessHandlerRequest {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ExtendExpiryTimeProcessHandlerRequest[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ExtendExpiryTimeProcessHandlerRequest[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ExtendExpiryTimeProcessHandlerRequest[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ExtendExpiryTimeProcessHandlerRequest[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -88,7 +93,10 @@ class ExtendExpiryTimeProcessHandlerRequest {
     return null;
   }
 
-  static List<ExtendExpiryTimeProcessHandlerRequest> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ExtendExpiryTimeProcessHandlerRequest> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ExtendExpiryTimeProcessHandlerRequest>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -101,12 +109,14 @@ class ExtendExpiryTimeProcessHandlerRequest {
     return result.toList(growable: growable);
   }
 
-  static Map<String, ExtendExpiryTimeProcessHandlerRequest> mapFromJson(dynamic json) {
+  static Map<String, ExtendExpiryTimeProcessHandlerRequest> mapFromJson(
+      dynamic json) {
     final map = <String, ExtendExpiryTimeProcessHandlerRequest>{};
     if (json is Map && json.isNotEmpty) {
       json = json.cast<String, dynamic>(); // ignore: parameter_assignments
       for (final entry in json.entries) {
-        final value = ExtendExpiryTimeProcessHandlerRequest.fromJson(entry.value);
+        final value =
+            ExtendExpiryTimeProcessHandlerRequest.fromJson(entry.value);
         if (value != null) {
           map[entry.key] = value;
         }
@@ -116,20 +126,25 @@ class ExtendExpiryTimeProcessHandlerRequest {
   }
 
   // maps a json object with a list of ExtendExpiryTimeProcessHandlerRequest-objects as value to a dart map
-  static Map<String, List<ExtendExpiryTimeProcessHandlerRequest>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ExtendExpiryTimeProcessHandlerRequest>>
+      mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ExtendExpiryTimeProcessHandlerRequest>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ExtendExpiryTimeProcessHandlerRequest.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ExtendExpiryTimeProcessHandlerRequest.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

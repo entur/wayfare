@@ -58,24 +58,27 @@ class TravelSpecification {
   DateTime? endTime;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is TravelSpecification &&
-    other.from == from &&
-    _deepEquality.equals(other.via, via) &&
-    other.to == to &&
-    other.startTime == startTime &&
-    other.endTime == endTime;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TravelSpecification &&
+          other.from == from &&
+          _deepEquality.equals(other.via, via) &&
+          other.to == to &&
+          other.startTime == startTime &&
+          other.endTime == endTime;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (from == null ? 0 : from!.hashCode) +
-    (via.hashCode) +
-    (to == null ? 0 : to!.hashCode) +
-    (startTime == null ? 0 : startTime!.hashCode) +
-    (endTime == null ? 0 : endTime!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (from == null ? 0 : from!.hashCode) +
+      (via.hashCode) +
+      (to == null ? 0 : to!.hashCode) +
+      (startTime == null ? 0 : startTime!.hashCode) +
+      (endTime == null ? 0 : endTime!.hashCode);
 
   @override
-  String toString() => 'TravelSpecification[from=$from, via=$via, to=$to, startTime=$startTime, endTime=$endTime]';
+  String toString() =>
+      'TravelSpecification[from=$from, via=$via, to=$to, startTime=$startTime, endTime=$endTime]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -84,7 +87,7 @@ class TravelSpecification {
     } else {
       json[r'from'] = null;
     }
-      json[r'via'] = this.via;
+    json[r'via'] = this.via;
     if (this.to != null) {
       json[r'to'] = this.to;
     } else {
@@ -115,8 +118,10 @@ class TravelSpecification {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "TravelSpecification[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "TravelSpecification[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "TravelSpecification[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "TravelSpecification[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -132,7 +137,10 @@ class TravelSpecification {
     return null;
   }
 
-  static List<TravelSpecification> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TravelSpecification> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TravelSpecification>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -160,20 +168,24 @@ class TravelSpecification {
   }
 
   // maps a json object with a list of TravelSpecification-objects as value to a dart map
-  static Map<String, List<TravelSpecification>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<TravelSpecification>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<TravelSpecification>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = TravelSpecification.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = TravelSpecification.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

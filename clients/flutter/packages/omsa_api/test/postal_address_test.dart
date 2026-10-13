@@ -86,8 +86,5 @@ void main() {
     test('to test the property `additionalInfo`', () async {
       // TODO
     });
-
-
   });
-
 }

@@ -50,9 +50,13 @@ class PackageStatus {
     ENDED,
   ];
 
-  static PackageStatus? fromJson(dynamic value) => PackageStatusTypeTransformer().decode(value);
+  static PackageStatus? fromJson(dynamic value) =>
+      PackageStatusTypeTransformer().decode(value);
 
-  static List<PackageStatus> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PackageStatus> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PackageStatus>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -69,7 +73,8 @@ class PackageStatus {
 /// Transformation class that can [encode] an instance of [PackageStatus] to String,
 /// and [decode] dynamic data back to [PackageStatus].
 class PackageStatusTypeTransformer {
-  factory PackageStatusTypeTransformer() => _instance ??= const PackageStatusTypeTransformer._();
+  factory PackageStatusTypeTransformer() =>
+      _instance ??= const PackageStatusTypeTransformer._();
 
   const PackageStatusTypeTransformer._();
 
@@ -86,17 +91,28 @@ class PackageStatusTypeTransformer {
   PackageStatus? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'OFFERED': return PackageStatus.OFFERED;
-        case r'SELECTED': return PackageStatus.SELECTED;
-        case r'PENDING': return PackageStatus.PENDING;
-        case r'CONFIRMED': return PackageStatus.CONFIRMED;
-        case r'RELEASED': return PackageStatus.RELEASED;
-        case r'EXPIRED': return PackageStatus.EXPIRED;
-        case r'CANCELLED': return PackageStatus.CANCELLED;
-        case r'REFUND_CLAIMED': return PackageStatus.REFUND_CLAIMED;
-        case r'REFUNDED': return PackageStatus.REFUNDED;
-        case r'STARTED': return PackageStatus.STARTED;
-        case r'ENDED': return PackageStatus.ENDED;
+        case r'OFFERED':
+          return PackageStatus.OFFERED;
+        case r'SELECTED':
+          return PackageStatus.SELECTED;
+        case r'PENDING':
+          return PackageStatus.PENDING;
+        case r'CONFIRMED':
+          return PackageStatus.CONFIRMED;
+        case r'RELEASED':
+          return PackageStatus.RELEASED;
+        case r'EXPIRED':
+          return PackageStatus.EXPIRED;
+        case r'CANCELLED':
+          return PackageStatus.CANCELLED;
+        case r'REFUND_CLAIMED':
+          return PackageStatus.REFUND_CLAIMED;
+        case r'REFUNDED':
+          return PackageStatus.REFUNDED;
+        case r'STARTED':
+          return PackageStatus.STARTED;
+        case r'ENDED':
+          return PackageStatus.ENDED;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -109,4 +125,3 @@ class PackageStatusTypeTransformer {
   /// Singleton [PackageStatusTypeTransformer] instance.
   static PackageStatusTypeTransformer? _instance;
 }
-

@@ -10,23 +10,33 @@
 
 part of openapi.api;
 
-
 class DiscoveryApi {
-  DiscoveryApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
+  DiscoveryApi([ApiClient? apiClient])
+      : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
-  /// This document
+  /// Get OpenAPI specification document
   ///
-  /// This document
+  /// Returns this OpenAPI document in JSON or YAML format.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
   /// Parameters:
   ///
   /// * [String] f:
-  ///   The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON.
-  Future<Response> apiGetWithHttpInfo({ String? f, }) async {
+  ///   Output format for the OpenAPI document.
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> apiGetWithHttpInfo({
+    String? f,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/api';
 
@@ -41,8 +51,14 @@ class DiscoveryApi {
       queryParams.addAll(_queryParams('', 'f', f));
     }
 
-    const contentTypes = <String>[];
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
+    const contentTypes = <String>[];
 
     return apiClient.invokeAPI(
       path,
@@ -55,30 +71,47 @@ class DiscoveryApi {
     );
   }
 
-  /// This document
+  /// Get OpenAPI specification document
   ///
-  /// This document
+  /// Returns this OpenAPI document in JSON or YAML format.
   ///
   /// Parameters:
   ///
   /// * [String] f:
-  ///   The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON.
-  Future<String?> apiGet({ String? f, }) async {
-    final response = await apiGetWithHttpInfo( f: f, );
+  ///   Output format for the OpenAPI document.
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<String?> apiGet({
+    String? f,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await apiGetWithHttpInfo(
+      f: f,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'String',) as String;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'String',
+      ) as String;
     }
     return null;
   }
 
-  /// describe the feature collection with id `collectionId`
+  /// Get collection metadata
   ///
   /// a (machine or human) readable description of this collection
   ///
@@ -90,10 +123,21 @@ class DiscoveryApi {
   ///   local identifier of a collection
   ///
   /// * [String] acceptLanguage (required):
-  Future<Response> describeCollectionWithHttpInfo(String collectionId, String acceptLanguage,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> describeCollectionWithHttpInfo(
+    String collectionId,
+    String acceptLanguage, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/collections/{collectionId}'
-      .replaceAll('{collectionId}', collectionId);
+        .replaceAll('{collectionId}', collectionId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -103,9 +147,14 @@ class DiscoveryApi {
     final formParams = <String, String>{};
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -118,7 +167,7 @@ class DiscoveryApi {
     );
   }
 
-  /// describe the feature collection with id `collectionId`
+  /// Get collection metadata
   ///
   /// a (machine or human) readable description of this collection
   ///
@@ -128,27 +177,57 @@ class DiscoveryApi {
   ///   local identifier of a collection
   ///
   /// * [String] acceptLanguage (required):
-  Future<CollectionInfo?> describeCollection(String collectionId, String acceptLanguage,) async {
-    final response = await describeCollectionWithHttpInfo(collectionId, acceptLanguage,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<CollectionInfo?> describeCollection(
+    String collectionId,
+    String acceptLanguage, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await describeCollectionWithHttpInfo(
+      collectionId,
+      acceptLanguage,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'CollectionInfo',) as CollectionInfo;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'CollectionInfo',
+      ) as CollectionInfo;
     }
     return null;
   }
 
-  /// the feature collections in the dataset
+  /// List available collections
   ///
   /// returns a collection of available collection (like offers, packages, legs, support-requests and payments)
   ///
   /// Note: This method returns the HTTP [Response].
-  Future<Response> getCollectionsWithHttpInfo() async {
+  ///
+  /// Parameters:
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> getCollectionsWithHttpInfo({
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/collections';
 
@@ -159,8 +238,14 @@ class DiscoveryApi {
     final headerParams = <String, String>{};
     final formParams = <String, String>{};
 
-    const contentTypes = <String>[];
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
+    const contentTypes = <String>[];
 
     return apiClient.invokeAPI(
       path,
@@ -173,25 +258,42 @@ class DiscoveryApi {
     );
   }
 
-  /// the feature collections in the dataset
+  /// List available collections
   ///
   /// returns a collection of available collection (like offers, packages, legs, support-requests and payments)
-  Future<Collections?> getCollections() async {
-    final response = await getCollectionsWithHttpInfo();
+  ///
+  /// Parameters:
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Collections?> getCollections({
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await getCollectionsWithHttpInfo(
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Collections',) as Collections;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Collections',
+      ) as Collections;
     }
     return null;
   }
 
-  /// API conformance definition
+  /// Get API conformance declaration
   ///
   /// A list of all conformance classes specified in a standard that the server conforms to.
   ///
@@ -203,7 +305,18 @@ class DiscoveryApi {
   ///
   /// * [String] f:
   ///   The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON.
-  Future<Response> getConformanceDeclarationWithHttpInfo(String acceptLanguage, { String? f, }) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> getConformanceDeclarationWithHttpInfo(
+    String acceptLanguage, {
+    String? f,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/conformance';
 
@@ -219,9 +332,14 @@ class DiscoveryApi {
     }
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -234,7 +352,7 @@ class DiscoveryApi {
     );
   }
 
-  /// API conformance definition
+  /// Get API conformance declaration
   ///
   /// A list of all conformance classes specified in a standard that the server conforms to.
   ///
@@ -244,24 +362,43 @@ class DiscoveryApi {
   ///
   /// * [String] f:
   ///   The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON.
-  Future<ConfClasses?> getConformanceDeclaration(String acceptLanguage, { String? f, }) async {
-    final response = await getConformanceDeclarationWithHttpInfo(acceptLanguage,  f: f, );
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<ConfClasses?> getConformanceDeclaration(
+    String acceptLanguage, {
+    String? f,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await getConformanceDeclarationWithHttpInfo(
+      acceptLanguage,
+      f: f,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'ConfClasses',) as ConfClasses;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'ConfClasses',
+      ) as ConfClasses;
     }
     return null;
   }
 
-  /// retrieve a process description
+  /// Get process description
   ///
-  /// The process description contains information about inputs and outputs and a link to the execution-endpoint for the process. The Core does not mandate the use of a specific process description to specify the interface of a process. That said, the Core requirements class makes the following recommendation: Implementations SHOULD consider supporting the OGC process description. For more information, see [Section 7.10](https://docs.ogc.org/is/18-062/18-062.html#sc_process_description). 
+  /// The process description contains information about inputs and outputs and a link to the execution-endpoint for the process. The Core does not mandate the use of a specific process description to specify the interface of a process. That said, the Core requirements class makes the following recommendation: Implementations SHOULD consider supporting the OGC process description. For more information, see [Section 7.10](https://docs.ogc.org/is/18-062/18-062.html#sc_process_description).
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -270,10 +407,20 @@ class DiscoveryApi {
   /// * [String] acceptLanguage (required):
   ///
   /// * [String] processID (required):
-  Future<Response> getProcessDescriptionWithHttpInfo(String acceptLanguage, String processID,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> getProcessDescriptionWithHttpInfo(
+    String acceptLanguage,
+    String processID, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
-    final path = r'/processes/{processID}'
-      .replaceAll('{processID}', processID);
+    final path = r'/processes/{processID}'.replaceAll('{processID}', processID);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -283,9 +430,14 @@ class DiscoveryApi {
     final formParams = <String, String>{};
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -298,40 +450,69 @@ class DiscoveryApi {
     );
   }
 
-  /// retrieve a process description
+  /// Get process description
   ///
-  /// The process description contains information about inputs and outputs and a link to the execution-endpoint for the process. The Core does not mandate the use of a specific process description to specify the interface of a process. That said, the Core requirements class makes the following recommendation: Implementations SHOULD consider supporting the OGC process description. For more information, see [Section 7.10](https://docs.ogc.org/is/18-062/18-062.html#sc_process_description). 
+  /// The process description contains information about inputs and outputs and a link to the execution-endpoint for the process. The Core does not mandate the use of a specific process description to specify the interface of a process. That said, the Core requirements class makes the following recommendation: Implementations SHOULD consider supporting the OGC process description. For more information, see [Section 7.10](https://docs.ogc.org/is/18-062/18-062.html#sc_process_description).
   ///
   /// Parameters:
   ///
   /// * [String] acceptLanguage (required):
   ///
   /// * [String] processID (required):
-  Future<Object?> getProcessDescription(String acceptLanguage, String processID,) async {
-    final response = await getProcessDescriptionWithHttpInfo(acceptLanguage, processID,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Object?> getProcessDescription(
+    String acceptLanguage,
+    String processID, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await getProcessDescriptionWithHttpInfo(
+      acceptLanguage,
+      processID,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Object',) as Object;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Object',
+      ) as Object;
     }
     return null;
   }
 
-  /// retrieve the list of available processes
+  /// List available processes
   ///
-  /// The list of processes contains a summary of each process the OGC API - Processes offers, including the link to a more detailed description of the process.  For more information, see [Section 7.9](https://docs.ogc.org/is/18-062/18-062.html#sc_process_list). 
+  /// The list of processes contains a summary of each process the OGC API - Processes offers, including the link to a more detailed description of the process.  For more information, see [Section 7.9](https://docs.ogc.org/is/18-062/18-062.html#sc_process_list).
   ///
   /// Note: This method returns the HTTP [Response].
   ///
   /// Parameters:
   ///
   /// * [String] acceptLanguage (required):
-  Future<Response> getProcessesWithHttpInfo(String acceptLanguage,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> getProcessesWithHttpInfo(
+    String acceptLanguage, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes';
 
@@ -343,9 +524,14 @@ class DiscoveryApi {
     final formParams = <String, String>{};
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -358,29 +544,46 @@ class DiscoveryApi {
     );
   }
 
-  /// retrieve the list of available processes
+  /// List available processes
   ///
-  /// The list of processes contains a summary of each process the OGC API - Processes offers, including the link to a more detailed description of the process.  For more information, see [Section 7.9](https://docs.ogc.org/is/18-062/18-062.html#sc_process_list). 
+  /// The list of processes contains a summary of each process the OGC API - Processes offers, including the link to a more detailed description of the process.  For more information, see [Section 7.9](https://docs.ogc.org/is/18-062/18-062.html#sc_process_list).
   ///
   /// Parameters:
   ///
   /// * [String] acceptLanguage (required):
-  Future<ProcessList?> getProcesses(String acceptLanguage,) async {
-    final response = await getProcessesWithHttpInfo(acceptLanguage,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<ProcessList?> getProcesses(
+    String acceptLanguage, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await getProcessesWithHttpInfo(
+      acceptLanguage,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'ProcessList',) as ProcessList;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'ProcessList',
+      ) as ProcessList;
     }
     return null;
   }
 
-  /// Landing page
+  /// Get API landing page
   ///
   /// Gives a (technical & human readable) output describing how this API must be used. If  the parameter f=html is supplied, a human readable page must be responded.
   ///
@@ -392,7 +595,18 @@ class DiscoveryApi {
   ///
   /// * [String] f:
   ///   The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON.
-  Future<Response> landingPageWithHttpInfo(String acceptLanguage, { String? f, }) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> landingPageWithHttpInfo(
+    String acceptLanguage, {
+    String? f,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/';
 
@@ -408,9 +622,14 @@ class DiscoveryApi {
     }
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -423,7 +642,7 @@ class DiscoveryApi {
     );
   }
 
-  /// Landing page
+  /// Get API landing page
   ///
   /// Gives a (technical & human readable) output describing how this API must be used. If  the parameter f=html is supplied, a human readable page must be responded.
   ///
@@ -433,17 +652,36 @@ class DiscoveryApi {
   ///
   /// * [String] f:
   ///   The optional f parameter indicates the output format that the server shall provide as part of the response document.  The default format is JSON.
-  Future<LandingPage?> landingPage(String acceptLanguage, { String? f, }) async {
-    final response = await landingPageWithHttpInfo(acceptLanguage,  f: f, );
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<LandingPage?> landingPage(
+    String acceptLanguage, {
+    String? f,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await landingPageWithHttpInfo(
+      acceptLanguage,
+      f: f,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'LandingPage',) as LandingPage;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'LandingPage',
+      ) as LandingPage;
     }
     return null;
   }

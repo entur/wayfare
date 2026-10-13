@@ -25,13 +25,14 @@ class GeojsonCrsProperties {
   String? name;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is GeojsonCrsProperties &&
-    other.name == name;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GeojsonCrsProperties && other.name == name;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (name == null ? 0 : name!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (name == null ? 0 : name!.hashCode);
 
   @override
   String toString() => 'GeojsonCrsProperties[name=$name]';
@@ -58,8 +59,10 @@ class GeojsonCrsProperties {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "GeojsonCrsProperties[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "GeojsonCrsProperties[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "GeojsonCrsProperties[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "GeojsonCrsProperties[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -71,7 +74,10 @@ class GeojsonCrsProperties {
     return null;
   }
 
-  static List<GeojsonCrsProperties> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<GeojsonCrsProperties> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <GeojsonCrsProperties>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -99,20 +105,24 @@ class GeojsonCrsProperties {
   }
 
   // maps a json object with a list of GeojsonCrsProperties-objects as value to a dart map
-  static Map<String, List<GeojsonCrsProperties>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<GeojsonCrsProperties>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<GeojsonCrsProperties>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = GeojsonCrsProperties.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = GeojsonCrsProperties.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

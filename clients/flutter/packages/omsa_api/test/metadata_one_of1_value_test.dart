@@ -15,8 +15,5 @@ import 'package:test/test.dart';
 void main() {
   // final instance = MetadataOneOf1Value();
 
-  group('test MetadataOneOf1Value', () {
-
-  });
-
+  group('test MetadataOneOf1Value', () {});
 }

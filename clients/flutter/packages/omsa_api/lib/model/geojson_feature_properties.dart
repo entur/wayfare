@@ -184,54 +184,57 @@ class GeojsonFeatureProperties {
   bool? hasLight;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is GeojsonFeatureProperties &&
-    other.type == type &&
-    other.id == id &&
-    other.visualId == visualId &&
-    other.product == product &&
-    other.mode == mode &&
-    other.subMode == subMode &&
-    _deepEquality.equals(other.equipment, equipment) &&
-    other.deck == deck &&
-    other.space == space &&
-    other.row == row &&
-    other.seatNumber == seatNumber &&
-    other.facing == facing &&
-    other.byWindow == byWindow &&
-    other.legSpace == legSpace &&
-    other.byAisle == byAisle &&
-    other.hasArmRest == hasArmRest &&
-    other.hasTray == hasTray &&
-    other.hasAirco == hasAirco &&
-    other.hasEnergySupply == hasEnergySupply &&
-    other.hasLight == hasLight;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GeojsonFeatureProperties &&
+          other.type == type &&
+          other.id == id &&
+          other.visualId == visualId &&
+          other.product == product &&
+          other.mode == mode &&
+          other.subMode == subMode &&
+          _deepEquality.equals(other.equipment, equipment) &&
+          other.deck == deck &&
+          other.space == space &&
+          other.row == row &&
+          other.seatNumber == seatNumber &&
+          other.facing == facing &&
+          other.byWindow == byWindow &&
+          other.legSpace == legSpace &&
+          other.byAisle == byAisle &&
+          other.hasArmRest == hasArmRest &&
+          other.hasTray == hasTray &&
+          other.hasAirco == hasAirco &&
+          other.hasEnergySupply == hasEnergySupply &&
+          other.hasLight == hasLight;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type == null ? 0 : type!.hashCode) +
-    (id == null ? 0 : id!.hashCode) +
-    (visualId == null ? 0 : visualId!.hashCode) +
-    (product == null ? 0 : product!.hashCode) +
-    (mode == null ? 0 : mode!.hashCode) +
-    (subMode == null ? 0 : subMode!.hashCode) +
-    (equipment.hashCode) +
-    (deck == null ? 0 : deck!.hashCode) +
-    (space == null ? 0 : space!.hashCode) +
-    (row.hashCode) +
-    (seatNumber.hashCode) +
-    (facing == null ? 0 : facing!.hashCode) +
-    (byWindow == null ? 0 : byWindow!.hashCode) +
-    (legSpace.hashCode) +
-    (byAisle == null ? 0 : byAisle!.hashCode) +
-    (hasArmRest == null ? 0 : hasArmRest!.hashCode) +
-    (hasTray == null ? 0 : hasTray!.hashCode) +
-    (hasAirco == null ? 0 : hasAirco!.hashCode) +
-    (hasEnergySupply == null ? 0 : hasEnergySupply!.hashCode) +
-    (hasLight == null ? 0 : hasLight!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type == null ? 0 : type!.hashCode) +
+      (id == null ? 0 : id!.hashCode) +
+      (visualId == null ? 0 : visualId!.hashCode) +
+      (product == null ? 0 : product!.hashCode) +
+      (mode == null ? 0 : mode!.hashCode) +
+      (subMode == null ? 0 : subMode!.hashCode) +
+      (equipment.hashCode) +
+      (deck == null ? 0 : deck!.hashCode) +
+      (space == null ? 0 : space!.hashCode) +
+      (row.hashCode) +
+      (seatNumber.hashCode) +
+      (facing == null ? 0 : facing!.hashCode) +
+      (byWindow == null ? 0 : byWindow!.hashCode) +
+      (legSpace.hashCode) +
+      (byAisle == null ? 0 : byAisle!.hashCode) +
+      (hasArmRest == null ? 0 : hasArmRest!.hashCode) +
+      (hasTray == null ? 0 : hasTray!.hashCode) +
+      (hasAirco == null ? 0 : hasAirco!.hashCode) +
+      (hasEnergySupply == null ? 0 : hasEnergySupply!.hashCode) +
+      (hasLight == null ? 0 : hasLight!.hashCode);
 
   @override
-  String toString() => 'GeojsonFeatureProperties[type=$type, id=$id, visualId=$visualId, product=$product, mode=$mode, subMode=$subMode, equipment=$equipment, deck=$deck, space=$space, row=$row, seatNumber=$seatNumber, facing=$facing, byWindow=$byWindow, legSpace=$legSpace, byAisle=$byAisle, hasArmRest=$hasArmRest, hasTray=$hasTray, hasAirco=$hasAirco, hasEnergySupply=$hasEnergySupply, hasLight=$hasLight]';
+  String toString() =>
+      'GeojsonFeatureProperties[type=$type, id=$id, visualId=$visualId, product=$product, mode=$mode, subMode=$subMode, equipment=$equipment, deck=$deck, space=$space, row=$row, seatNumber=$seatNumber, facing=$facing, byWindow=$byWindow, legSpace=$legSpace, byAisle=$byAisle, hasArmRest=$hasArmRest, hasTray=$hasTray, hasAirco=$hasAirco, hasEnergySupply=$hasEnergySupply, hasLight=$hasLight]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -265,7 +268,7 @@ class GeojsonFeatureProperties {
     } else {
       json[r'subMode'] = null;
     }
-      json[r'equipment'] = this.equipment;
+    json[r'equipment'] = this.equipment;
     if (this.deck != null) {
       json[r'deck'] = this.deck;
     } else {
@@ -276,8 +279,8 @@ class GeojsonFeatureProperties {
     } else {
       json[r'space'] = null;
     }
-      json[r'row'] = this.row;
-      json[r'seatNumber'] = this.seatNumber;
+    json[r'row'] = this.row;
+    json[r'seatNumber'] = this.seatNumber;
     if (this.facing != null) {
       json[r'facing'] = this.facing;
     } else {
@@ -288,7 +291,7 @@ class GeojsonFeatureProperties {
     } else {
       json[r'byWindow'] = null;
     }
-      json[r'legSpace'] = this.legSpace;
+    json[r'legSpace'] = this.legSpace;
     if (this.byAisle != null) {
       json[r'byAisle'] = this.byAisle;
     } else {
@@ -334,8 +337,10 @@ class GeojsonFeatureProperties {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "GeojsonFeatureProperties[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "GeojsonFeatureProperties[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "GeojsonFeatureProperties[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "GeojsonFeatureProperties[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -366,7 +371,10 @@ class GeojsonFeatureProperties {
     return null;
   }
 
-  static List<GeojsonFeatureProperties> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<GeojsonFeatureProperties> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <GeojsonFeatureProperties>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -394,23 +402,27 @@ class GeojsonFeatureProperties {
   }
 
   // maps a json object with a list of GeojsonFeatureProperties-objects as value to a dart map
-  static Map<String, List<GeojsonFeatureProperties>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<GeojsonFeatureProperties>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<GeojsonFeatureProperties>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = GeojsonFeatureProperties.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = GeojsonFeatureProperties.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-
 
 class GeojsonFeaturePropertiesFacingEnum {
   /// Instantiate a new enum with the provided [value].
@@ -439,9 +451,13 @@ class GeojsonFeaturePropertiesFacingEnum {
     OTHER,
   ];
 
-  static GeojsonFeaturePropertiesFacingEnum? fromJson(dynamic value) => GeojsonFeaturePropertiesFacingEnumTypeTransformer().decode(value);
+  static GeojsonFeaturePropertiesFacingEnum? fromJson(dynamic value) =>
+      GeojsonFeaturePropertiesFacingEnumTypeTransformer().decode(value);
 
-  static List<GeojsonFeaturePropertiesFacingEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<GeojsonFeaturePropertiesFacingEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <GeojsonFeaturePropertiesFacingEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -458,7 +474,8 @@ class GeojsonFeaturePropertiesFacingEnum {
 /// Transformation class that can [encode] an instance of [GeojsonFeaturePropertiesFacingEnum] to String,
 /// and [decode] dynamic data back to [GeojsonFeaturePropertiesFacingEnum].
 class GeojsonFeaturePropertiesFacingEnumTypeTransformer {
-  factory GeojsonFeaturePropertiesFacingEnumTypeTransformer() => _instance ??= const GeojsonFeaturePropertiesFacingEnumTypeTransformer._();
+  factory GeojsonFeaturePropertiesFacingEnumTypeTransformer() =>
+      _instance ??= const GeojsonFeaturePropertiesFacingEnumTypeTransformer._();
 
   const GeojsonFeaturePropertiesFacingEnumTypeTransformer._();
 
@@ -472,14 +489,20 @@ class GeojsonFeaturePropertiesFacingEnumTypeTransformer {
   ///
   /// The [allowNull] is very handy when an API changes and a new enum value is added or removed,
   /// and users are still using an old app with the old code.
-  GeojsonFeaturePropertiesFacingEnum? decode(dynamic data, {bool allowNull = true}) {
+  GeojsonFeaturePropertiesFacingEnum? decode(dynamic data,
+      {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'FRONT': return GeojsonFeaturePropertiesFacingEnum.FRONT;
-        case r'REAR': return GeojsonFeaturePropertiesFacingEnum.REAR;
-        case r'LEFT': return GeojsonFeaturePropertiesFacingEnum.LEFT;
-        case r'RIGHT': return GeojsonFeaturePropertiesFacingEnum.RIGHT;
-        case r'OTHER': return GeojsonFeaturePropertiesFacingEnum.OTHER;
+        case r'FRONT':
+          return GeojsonFeaturePropertiesFacingEnum.FRONT;
+        case r'REAR':
+          return GeojsonFeaturePropertiesFacingEnum.REAR;
+        case r'LEFT':
+          return GeojsonFeaturePropertiesFacingEnum.LEFT;
+        case r'RIGHT':
+          return GeojsonFeaturePropertiesFacingEnum.RIGHT;
+        case r'OTHER':
+          return GeojsonFeaturePropertiesFacingEnum.OTHER;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -492,5 +515,3 @@ class GeojsonFeaturePropertiesFacingEnumTypeTransformer {
   /// Singleton [GeojsonFeaturePropertiesFacingEnumTypeTransformer] instance.
   static GeojsonFeaturePropertiesFacingEnumTypeTransformer? _instance;
 }
-
-

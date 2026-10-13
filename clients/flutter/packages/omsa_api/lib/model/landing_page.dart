@@ -47,22 +47,25 @@ class LandingPage {
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is LandingPage &&
-    other.title == title &&
-    other.description == description &&
-    other.attribution == attribution &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LandingPage &&
+          other.title == title &&
+          other.description == description &&
+          other.attribution == attribution &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (title == null ? 0 : title!.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (attribution == null ? 0 : attribution!.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (title == null ? 0 : title!.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (attribution == null ? 0 : attribution!.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'LandingPage[title=$title, description=$description, attribution=$attribution, links=$links]';
+  String toString() =>
+      'LandingPage[title=$title, description=$description, attribution=$attribution, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -81,7 +84,7 @@ class LandingPage {
     } else {
       json[r'attribution'] = null;
     }
-      json[r'links'] = this.links;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -97,8 +100,10 @@ class LandingPage {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "LandingPage[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "LandingPage[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "LandingPage[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "LandingPage[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -113,7 +118,10 @@ class LandingPage {
     return null;
   }
 
-  static List<LandingPage> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<LandingPage> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <LandingPage>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -141,13 +149,19 @@ class LandingPage {
   }
 
   // maps a json object with a list of LandingPage-objects as value to a dart map
-  static Map<String, List<LandingPage>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<LandingPage>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<LandingPage>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = LandingPage.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = LandingPage.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -158,4 +172,3 @@ class LandingPage {
     'links',
   };
 }
-

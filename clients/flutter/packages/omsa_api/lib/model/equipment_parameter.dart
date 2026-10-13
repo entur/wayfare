@@ -68,30 +68,33 @@ class EquipmentParameter {
   String? image;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is EquipmentParameter &&
-    other.type == type &&
-    other.id == id &&
-    other.name == name &&
-    other.description == description &&
-    other.infoLink == infoLink &&
-    other.image == image;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EquipmentParameter &&
+          other.type == type &&
+          other.id == id &&
+          other.name == name &&
+          other.description == description &&
+          other.infoLink == infoLink &&
+          other.image == image;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (id == null ? 0 : id!.hashCode) +
-    (name == null ? 0 : name!.hashCode) +
-    (description == null ? 0 : description!.hashCode) +
-    (infoLink == null ? 0 : infoLink!.hashCode) +
-    (image == null ? 0 : image!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (id == null ? 0 : id!.hashCode) +
+      (name == null ? 0 : name!.hashCode) +
+      (description == null ? 0 : description!.hashCode) +
+      (infoLink == null ? 0 : infoLink!.hashCode) +
+      (image == null ? 0 : image!.hashCode);
 
   @override
-  String toString() => 'EquipmentParameter[type=$type, id=$id, name=$name, description=$description, infoLink=$infoLink, image=$image]';
+  String toString() =>
+      'EquipmentParameter[type=$type, id=$id, name=$name, description=$description, infoLink=$infoLink, image=$image]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.id != null) {
       json[r'id'] = this.id;
     } else {
@@ -132,8 +135,10 @@ class EquipmentParameter {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "EquipmentParameter[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "EquipmentParameter[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "EquipmentParameter[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "EquipmentParameter[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -150,7 +155,10 @@ class EquipmentParameter {
     return null;
   }
 
-  static List<EquipmentParameter> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<EquipmentParameter> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <EquipmentParameter>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -178,13 +186,19 @@ class EquipmentParameter {
   }
 
   // maps a json object with a list of EquipmentParameter-objects as value to a dart map
-  static Map<String, List<EquipmentParameter>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<EquipmentParameter>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<EquipmentParameter>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = EquipmentParameter.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = EquipmentParameter.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -195,4 +209,3 @@ class EquipmentParameter {
     'type',
   };
 }
-

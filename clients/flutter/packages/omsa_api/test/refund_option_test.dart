@@ -41,8 +41,5 @@ void main() {
     test('to test the property `consequences`', () async {
       // TODO
     });
-
-
   });
-
 }

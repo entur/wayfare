@@ -43,20 +43,23 @@ class TravelParty {
   TravelPartyRequirements? requirements;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is TravelParty &&
-    other.type == type &&
-    other.entitlements == entitlements &&
-    other.requirements == requirements;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TravelParty &&
+          other.type == type &&
+          other.entitlements == entitlements &&
+          other.requirements == requirements;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type == null ? 0 : type!.hashCode) +
-    (entitlements == null ? 0 : entitlements!.hashCode) +
-    (requirements == null ? 0 : requirements!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type == null ? 0 : type!.hashCode) +
+      (entitlements == null ? 0 : entitlements!.hashCode) +
+      (requirements == null ? 0 : requirements!.hashCode);
 
   @override
-  String toString() => 'TravelParty[type=$type, entitlements=$entitlements, requirements=$requirements]';
+  String toString() =>
+      'TravelParty[type=$type, entitlements=$entitlements, requirements=$requirements]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -90,8 +93,10 @@ class TravelParty {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "TravelParty[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "TravelParty[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "TravelParty[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "TravelParty[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -105,7 +110,10 @@ class TravelParty {
     return null;
   }
 
-  static List<TravelParty> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TravelParty> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TravelParty>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -133,20 +141,24 @@ class TravelParty {
   }
 
   // maps a json object with a list of TravelParty-objects as value to a dart map
-  static Map<String, List<TravelParty>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<TravelParty>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<TravelParty>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = TravelParty.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = TravelParty.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

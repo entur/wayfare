@@ -10,13 +10,15 @@
 
 part of openapi.api;
 
-
 class ProcessesApi {
-  ProcessesApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
+  ProcessesApi([ApiClient? apiClient])
+      : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
-  /// Add traveller processes
+  /// Add traveller to package
+  ///
+  /// Adds a traveller to an existing package.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -27,8 +29,28 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [AddTravellerHandlerRequest] addTravellerHandlerRequest (required):
-  Future<Response> addTravellerHandlerWithHttpInfo(String acceptLanguage, String authorization, AddTravellerHandlerRequest addTravellerHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> addTravellerHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    AddTravellerHandlerRequest addTravellerHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/add-traveller/execute';
 
@@ -41,9 +63,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -56,7 +86,9 @@ class ProcessesApi {
     );
   }
 
-  /// Add traveller processes
+  /// Add traveller to package
+  ///
+  /// Adds a traveller to an existing package.
   ///
   /// Parameters:
   ///
@@ -65,23 +97,56 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [AddTravellerHandlerRequest] addTravellerHandlerRequest (required):
-  Future<Package?> addTravellerHandler(String acceptLanguage, String authorization, AddTravellerHandlerRequest addTravellerHandlerRequest,) async {
-    final response = await addTravellerHandlerWithHttpInfo(acceptLanguage, authorization, addTravellerHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> addTravellerHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    AddTravellerHandlerRequest addTravellerHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await addTravellerHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      addTravellerHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles assigning ancillary processes
+  /// Assign ancillary products to package
+  ///
+  /// Assigns ancillary products to a package or a package leg.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -92,8 +157,28 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [AssignAncillaryProcessHandlerRequest] assignAncillaryProcessHandlerRequest (required):
-  Future<Response> assignAncillaryProcessHandlerWithHttpInfo(String acceptLanguage, String authorization, AssignAncillaryProcessHandlerRequest assignAncillaryProcessHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> assignAncillaryProcessHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    AssignAncillaryProcessHandlerRequest assignAncillaryProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/assign-ancillary/execute';
 
@@ -106,9 +191,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -121,7 +214,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles assigning ancillary processes
+  /// Assign ancillary products to package
+  ///
+  /// Assigns ancillary products to a package or a package leg.
   ///
   /// Parameters:
   ///
@@ -130,23 +225,56 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [AssignAncillaryProcessHandlerRequest] assignAncillaryProcessHandlerRequest (required):
-  Future<Package?> assignAncillaryProcessHandler(String acceptLanguage, String authorization, AssignAncillaryProcessHandlerRequest assignAncillaryProcessHandlerRequest,) async {
-    final response = await assignAncillaryProcessHandlerWithHttpInfo(acceptLanguage, authorization, assignAncillaryProcessHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> assignAncillaryProcessHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    AssignAncillaryProcessHandlerRequest assignAncillaryProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await assignAncillaryProcessHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      assignAncillaryProcessHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles assign asset processes
+  /// Assign asset to package leg
+  ///
+  /// Assigns an asset to a specific package leg.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -158,7 +286,19 @@ class ProcessesApi {
   ///   Header field, JWT must be supplied
   ///
   /// * [AssignAssetHandlerRequest] assignAssetHandlerRequest (required):
-  Future<Response> assignAssetHandlerWithHttpInfo(String acceptLanguage, String authorization, AssignAssetHandlerRequest assignAssetHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> assignAssetHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    AssignAssetHandlerRequest assignAssetHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/assign-asset/execute';
 
@@ -171,9 +311,14 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -186,7 +331,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles assign asset processes
+  /// Assign asset to package leg
+  ///
+  /// Assigns an asset to a specific package leg.
   ///
   /// Parameters:
   ///
@@ -196,22 +343,45 @@ class ProcessesApi {
   ///   Header field, JWT must be supplied
   ///
   /// * [AssignAssetHandlerRequest] assignAssetHandlerRequest (required):
-  Future<Package?> assignAssetHandler(String acceptLanguage, String authorization, AssignAssetHandlerRequest assignAssetHandlerRequest,) async {
-    final response = await assignAssetHandlerWithHttpInfo(acceptLanguage, authorization, assignAssetHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> assignAssetHandler(
+    String acceptLanguage,
+    String authorization,
+    AssignAssetHandlerRequest assignAssetHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await assignAssetHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      assignAssetHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles cancel package processes
+  /// Cancel package
+  ///
+  /// Cancels an existing purchased or reserved package.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -222,8 +392,28 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [PurchasePackageProcessHandlerRequest] purchasePackageProcessHandlerRequest (required):
-  Future<Response> cancelPackageProcessHandlerWithHttpInfo(String acceptLanguage, String authorization, PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> cancelPackageProcessHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/cancel-package/execute';
 
@@ -236,9 +426,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -251,7 +449,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles cancel package processes
+  /// Cancel package
+  ///
+  /// Cancels an existing purchased or reserved package.
   ///
   /// Parameters:
   ///
@@ -260,23 +460,56 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [PurchasePackageProcessHandlerRequest] purchasePackageProcessHandlerRequest (required):
-  Future<Package?> cancelPackageProcessHandler(String acceptLanguage, String authorization, PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest,) async {
-    final response = await cancelPackageProcessHandlerWithHttpInfo(acceptLanguage, authorization, purchasePackageProcessHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> cancelPackageProcessHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await cancelPackageProcessHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      purchasePackageProcessHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles claim of refund options
+  /// Claim refund option for package
+  ///
+  /// Claims a refund option for the selected package content.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -287,8 +520,28 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [ClaimRefundProcessHandlerRequest] claimRefundProcessHandlerRequest (required):
-  Future<Response> claimRefundProcessHandlerWithHttpInfo(String acceptLanguage, String authorization, ClaimRefundProcessHandlerRequest claimRefundProcessHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> claimRefundProcessHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    ClaimRefundProcessHandlerRequest claimRefundProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/claim-refund-option/execute';
 
@@ -301,9 +554,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -316,7 +577,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles claim of refund options
+  /// Claim refund option for package
+  ///
+  /// Claims a refund option for the selected package content.
   ///
   /// Parameters:
   ///
@@ -325,23 +588,56 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [ClaimRefundProcessHandlerRequest] claimRefundProcessHandlerRequest (required):
-  Future<Package?> claimRefundProcessHandler(String acceptLanguage, String authorization, ClaimRefundProcessHandlerRequest claimRefundProcessHandlerRequest,) async {
-    final response = await claimRefundProcessHandlerWithHttpInfo(acceptLanguage, authorization, claimRefundProcessHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> claimRefundProcessHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    ClaimRefundProcessHandlerRequest claimRefundProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await claimRefundProcessHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      claimRefundProcessHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles purchase processes
+  /// Confirm package before purchase
+  ///
+  /// Confirms a package before final purchase.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -351,6 +647,9 @@ class ProcessesApi {
   ///
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
   ///
   /// * [PurchasePackageProcessHandlerRequest] purchasePackageProcessHandlerRequest (required):
   ///
@@ -362,7 +661,23 @@ class ProcessesApi {
   ///
   /// * [List<num>] bbox:
   ///   Only features that have a geometry that intersects the bounding box are selected. The bounding box is provided as four or six numbers, depending on whether the coordinate reference system includes a vertical axis (height or depth): * Lower left corner, coordinate axis 1 * Lower left corner, coordinate axis 2 * Minimum value, coordinate axis 3 (optional) * Upper right corner, coordinate axis 1 * Upper right corner, coordinate axis 2 * Maximum value, coordinate axis 3 (optional) If the value consists of four numbers, the coordinate reference system is WGS 84 longitude/latitude (http://www.opengis.net/def/crs/OGC/1.3/CRS84) unless a different coordinate reference system is specified in the parameter `bbox-crs`. If the value consists of six numbers, the coordinate reference system is WGS 84 longitude/latitude/ellipsoidal height (http://www.opengis.net/def/crs/OGC/0/CRS84h) unless a different coordinate reference system is specified in the parameter `bbox-crs`. The query parameter `bbox-crs` is specified in OGC API - Features - Part 2: Coordinate Reference Systems by Reference. For WGS 84 longitude/latitude the values are in most cases the sequence of minimum longitude, minimum latitude, maximum longitude and maximum latitude. However, in cases where the box spans the antimeridian the first value (west-most box edge) is larger than the third value (east-most box edge). If the vertical axis is included, the third and the sixth number are the bottom and the top of the 3-dimensional bounding box. If a feature has multiple spatial geometry properties, it is the decision of the server whether only a single spatial geometry property is used to determine the extent or all relevant geometries.
-  Future<Response> confirmPackageProcessHandlerWithHttpInfo(String acceptLanguage, String authorization, PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, { int? limit, int? offset, List<num>? bbox, }) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> confirmPackageProcessHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturPOS,
+    PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, {
+    int? limit,
+    int? offset,
+    List<num>? bbox,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/confirm-package/execute';
 
@@ -385,9 +700,15 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -400,7 +721,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles purchase processes
+  /// Confirm package before purchase
+  ///
+  /// Confirms a package before final purchase.
   ///
   /// Parameters:
   ///
@@ -408,6 +731,9 @@ class ProcessesApi {
   ///
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
   ///
   /// * [PurchasePackageProcessHandlerRequest] purchasePackageProcessHandlerRequest (required):
   ///
@@ -419,22 +745,53 @@ class ProcessesApi {
   ///
   /// * [List<num>] bbox:
   ///   Only features that have a geometry that intersects the bounding box are selected. The bounding box is provided as four or six numbers, depending on whether the coordinate reference system includes a vertical axis (height or depth): * Lower left corner, coordinate axis 1 * Lower left corner, coordinate axis 2 * Minimum value, coordinate axis 3 (optional) * Upper right corner, coordinate axis 1 * Upper right corner, coordinate axis 2 * Maximum value, coordinate axis 3 (optional) If the value consists of four numbers, the coordinate reference system is WGS 84 longitude/latitude (http://www.opengis.net/def/crs/OGC/1.3/CRS84) unless a different coordinate reference system is specified in the parameter `bbox-crs`. If the value consists of six numbers, the coordinate reference system is WGS 84 longitude/latitude/ellipsoidal height (http://www.opengis.net/def/crs/OGC/0/CRS84h) unless a different coordinate reference system is specified in the parameter `bbox-crs`. The query parameter `bbox-crs` is specified in OGC API - Features - Part 2: Coordinate Reference Systems by Reference. For WGS 84 longitude/latitude the values are in most cases the sequence of minimum longitude, minimum latitude, maximum longitude and maximum latitude. However, in cases where the box spans the antimeridian the first value (west-most box edge) is larger than the third value (east-most box edge). If the vertical axis is included, the third and the sixth number are the bottom and the top of the 3-dimensional bounding box. If a feature has multiple spatial geometry properties, it is the decision of the server whether only a single spatial geometry property is used to determine the extent or all relevant geometries.
-  Future<Package?> confirmPackageProcessHandler(String acceptLanguage, String authorization, PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, { int? limit, int? offset, List<num>? bbox, }) async {
-    final response = await confirmPackageProcessHandlerWithHttpInfo(acceptLanguage, authorization, purchasePackageProcessHandlerRequest,  limit: limit, offset: offset, bbox: bbox, );
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> confirmPackageProcessHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturPOS,
+    PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, {
+    int? limit,
+    int? offset,
+    List<num>? bbox,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await confirmPackageProcessHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturPOS,
+      purchasePackageProcessHandlerRequest,
+      limit: limit,
+      offset: offset,
+      bbox: bbox,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles confirmation of the refund claim
+  /// Confirm claimed refund option
+  ///
+  /// Confirms a previously claimed refund option.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -446,7 +803,19 @@ class ProcessesApi {
   ///   Header field, JWT must be supplied
   ///
   /// * [ClaimRefundProcessHandlerRequest] claimRefundProcessHandlerRequest (required):
-  Future<Response> confirmRefundClaimProcessHandlerWithHttpInfo(String acceptLanguage, String authorization, ClaimRefundProcessHandlerRequest claimRefundProcessHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> confirmRefundClaimProcessHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    ClaimRefundProcessHandlerRequest claimRefundProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/confirm-refund-option/execute';
 
@@ -459,9 +828,14 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -474,7 +848,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles confirmation of the refund claim
+  /// Confirm claimed refund option
+  ///
+  /// Confirms a previously claimed refund option.
   ///
   /// Parameters:
   ///
@@ -484,22 +860,45 @@ class ProcessesApi {
   ///   Header field, JWT must be supplied
   ///
   /// * [ClaimRefundProcessHandlerRequest] claimRefundProcessHandlerRequest (required):
-  Future<Package?> confirmRefundClaimProcessHandler(String acceptLanguage, String authorization, ClaimRefundProcessHandlerRequest claimRefundProcessHandlerRequest,) async {
-    final response = await confirmRefundClaimProcessHandlerWithHttpInfo(acceptLanguage, authorization, claimRefundProcessHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> confirmRefundClaimProcessHandler(
+    String acceptLanguage,
+    String authorization,
+    ClaimRefundProcessHandlerRequest claimRefundProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await confirmRefundClaimProcessHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      claimRefundProcessHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles extending expiry time
+  /// Extend package reservation expiry
+  ///
+  /// Extends the expiry time for a reserved package.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -510,8 +909,29 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [ExtendExpiryTimeProcessHandlerRequest] extendExpiryTimeProcessHandlerRequest (required):
-  Future<Response> extendExpiryTimeProcessHandlerWithHttpInfo(String acceptLanguage, String authorization, ExtendExpiryTimeProcessHandlerRequest extendExpiryTimeProcessHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> extendExpiryTimeProcessHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    ExtendExpiryTimeProcessHandlerRequest
+        extendExpiryTimeProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/extend-expiry-time/execute';
 
@@ -524,9 +944,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -539,7 +967,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles extending expiry time
+  /// Extend package reservation expiry
+  ///
+  /// Extends the expiry time for a reserved package.
   ///
   /// Parameters:
   ///
@@ -548,23 +978,57 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [ExtendExpiryTimeProcessHandlerRequest] extendExpiryTimeProcessHandlerRequest (required):
-  Future<Package?> extendExpiryTimeProcessHandler(String acceptLanguage, String authorization, ExtendExpiryTimeProcessHandlerRequest extendExpiryTimeProcessHandlerRequest,) async {
-    final response = await extendExpiryTimeProcessHandlerWithHttpInfo(acceptLanguage, authorization, extendExpiryTimeProcessHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> extendExpiryTimeProcessHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    ExtendExpiryTimeProcessHandlerRequest
+        extendExpiryTimeProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await extendExpiryTimeProcessHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      extendExpiryTimeProcessHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles purchase of offers
+  /// Purchase selected offers directly
+  ///
+  /// Purchases selected offers directly and returns the resulting package.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -575,8 +1039,28 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [PurchaseOffersProcessHandlerRequest] purchaseOffersProcessHandlerRequest (required):
-  Future<Response> purchaseOffersProcessHandlerWithHttpInfo(String acceptLanguage, String authorization, PurchaseOffersProcessHandlerRequest purchaseOffersProcessHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> purchaseOffersProcessHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    PurchaseOffersProcessHandlerRequest purchaseOffersProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/purchase-offers/execute';
 
@@ -589,9 +1073,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -604,7 +1096,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles purchase of offers
+  /// Purchase selected offers directly
+  ///
+  /// Purchases selected offers directly and returns the resulting package.
   ///
   /// Parameters:
   ///
@@ -613,23 +1107,56 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [PurchaseOffersProcessHandlerRequest] purchaseOffersProcessHandlerRequest (required):
-  Future<Package?> purchaseOffersProcessHandler(String acceptLanguage, String authorization, PurchaseOffersProcessHandlerRequest purchaseOffersProcessHandlerRequest,) async {
-    final response = await purchaseOffersProcessHandlerWithHttpInfo(acceptLanguage, authorization, purchaseOffersProcessHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> purchaseOffersProcessHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    PurchaseOffersProcessHandlerRequest purchaseOffersProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await purchaseOffersProcessHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      purchaseOffersProcessHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles purchase processes
+  /// Purchase existing package
+  ///
+  /// Purchases a previously created package.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -641,7 +1168,19 @@ class ProcessesApi {
   ///   Header field, JWT must be supplied
   ///
   /// * [PurchasePackageProcessHandlerRequest] purchasePackageProcessHandlerRequest (required):
-  Future<Response> purchasePackageProcessHandlerWithHttpInfo(String acceptLanguage, String authorization, PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> purchasePackageProcessHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/purchase-package/execute';
 
@@ -654,9 +1193,14 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -669,7 +1213,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles purchase processes
+  /// Purchase existing package
+  ///
+  /// Purchases a previously created package.
   ///
   /// Parameters:
   ///
@@ -679,22 +1225,45 @@ class ProcessesApi {
   ///   Header field, JWT must be supplied
   ///
   /// * [PurchasePackageProcessHandlerRequest] purchasePackageProcessHandlerRequest (required):
-  Future<Package?> purchasePackageProcessHandler(String acceptLanguage, String authorization, PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest,) async {
-    final response = await purchasePackageProcessHandlerWithHttpInfo(acceptLanguage, authorization, purchasePackageProcessHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> purchasePackageProcessHandler(
+    String acceptLanguage,
+    String authorization,
+    PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await purchasePackageProcessHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      purchasePackageProcessHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles purchase processes
+  /// Release package reservation
+  ///
+  /// Releases a package reservation.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -704,6 +1273,12 @@ class ProcessesApi {
   ///
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
+  ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
   ///
   /// * [PurchasePackageProcessHandlerRequest] purchasePackageProcessHandlerRequest (required):
   ///
@@ -715,7 +1290,24 @@ class ProcessesApi {
   ///
   /// * [List<num>] bbox:
   ///   Only features that have a geometry that intersects the bounding box are selected. The bounding box is provided as four or six numbers, depending on whether the coordinate reference system includes a vertical axis (height or depth): * Lower left corner, coordinate axis 1 * Lower left corner, coordinate axis 2 * Minimum value, coordinate axis 3 (optional) * Upper right corner, coordinate axis 1 * Upper right corner, coordinate axis 2 * Maximum value, coordinate axis 3 (optional) If the value consists of four numbers, the coordinate reference system is WGS 84 longitude/latitude (http://www.opengis.net/def/crs/OGC/1.3/CRS84) unless a different coordinate reference system is specified in the parameter `bbox-crs`. If the value consists of six numbers, the coordinate reference system is WGS 84 longitude/latitude/ellipsoidal height (http://www.opengis.net/def/crs/OGC/0/CRS84h) unless a different coordinate reference system is specified in the parameter `bbox-crs`. The query parameter `bbox-crs` is specified in OGC API - Features - Part 2: Coordinate Reference Systems by Reference. For WGS 84 longitude/latitude the values are in most cases the sequence of minimum longitude, minimum latitude, maximum longitude and maximum latitude. However, in cases where the box spans the antimeridian the first value (west-most box edge) is larger than the third value (east-most box edge). If the vertical axis is included, the third and the sixth number are the bottom and the top of the 3-dimensional bounding box. If a feature has multiple spatial geometry properties, it is the decision of the server whether only a single spatial geometry property is used to determine the extent or all relevant geometries.
-  Future<Response> releasePackageProcessHandlerWithHttpInfo(String acceptLanguage, String authorization, PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, { int? limit, int? offset, List<num>? bbox, }) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> releasePackageProcessHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, {
+    int? limit,
+    int? offset,
+    List<num>? bbox,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/release-package/execute';
 
@@ -738,9 +1330,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -753,7 +1353,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles purchase processes
+  /// Release package reservation
+  ///
+  /// Releases a package reservation.
   ///
   /// Parameters:
   ///
@@ -761,6 +1363,12 @@ class ProcessesApi {
   ///
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
+  ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
   ///
   /// * [PurchasePackageProcessHandlerRequest] purchasePackageProcessHandlerRequest (required):
   ///
@@ -772,22 +1380,55 @@ class ProcessesApi {
   ///
   /// * [List<num>] bbox:
   ///   Only features that have a geometry that intersects the bounding box are selected. The bounding box is provided as four or six numbers, depending on whether the coordinate reference system includes a vertical axis (height or depth): * Lower left corner, coordinate axis 1 * Lower left corner, coordinate axis 2 * Minimum value, coordinate axis 3 (optional) * Upper right corner, coordinate axis 1 * Upper right corner, coordinate axis 2 * Maximum value, coordinate axis 3 (optional) If the value consists of four numbers, the coordinate reference system is WGS 84 longitude/latitude (http://www.opengis.net/def/crs/OGC/1.3/CRS84) unless a different coordinate reference system is specified in the parameter `bbox-crs`. If the value consists of six numbers, the coordinate reference system is WGS 84 longitude/latitude/ellipsoidal height (http://www.opengis.net/def/crs/OGC/0/CRS84h) unless a different coordinate reference system is specified in the parameter `bbox-crs`. The query parameter `bbox-crs` is specified in OGC API - Features - Part 2: Coordinate Reference Systems by Reference. For WGS 84 longitude/latitude the values are in most cases the sequence of minimum longitude, minimum latitude, maximum longitude and maximum latitude. However, in cases where the box spans the antimeridian the first value (west-most box edge) is larger than the third value (east-most box edge). If the vertical axis is included, the third and the sixth number are the bottom and the top of the 3-dimensional bounding box. If a feature has multiple spatial geometry properties, it is the decision of the server whether only a single spatial geometry property is used to determine the extent or all relevant geometries.
-  Future<Package?> releasePackageProcessHandler(String acceptLanguage, String authorization, PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, { int? limit, int? offset, List<num>? bbox, }) async {
-    final response = await releasePackageProcessHandlerWithHttpInfo(acceptLanguage, authorization, purchasePackageProcessHandlerRequest,  limit: limit, offset: offset, bbox: bbox, );
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> releasePackageProcessHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, {
+    int? limit,
+    int? offset,
+    List<num>? bbox,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await releasePackageProcessHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      purchasePackageProcessHandlerRequest,
+      limit: limit,
+      offset: offset,
+      bbox: bbox,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Remove traveller processes
+  /// Remove traveller from package
+  ///
+  /// Removes a traveller from an existing package.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -798,8 +1439,28 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [RemoveTravellerHandlerRequest] removeTravellerHandlerRequest (required):
-  Future<Response> removeTravellerHandlerWithHttpInfo(String acceptLanguage, String authorization, RemoveTravellerHandlerRequest removeTravellerHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> removeTravellerHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    RemoveTravellerHandlerRequest removeTravellerHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/remove-traveller/execute';
 
@@ -812,9 +1473,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -827,7 +1496,9 @@ class ProcessesApi {
     );
   }
 
-  /// Remove traveller processes
+  /// Remove traveller from package
+  ///
+  /// Removes a traveller from an existing package.
   ///
   /// Parameters:
   ///
@@ -836,23 +1507,56 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [RemoveTravellerHandlerRequest] removeTravellerHandlerRequest (required):
-  Future<Package?> removeTravellerHandler(String acceptLanguage, String authorization, RemoveTravellerHandlerRequest removeTravellerHandlerRequest,) async {
-    final response = await removeTravellerHandlerWithHttpInfo(acceptLanguage, authorization, removeTravellerHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> removeTravellerHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    RemoveTravellerHandlerRequest removeTravellerHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await removeTravellerHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      removeTravellerHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles search offers
+  /// Search available travel offers
+  ///
+  /// Searches for available offers based on travel and traveller criteria.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -862,6 +1566,12 @@ class ProcessesApi {
   ///
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
+  ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
   ///
   /// * [SearchOfferHandlerRequest] searchOfferHandlerRequest (required):
   ///
@@ -873,7 +1583,24 @@ class ProcessesApi {
   ///
   /// * [List<num>] bbox:
   ///   Only features that have a geometry that intersects the bounding box are selected. The bounding box is provided as four or six numbers, depending on whether the coordinate reference system includes a vertical axis (height or depth): * Lower left corner, coordinate axis 1 * Lower left corner, coordinate axis 2 * Minimum value, coordinate axis 3 (optional) * Upper right corner, coordinate axis 1 * Upper right corner, coordinate axis 2 * Maximum value, coordinate axis 3 (optional) If the value consists of four numbers, the coordinate reference system is WGS 84 longitude/latitude (http://www.opengis.net/def/crs/OGC/1.3/CRS84) unless a different coordinate reference system is specified in the parameter `bbox-crs`. If the value consists of six numbers, the coordinate reference system is WGS 84 longitude/latitude/ellipsoidal height (http://www.opengis.net/def/crs/OGC/0/CRS84h) unless a different coordinate reference system is specified in the parameter `bbox-crs`. The query parameter `bbox-crs` is specified in OGC API - Features - Part 2: Coordinate Reference Systems by Reference. For WGS 84 longitude/latitude the values are in most cases the sequence of minimum longitude, minimum latitude, maximum longitude and maximum latitude. However, in cases where the box spans the antimeridian the first value (west-most box edge) is larger than the third value (east-most box edge). If the vertical axis is included, the third and the sixth number are the bottom and the top of the 3-dimensional bounding box. If a feature has multiple spatial geometry properties, it is the decision of the server whether only a single spatial geometry property is used to determine the extent or all relevant geometries.
-  Future<Response> searchOfferHandlerWithHttpInfo(String acceptLanguage, String authorization, SearchOfferHandlerRequest searchOfferHandlerRequest, { int? limit, int? offset, List<num>? bbox, }) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> searchOfferHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    SearchOfferHandlerRequest searchOfferHandlerRequest, {
+    int? limit,
+    int? offset,
+    List<num>? bbox,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/search-offers/execute';
 
@@ -896,9 +1623,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -911,7 +1646,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles search offers
+  /// Search available travel offers
+  ///
+  /// Searches for available offers based on travel and traveller criteria.
   ///
   /// Parameters:
   ///
@@ -919,6 +1656,12 @@ class ProcessesApi {
   ///
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
+  ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
   ///
   /// * [SearchOfferHandlerRequest] searchOfferHandlerRequest (required):
   ///
@@ -930,22 +1673,55 @@ class ProcessesApi {
   ///
   /// * [List<num>] bbox:
   ///   Only features that have a geometry that intersects the bounding box are selected. The bounding box is provided as four or six numbers, depending on whether the coordinate reference system includes a vertical axis (height or depth): * Lower left corner, coordinate axis 1 * Lower left corner, coordinate axis 2 * Minimum value, coordinate axis 3 (optional) * Upper right corner, coordinate axis 1 * Upper right corner, coordinate axis 2 * Maximum value, coordinate axis 3 (optional) If the value consists of four numbers, the coordinate reference system is WGS 84 longitude/latitude (http://www.opengis.net/def/crs/OGC/1.3/CRS84) unless a different coordinate reference system is specified in the parameter `bbox-crs`. If the value consists of six numbers, the coordinate reference system is WGS 84 longitude/latitude/ellipsoidal height (http://www.opengis.net/def/crs/OGC/0/CRS84h) unless a different coordinate reference system is specified in the parameter `bbox-crs`. The query parameter `bbox-crs` is specified in OGC API - Features - Part 2: Coordinate Reference Systems by Reference. For WGS 84 longitude/latitude the values are in most cases the sequence of minimum longitude, minimum latitude, maximum longitude and maximum latitude. However, in cases where the box spans the antimeridian the first value (west-most box edge) is larger than the third value (east-most box edge). If the vertical axis is included, the third and the sixth number are the bottom and the top of the 3-dimensional bounding box. If a feature has multiple spatial geometry properties, it is the decision of the server whether only a single spatial geometry property is used to determine the extent or all relevant geometries.
-  Future<OfferCollection?> searchOfferHandler(String acceptLanguage, String authorization, SearchOfferHandlerRequest searchOfferHandlerRequest, { int? limit, int? offset, List<num>? bbox, }) async {
-    final response = await searchOfferHandlerWithHttpInfo(acceptLanguage, authorization, searchOfferHandlerRequest,  limit: limit, offset: offset, bbox: bbox, );
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<OfferCollection?> searchOfferHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    SearchOfferHandlerRequest searchOfferHandlerRequest, {
+    int? limit,
+    int? offset,
+    List<num>? bbox,
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await searchOfferHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      searchOfferHandlerRequest,
+      limit: limit,
+      offset: offset,
+      bbox: bbox,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'OfferCollection',) as OfferCollection;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'OfferCollection',
+      ) as OfferCollection;
     }
     return null;
   }
 
-  /// select offers in a package
+  /// Create draft package from selected offers
+  ///
+  /// Creates or updates a draft package from selected offer identifiers.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -956,8 +1732,28 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [SelectOffersHandlerRequest] selectOffersHandlerRequest (required):
-  Future<Response> selectOffersHandlerWithHttpInfo(String acceptLanguage, String authorization, SelectOffersHandlerRequest selectOffersHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> selectOffersHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    SelectOffersHandlerRequest selectOffersHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/select-offers/execute';
 
@@ -970,9 +1766,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -985,7 +1789,9 @@ class ProcessesApi {
     );
   }
 
-  /// select offers in a package
+  /// Create draft package from selected offers
+  ///
+  /// Creates or updates a draft package from selected offer identifiers.
   ///
   /// Parameters:
   ///
@@ -994,23 +1800,56 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [SelectOffersHandlerRequest] selectOffersHandlerRequest (required):
-  Future<Package?> selectOffersHandler(String acceptLanguage, String authorization, SelectOffersHandlerRequest selectOffersHandlerRequest,) async {
-    final response = await selectOffersHandlerWithHttpInfo(acceptLanguage, authorization, selectOffersHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> selectOffersHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    SelectOffersHandlerRequest selectOffersHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await selectOffersHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      selectOffersHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }
 
-  /// Handles purchase processes
+  /// Update travel document validity start
+  ///
+  /// Updates the validity start time for a travel document in a package.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -1021,42 +1860,47 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
-  /// * [PurchasePackageProcessHandlerRequest] purchasePackageProcessHandlerRequest (required):
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
   ///
-  /// * [int] limit:
-  ///   The optional limit parameter limits the number of items that are presented in the response document. Only items are counted that are on the first level of the collection in the response document. Nested objects contained within the explicitly requested items shall not be counted. Minimum = 1. Maximum = 10000. Default = 100.
+  /// * [UpdateTravelDocumentValidityProcessHandlerRequest] updateTravelDocumentValidityProcessHandlerRequest (required):
   ///
-  /// * [int] offset:
-  ///   The optional offset parameter representing the starting index of the returned collection. Only items are counted that are on the first level of the collection in the response document. Nested objects contained within the explicitly requested items shall not be counted. Default = 0.
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
   ///
-  /// * [List<num>] bbox:
-  ///   Only features that have a geometry that intersects the bounding box are selected. The bounding box is provided as four or six numbers, depending on whether the coordinate reference system includes a vertical axis (height or depth): * Lower left corner, coordinate axis 1 * Lower left corner, coordinate axis 2 * Minimum value, coordinate axis 3 (optional) * Upper right corner, coordinate axis 1 * Upper right corner, coordinate axis 2 * Maximum value, coordinate axis 3 (optional) If the value consists of four numbers, the coordinate reference system is WGS 84 longitude/latitude (http://www.opengis.net/def/crs/OGC/1.3/CRS84) unless a different coordinate reference system is specified in the parameter `bbox-crs`. If the value consists of six numbers, the coordinate reference system is WGS 84 longitude/latitude/ellipsoidal height (http://www.opengis.net/def/crs/OGC/0/CRS84h) unless a different coordinate reference system is specified in the parameter `bbox-crs`. The query parameter `bbox-crs` is specified in OGC API - Features - Part 2: Coordinate Reference Systems by Reference. For WGS 84 longitude/latitude the values are in most cases the sequence of minimum longitude, minimum latitude, maximum longitude and maximum latitude. However, in cases where the box spans the antimeridian the first value (west-most box edge) is larger than the third value (east-most box edge). If the vertical axis is included, the third and the sixth number are the bottom and the top of the 3-dimensional bounding box. If a feature has multiple spatial geometry properties, it is the decision of the server whether only a single spatial geometry property is used to determine the extent or all relevant geometries.
-  Future<Response> twoPhasePurchasePackageProcessHandlerWithHttpInfo(String acceptLanguage, String authorization, PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, { int? limit, int? offset, List<num>? bbox, }) async {
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> updateTravelDocumentValidityProcessHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    UpdateTravelDocumentValidityProcessHandlerRequest
+        updateTravelDocumentValidityProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
-    final path = r'/processes/2-phase-purchase-package/execute';
+    final path = r'/processes/update-travel-document-validity/execute';
 
     // ignore: prefer_final_locals
-    Object? postBody = purchasePackageProcessHandlerRequest;
+    Object? postBody = updateTravelDocumentValidityProcessHandlerRequest;
 
     final queryParams = <QueryParam>[];
     final headerParams = <String, String>{};
     final formParams = <String, String>{};
 
-    if (limit != null) {
-      queryParams.addAll(_queryParams('', 'limit', limit));
-    }
-    if (offset != null) {
-      queryParams.addAll(_queryParams('', 'offset', offset));
-    }
-    if (bbox != null) {
-      queryParams.addAll(_queryParams('csv', 'bbox', bbox));
-    }
-
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -1069,7 +1913,9 @@ class ProcessesApi {
     );
   }
 
-  /// Handles purchase processes
+  /// Update travel document validity start
+  ///
+  /// Updates the validity start time for a travel document in a package.
   ///
   /// Parameters:
   ///
@@ -1078,32 +1924,54 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
-  /// * [PurchasePackageProcessHandlerRequest] purchasePackageProcessHandlerRequest (required):
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
   ///
-  /// * [int] limit:
-  ///   The optional limit parameter limits the number of items that are presented in the response document. Only items are counted that are on the first level of the collection in the response document. Nested objects contained within the explicitly requested items shall not be counted. Minimum = 1. Maximum = 10000. Default = 100.
+  /// * [UpdateTravelDocumentValidityProcessHandlerRequest] updateTravelDocumentValidityProcessHandlerRequest (required):
   ///
-  /// * [int] offset:
-  ///   The optional offset parameter representing the starting index of the returned collection. Only items are counted that are on the first level of the collection in the response document. Nested objects contained within the explicitly requested items shall not be counted. Default = 0.
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
   ///
-  /// * [List<num>] bbox:
-  ///   Only features that have a geometry that intersects the bounding box are selected. The bounding box is provided as four or six numbers, depending on whether the coordinate reference system includes a vertical axis (height or depth): * Lower left corner, coordinate axis 1 * Lower left corner, coordinate axis 2 * Minimum value, coordinate axis 3 (optional) * Upper right corner, coordinate axis 1 * Upper right corner, coordinate axis 2 * Maximum value, coordinate axis 3 (optional) If the value consists of four numbers, the coordinate reference system is WGS 84 longitude/latitude (http://www.opengis.net/def/crs/OGC/1.3/CRS84) unless a different coordinate reference system is specified in the parameter `bbox-crs`. If the value consists of six numbers, the coordinate reference system is WGS 84 longitude/latitude/ellipsoidal height (http://www.opengis.net/def/crs/OGC/0/CRS84h) unless a different coordinate reference system is specified in the parameter `bbox-crs`. The query parameter `bbox-crs` is specified in OGC API - Features - Part 2: Coordinate Reference Systems by Reference. For WGS 84 longitude/latitude the values are in most cases the sequence of minimum longitude, minimum latitude, maximum longitude and maximum latitude. However, in cases where the box spans the antimeridian the first value (west-most box edge) is larger than the third value (east-most box edge). If the vertical axis is included, the third and the sixth number are the bottom and the top of the 3-dimensional bounding box. If a feature has multiple spatial geometry properties, it is the decision of the server whether only a single spatial geometry property is used to determine the extent or all relevant geometries.
-  Future<Package?> twoPhasePurchasePackageProcessHandler(String acceptLanguage, String authorization, PurchasePackageProcessHandlerRequest purchasePackageProcessHandlerRequest, { int? limit, int? offset, List<num>? bbox, }) async {
-    final response = await twoPhasePurchasePackageProcessHandlerWithHttpInfo(acceptLanguage, authorization, purchasePackageProcessHandlerRequest,  limit: limit, offset: offset, bbox: bbox, );
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<UpdateTravelDocumentValidityResponse?>
+      updateTravelDocumentValidityProcessHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    UpdateTravelDocumentValidityProcessHandlerRequest
+        updateTravelDocumentValidityProcessHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response =
+        await updateTravelDocumentValidityProcessHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      updateTravelDocumentValidityProcessHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'UpdateTravelDocumentValidityResponse',
+      ) as UpdateTravelDocumentValidityResponse;
     }
     return null;
   }
 
-  /// Update traveller processes
+  /// Update traveller in package
+  ///
+  /// Updates traveller details in an existing package.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -1114,8 +1982,28 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [UpdateTravellerHandlerRequest] updateTravellerHandlerRequest (required):
-  Future<Response> updateTravellerHandlerWithHttpInfo(String acceptLanguage, String authorization, UpdateTravellerHandlerRequest updateTravellerHandlerRequest,) async {
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Response> updateTravellerHandlerWithHttpInfo(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    UpdateTravellerHandlerRequest updateTravellerHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/processes/update-traveller/execute';
 
@@ -1128,9 +2016,17 @@ class ProcessesApi {
 
     headerParams[r'Accept-Language'] = parameterToString(acceptLanguage);
     headerParams[r'authorization'] = parameterToString(authorization);
+    headerParams[r'Entur-Distribution-Channel'] =
+        parameterToString(enturDistributionChannel);
+    headerParams[r'Entur-POS'] = parameterToString(enturPOS);
+    if (eTClientName != null) {
+      headerParams[r'ET-Client-Name'] = parameterToString(eTClientName);
+    }
+    if (xCorrelationId != null) {
+      headerParams[r'X-Correlation-Id'] = parameterToString(xCorrelationId);
+    }
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -1143,7 +2039,9 @@ class ProcessesApi {
     );
   }
 
-  /// Update traveller processes
+  /// Update traveller in package
+  ///
+  /// Updates traveller details in an existing package.
   ///
   /// Parameters:
   ///
@@ -1152,18 +2050,49 @@ class ProcessesApi {
   /// * [String] authorization (required):
   ///   Header field, JWT must be supplied
   ///
+  /// * [String] enturDistributionChannel (required):
+  ///   Distribution channel identifier used by downstream sales and ticket distribution services.
+  ///
+  /// * [String] enturPOS (required):
+  ///   Point-of-sale identifier used by downstream sales and ticket distribution services.
+  ///
   /// * [UpdateTravellerHandlerRequest] updateTravellerHandlerRequest (required):
-  Future<Package?> updateTravellerHandler(String acceptLanguage, String authorization, UpdateTravellerHandlerRequest updateTravellerHandlerRequest,) async {
-    final response = await updateTravellerHandlerWithHttpInfo(acceptLanguage, authorization, updateTravellerHandlerRequest,);
+  ///
+  /// * [String] eTClientName:
+  ///   Entur Client Header. It is required that all consumers identify themselves by using this header. Entur will deploy strict rate-limiting policies on API-consumers who do not identify with a header and reserves the right to block unidentified consumers. The structure of ET-Client-Name should be: `<company>-<application>`.
+  ///
+  /// * [String] xCorrelationId:
+  ///   Correlation id
+  Future<Package?> updateTravellerHandler(
+    String acceptLanguage,
+    String authorization,
+    String enturDistributionChannel,
+    String enturPOS,
+    UpdateTravellerHandlerRequest updateTravellerHandlerRequest, {
+    String? eTClientName,
+    String? xCorrelationId,
+  }) async {
+    final response = await updateTravellerHandlerWithHttpInfo(
+      acceptLanguage,
+      authorization,
+      enturDistributionChannel,
+      enturPOS,
+      updateTravellerHandlerRequest,
+      eTClientName: eTClientName,
+      xCorrelationId: xCorrelationId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Package',) as Package;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Package',
+      ) as Package;
     }
     return null;
   }

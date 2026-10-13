@@ -34,18 +34,21 @@ class PurchaseOffersProcessHandlerRequest {
   Subscriber? subscriber;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PurchaseOffersProcessHandlerRequest &&
-    other.inputs == inputs &&
-    other.subscriber == subscriber;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PurchaseOffersProcessHandlerRequest &&
+          other.inputs == inputs &&
+          other.subscriber == subscriber;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (inputs == null ? 0 : inputs!.hashCode) +
-    (subscriber == null ? 0 : subscriber!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (inputs == null ? 0 : inputs!.hashCode) +
+      (subscriber == null ? 0 : subscriber!.hashCode);
 
   @override
-  String toString() => 'PurchaseOffersProcessHandlerRequest[inputs=$inputs, subscriber=$subscriber]';
+  String toString() =>
+      'PurchaseOffersProcessHandlerRequest[inputs=$inputs, subscriber=$subscriber]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -74,8 +77,10 @@ class PurchaseOffersProcessHandlerRequest {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PurchaseOffersProcessHandlerRequest[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PurchaseOffersProcessHandlerRequest[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PurchaseOffersProcessHandlerRequest[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PurchaseOffersProcessHandlerRequest[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -88,7 +93,10 @@ class PurchaseOffersProcessHandlerRequest {
     return null;
   }
 
-  static List<PurchaseOffersProcessHandlerRequest> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PurchaseOffersProcessHandlerRequest> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PurchaseOffersProcessHandlerRequest>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -101,7 +109,8 @@ class PurchaseOffersProcessHandlerRequest {
     return result.toList(growable: growable);
   }
 
-  static Map<String, PurchaseOffersProcessHandlerRequest> mapFromJson(dynamic json) {
+  static Map<String, PurchaseOffersProcessHandlerRequest> mapFromJson(
+      dynamic json) {
     final map = <String, PurchaseOffersProcessHandlerRequest>{};
     if (json is Map && json.isNotEmpty) {
       json = json.cast<String, dynamic>(); // ignore: parameter_assignments
@@ -116,20 +125,24 @@ class PurchaseOffersProcessHandlerRequest {
   }
 
   // maps a json object with a list of PurchaseOffersProcessHandlerRequest-objects as value to a dart map
-  static Map<String, List<PurchaseOffersProcessHandlerRequest>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PurchaseOffersProcessHandlerRequest>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PurchaseOffersProcessHandlerRequest>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PurchaseOffersProcessHandlerRequest.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PurchaseOffersProcessHandlerRequest.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

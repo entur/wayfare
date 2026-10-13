@@ -15,7 +15,7 @@ class Offer {
   Offer({
     this.id,
     this.type,
-    this.properties,
+    required this.properties,
     this.links = const [],
   });
 
@@ -36,33 +36,30 @@ class Offer {
   ///
   String? type;
 
-  ///
-  /// Please note: This property should have been non-nullable! Since the specification file
-  /// does not include a default value (using the "default:" property), however, the generated
-  /// source code must fall back to having a nullable type.
-  /// Consider adding a "default:" property in the specification file to hide this note.
-  ///
-  OfferProperties? properties;
+  OfferProperties properties;
 
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Offer &&
-    other.id == id &&
-    other.type == type &&
-    other.properties == properties &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Offer &&
+          other.id == id &&
+          other.type == type &&
+          other.properties == properties &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (id == null ? 0 : id!.hashCode) +
-    (type == null ? 0 : type!.hashCode) +
-    (properties == null ? 0 : properties!.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (id == null ? 0 : id!.hashCode) +
+      (type == null ? 0 : type!.hashCode) +
+      (properties.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'Offer[id=$id, type=$type, properties=$properties, links=$links]';
+  String toString() =>
+      'Offer[id=$id, type=$type, properties=$properties, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -76,12 +73,8 @@ class Offer {
     } else {
       json[r'type'] = null;
     }
-    if (this.properties != null) {
-      json[r'properties'] = this.properties;
-    } else {
-      json[r'properties'] = null;
-    }
-      json[r'links'] = this.links;
+    json[r'properties'] = this.properties;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -97,8 +90,10 @@ class Offer {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Offer[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Offer[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Offer[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Offer[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -106,14 +101,17 @@ class Offer {
       return Offer(
         id: mapValueOfType<String>(json, r'id'),
         type: mapValueOfType<String>(json, r'type'),
-        properties: OfferProperties.fromJson(json[r'properties']),
+        properties: OfferProperties.fromJson(json[r'properties'])!,
         links: Link.listFromJson(json[r'links']),
       );
     }
     return null;
   }
 
-  static List<Offer> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Offer> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Offer>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -141,13 +139,19 @@ class Offer {
   }
 
   // maps a json object with a list of Offer-objects as value to a dart map
-  static Map<String, List<Offer>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Offer>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Offer>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Offer.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Offer.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -155,6 +159,6 @@ class Offer {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
+    'properties',
   };
 }
-

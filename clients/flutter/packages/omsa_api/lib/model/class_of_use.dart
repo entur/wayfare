@@ -10,7 +10,7 @@
 
 part of openapi.api;
 
-/// A classification of fare and other service classes by category of user entitled to use them.
+/// A classification of fare and other service classes by category of user entitled to use them. Use ECONOMY_CLASS for standard class products.
 class ClassOfUse {
   /// Instantiate a new enum with the provided [value].
   const ClassOfUse._(this.value);
@@ -48,9 +48,13 @@ class ClassOfUse {
     UNKNOWN,
   ];
 
-  static ClassOfUse? fromJson(dynamic value) => ClassOfUseTypeTransformer().decode(value);
+  static ClassOfUse? fromJson(dynamic value) =>
+      ClassOfUseTypeTransformer().decode(value);
 
-  static List<ClassOfUse> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ClassOfUse> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ClassOfUse>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -67,7 +71,8 @@ class ClassOfUse {
 /// Transformation class that can [encode] an instance of [ClassOfUse] to String,
 /// and [decode] dynamic data back to [ClassOfUse].
 class ClassOfUseTypeTransformer {
-  factory ClassOfUseTypeTransformer() => _instance ??= const ClassOfUseTypeTransformer._();
+  factory ClassOfUseTypeTransformer() =>
+      _instance ??= const ClassOfUseTypeTransformer._();
 
   const ClassOfUseTypeTransformer._();
 
@@ -84,16 +89,26 @@ class ClassOfUseTypeTransformer {
   ClassOfUse? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'FIRST_CLASS': return ClassOfUse.FIRST_CLASS;
-        case r'SECOND_CLASS': return ClassOfUse.SECOND_CLASS;
-        case r'THIRD_CLASS': return ClassOfUse.THIRD_CLASS;
-        case r'ECONOMY_CLASS': return ClassOfUse.ECONOMY_CLASS;
-        case r'BUSINESS_CLASS': return ClassOfUse.BUSINESS_CLASS;
-        case r'TURISTA': return ClassOfUse.TURISTA;
-        case r'PREFERENTE': return ClassOfUse.PREFERENTE;
-        case r'PREMIUM_CLASS': return ClassOfUse.PREMIUM_CLASS;
-        case r'ANY': return ClassOfUse.ANY;
-        case r'UNKNOWN': return ClassOfUse.UNKNOWN;
+        case r'FIRST_CLASS':
+          return ClassOfUse.FIRST_CLASS;
+        case r'SECOND_CLASS':
+          return ClassOfUse.SECOND_CLASS;
+        case r'THIRD_CLASS':
+          return ClassOfUse.THIRD_CLASS;
+        case r'ECONOMY_CLASS':
+          return ClassOfUse.ECONOMY_CLASS;
+        case r'BUSINESS_CLASS':
+          return ClassOfUse.BUSINESS_CLASS;
+        case r'TURISTA':
+          return ClassOfUse.TURISTA;
+        case r'PREFERENTE':
+          return ClassOfUse.PREFERENTE;
+        case r'PREMIUM_CLASS':
+          return ClassOfUse.PREMIUM_CLASS;
+        case r'ANY':
+          return ClassOfUse.ANY;
+        case r'UNKNOWN':
+          return ClassOfUse.UNKNOWN;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -106,4 +121,3 @@ class ClassOfUseTypeTransformer {
   /// Singleton [ClassOfUseTypeTransformer] instance.
   static ClassOfUseTypeTransformer? _instance;
 }
-

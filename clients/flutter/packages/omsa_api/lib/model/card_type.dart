@@ -54,33 +54,37 @@ class CardType {
   Map<String, Object> customFields;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is CardType &&
-    other.id == id &&
-    other.type == type &&
-    other.cardCategory == cardCategory &&
-    other.subCategory == subCategory &&
-    other.relatedProduct == relatedProduct &&
-    _deepEquality.equals(other.transportOrganisations, transportOrganisations) &&
-    _deepEquality.equals(other.customFields, customFields);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CardType &&
+          other.id == id &&
+          other.type == type &&
+          other.cardCategory == cardCategory &&
+          other.subCategory == subCategory &&
+          other.relatedProduct == relatedProduct &&
+          _deepEquality.equals(
+              other.transportOrganisations, transportOrganisations) &&
+          _deepEquality.equals(other.customFields, customFields);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (id.hashCode) +
-    (type.hashCode) +
-    (cardCategory == null ? 0 : cardCategory!.hashCode) +
-    (subCategory == null ? 0 : subCategory!.hashCode) +
-    (relatedProduct == null ? 0 : relatedProduct!.hashCode) +
-    (transportOrganisations.hashCode) +
-    (customFields.hashCode);
+      // ignore: unnecessary_parenthesis
+      (id.hashCode) +
+      (type.hashCode) +
+      (cardCategory == null ? 0 : cardCategory!.hashCode) +
+      (subCategory == null ? 0 : subCategory!.hashCode) +
+      (relatedProduct == null ? 0 : relatedProduct!.hashCode) +
+      (transportOrganisations.hashCode) +
+      (customFields.hashCode);
 
   @override
-  String toString() => 'CardType[id=$id, type=$type, cardCategory=$cardCategory, subCategory=$subCategory, relatedProduct=$relatedProduct, transportOrganisations=$transportOrganisations, customFields=$customFields]';
+  String toString() =>
+      'CardType[id=$id, type=$type, cardCategory=$cardCategory, subCategory=$subCategory, relatedProduct=$relatedProduct, transportOrganisations=$transportOrganisations, customFields=$customFields]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'id'] = this.id;
-      json[r'type'] = this.type;
+    json[r'id'] = this.id;
+    json[r'type'] = this.type;
     if (this.cardCategory != null) {
       json[r'cardCategory'] = this.cardCategory;
     } else {
@@ -96,8 +100,8 @@ class CardType {
     } else {
       json[r'relatedProduct'] = null;
     }
-      json[r'transportOrganisations'] = this.transportOrganisations;
-      json[r'customFields'] = this.customFields;
+    json[r'transportOrganisations'] = this.transportOrganisations;
+    json[r'customFields'] = this.customFields;
     return json;
   }
 
@@ -113,8 +117,10 @@ class CardType {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "CardType[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "CardType[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "CardType[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "CardType[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -125,14 +131,19 @@ class CardType {
         cardCategory: CardTypeCardCategoryEnum.fromJson(json[r'cardCategory']),
         subCategory: mapValueOfType<String>(json, r'subCategory'),
         relatedProduct: ProductReference.fromJson(json[r'relatedProduct']),
-        transportOrganisations: OrganisationReference.listFromJson(json[r'transportOrganisations']),
-        customFields: mapCastOfType<String, Object>(json, r'customFields') ?? const {},
+        transportOrganisations:
+            OrganisationReference.listFromJson(json[r'transportOrganisations']),
+        customFields:
+            mapCastOfType<String, Object>(json, r'customFields') ?? const {},
       );
     }
     return null;
   }
 
-  static List<CardType> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<CardType> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <CardType>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -160,13 +171,19 @@ class CardType {
   }
 
   // maps a json object with a list of CardType-objects as value to a dart map
-  static Map<String, List<CardType>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<CardType>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<CardType>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = CardType.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = CardType.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -211,9 +228,13 @@ class CardTypeCardCategoryEnum {
     OTHER,
   ];
 
-  static CardTypeCardCategoryEnum? fromJson(dynamic value) => CardTypeCardCategoryEnumTypeTransformer().decode(value);
+  static CardTypeCardCategoryEnum? fromJson(dynamic value) =>
+      CardTypeCardCategoryEnumTypeTransformer().decode(value);
 
-  static List<CardTypeCardCategoryEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<CardTypeCardCategoryEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <CardTypeCardCategoryEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -230,7 +251,8 @@ class CardTypeCardCategoryEnum {
 /// Transformation class that can [encode] an instance of [CardTypeCardCategoryEnum] to String,
 /// and [decode] dynamic data back to [CardTypeCardCategoryEnum].
 class CardTypeCardCategoryEnumTypeTransformer {
-  factory CardTypeCardCategoryEnumTypeTransformer() => _instance ??= const CardTypeCardCategoryEnumTypeTransformer._();
+  factory CardTypeCardCategoryEnumTypeTransformer() =>
+      _instance ??= const CardTypeCardCategoryEnumTypeTransformer._();
 
   const CardTypeCardCategoryEnumTypeTransformer._();
 
@@ -247,13 +269,20 @@ class CardTypeCardCategoryEnumTypeTransformer {
   CardTypeCardCategoryEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'DISCOUNT': return CardTypeCardCategoryEnum.DISCOUNT;
-        case r'TRAVEL': return CardTypeCardCategoryEnum.TRAVEL;
-        case r'BANK': return CardTypeCardCategoryEnum.BANK;
-        case r'CREDIT': return CardTypeCardCategoryEnum.CREDIT;
-        case r'ID': return CardTypeCardCategoryEnum.ID;
-        case r'PASSPORT': return CardTypeCardCategoryEnum.PASSPORT;
-        case r'OTHER': return CardTypeCardCategoryEnum.OTHER;
+        case r'DISCOUNT':
+          return CardTypeCardCategoryEnum.DISCOUNT;
+        case r'TRAVEL':
+          return CardTypeCardCategoryEnum.TRAVEL;
+        case r'BANK':
+          return CardTypeCardCategoryEnum.BANK;
+        case r'CREDIT':
+          return CardTypeCardCategoryEnum.CREDIT;
+        case r'ID':
+          return CardTypeCardCategoryEnum.ID;
+        case r'PASSPORT':
+          return CardTypeCardCategoryEnum.PASSPORT;
+        case r'OTHER':
+          return CardTypeCardCategoryEnum.OTHER;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -266,5 +295,3 @@ class CardTypeCardCategoryEnumTypeTransformer {
   /// Singleton [CardTypeCardCategoryEnumTypeTransformer] instance.
   static CardTypeCardCategoryEnumTypeTransformer? _instance;
 }
-
-

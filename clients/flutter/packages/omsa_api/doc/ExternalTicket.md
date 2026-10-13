@@ -10,8 +10,9 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **startvalidity** | [**DateTime**](DateTime.md) | https://www.rfc-editor.org/rfc/rfc3339#section-5.6, date-time (2019-10-12T07:20:50.52Z) | 
 **endvalidity** | [**DateTime**](DateTime.md) | https://www.rfc-editor.org/rfc/rfc3339#section-5.6, date-time (2019-10-12T07:20:50.52Z) | 
-**travelDocumentType** | [**TypeOfTravelDocument**](TypeOfTravelDocument.md) |  | 
-**type** | **String** |  | [optional] 
+**format** | [**TravelDocumentFormat**](TravelDocumentFormat.md) |  | 
+**status** | [**TravelDocumentStatus**](TravelDocumentStatus.md) |  | [optional] 
+**type** | **String** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

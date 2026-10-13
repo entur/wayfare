@@ -38,20 +38,23 @@ class RefundOptionCollectionOptionsInner {
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is RefundOptionCollectionOptionsInner &&
-    other.id == id &&
-    other.properties == properties &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RefundOptionCollectionOptionsInner &&
+          other.id == id &&
+          other.properties == properties &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (id == null ? 0 : id!.hashCode) +
-    (properties == null ? 0 : properties!.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (id == null ? 0 : id!.hashCode) +
+      (properties == null ? 0 : properties!.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'RefundOptionCollectionOptionsInner[id=$id, properties=$properties, links=$links]';
+  String toString() =>
+      'RefundOptionCollectionOptionsInner[id=$id, properties=$properties, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -65,7 +68,7 @@ class RefundOptionCollectionOptionsInner {
     } else {
       json[r'properties'] = null;
     }
-      json[r'links'] = this.links;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -81,8 +84,10 @@ class RefundOptionCollectionOptionsInner {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "RefundOptionCollectionOptionsInner[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "RefundOptionCollectionOptionsInner[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "RefundOptionCollectionOptionsInner[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "RefundOptionCollectionOptionsInner[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -96,7 +101,10 @@ class RefundOptionCollectionOptionsInner {
     return null;
   }
 
-  static List<RefundOptionCollectionOptionsInner> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<RefundOptionCollectionOptionsInner> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <RefundOptionCollectionOptionsInner>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -109,7 +117,8 @@ class RefundOptionCollectionOptionsInner {
     return result.toList(growable: growable);
   }
 
-  static Map<String, RefundOptionCollectionOptionsInner> mapFromJson(dynamic json) {
+  static Map<String, RefundOptionCollectionOptionsInner> mapFromJson(
+      dynamic json) {
     final map = <String, RefundOptionCollectionOptionsInner>{};
     if (json is Map && json.isNotEmpty) {
       json = json.cast<String, dynamic>(); // ignore: parameter_assignments
@@ -124,20 +133,24 @@ class RefundOptionCollectionOptionsInner {
   }
 
   // maps a json object with a list of RefundOptionCollectionOptionsInner-objects as value to a dart map
-  static Map<String, List<RefundOptionCollectionOptionsInner>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<RefundOptionCollectionOptionsInner>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<RefundOptionCollectionOptionsInner>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RefundOptionCollectionOptionsInner.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = RefundOptionCollectionOptionsInner.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

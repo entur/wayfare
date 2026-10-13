@@ -96,7 +96,6 @@ class OmsaApiService {
     final searchRequest = omsa.SearchOfferHandlerRequest(
       inputs: omsa.SearchOfferInput(
         type: 'search_offer',
-        timestamp: DateTime.now().toUtc(),
         specification: omsa.TravelSpecification(
           from: omsa.PlaceReference(placeId: fromZoneId),
           to: omsa.PlaceReference(placeId: toZoneId),
@@ -140,7 +139,6 @@ class OmsaApiService {
 
   static Future<Map<String, dynamic>> purchaseOffer({
     required String offerId,
-    DateTime? timestamp,
     String? successUri,
   }) async {
     final url = _resolveApi('/processes/purchase-offers/execute');
@@ -149,7 +147,6 @@ class OmsaApiService {
     final request = omsa.PurchaseOffersProcessHandlerRequest(
       inputs: omsa.PurchaseOffersInput(
         type: 'purchase_offers',
-        timestamp: timestamp?.toUtc(),
         offerIds: [offerId],
       ),
       subscriber: omsa.Subscriber(successUri: resolvedSuccessUri),
@@ -160,14 +157,12 @@ class OmsaApiService {
 
   static Future<Map<String, dynamic>> confirmPackage({
     required String packageId,
-    DateTime? timestamp,
   }) async {
     final url = _resolveApi('/processes/confirm-package/execute');
     final request = omsa.PurchasePackageProcessHandlerRequest(
       inputs: omsa.PackageInput(
         packageId: packageId,
         type: 'package_input',
-        timestamp: timestamp?.toUtc(),
       ),
     );
 
@@ -209,7 +204,6 @@ class OmsaApiService {
       'inputs': {
         'packageId': packageId,
         'type': 'package_input',
-        'timestamp': DateTime.now().toUtc().toIso8601String(),
       },
     };
 

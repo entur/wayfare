@@ -78,28 +78,31 @@ class FinancialDetail {
   Map<String, Object> customFields;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is FinancialDetail &&
-    other.amount == amount &&
-    other.package == package &&
-    other.offer == offer &&
-    other.leg == leg &&
-    other.category == category &&
-    other.expirationDate == expirationDate &&
-    _deepEquality.equals(other.customFields, customFields);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FinancialDetail &&
+          other.amount == amount &&
+          other.package == package &&
+          other.offer == offer &&
+          other.leg == leg &&
+          other.category == category &&
+          other.expirationDate == expirationDate &&
+          _deepEquality.equals(other.customFields, customFields);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (amount == null ? 0 : amount!.hashCode) +
-    (package == null ? 0 : package!.hashCode) +
-    (offer == null ? 0 : offer!.hashCode) +
-    (leg == null ? 0 : leg!.hashCode) +
-    (category == null ? 0 : category!.hashCode) +
-    (expirationDate == null ? 0 : expirationDate!.hashCode) +
-    (customFields.hashCode);
+      // ignore: unnecessary_parenthesis
+      (amount == null ? 0 : amount!.hashCode) +
+      (package == null ? 0 : package!.hashCode) +
+      (offer == null ? 0 : offer!.hashCode) +
+      (leg == null ? 0 : leg!.hashCode) +
+      (category == null ? 0 : category!.hashCode) +
+      (expirationDate == null ? 0 : expirationDate!.hashCode) +
+      (customFields.hashCode);
 
   @override
-  String toString() => 'FinancialDetail[amount=$amount, package=$package, offer=$offer, leg=$leg, category=$category, expirationDate=$expirationDate, customFields=$customFields]';
+  String toString() =>
+      'FinancialDetail[amount=$amount, package=$package, offer=$offer, leg=$leg, category=$category, expirationDate=$expirationDate, customFields=$customFields]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -133,7 +136,7 @@ class FinancialDetail {
     } else {
       json[r'expirationDate'] = null;
     }
-      json[r'customFields'] = this.customFields;
+    json[r'customFields'] = this.customFields;
     return json;
   }
 
@@ -149,8 +152,10 @@ class FinancialDetail {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "FinancialDetail[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "FinancialDetail[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "FinancialDetail[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "FinancialDetail[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -162,13 +167,17 @@ class FinancialDetail {
         leg: mapValueOfType<String>(json, r'leg'),
         category: PaymentCategory.fromJson(json[r'category']),
         expirationDate: mapDateTime(json, r'expirationDate', r''),
-        customFields: mapCastOfType<String, Object>(json, r'customFields') ?? const {},
+        customFields:
+            mapCastOfType<String, Object>(json, r'customFields') ?? const {},
       );
     }
     return null;
   }
 
-  static List<FinancialDetail> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<FinancialDetail> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <FinancialDetail>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -196,20 +205,24 @@ class FinancialDetail {
   }
 
   // maps a json object with a list of FinancialDetail-objects as value to a dart map
-  static Map<String, List<FinancialDetail>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<FinancialDetail>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<FinancialDetail>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = FinancialDetail.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = FinancialDetail.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-

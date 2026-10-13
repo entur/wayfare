@@ -27,26 +27,27 @@ class RemoveTravellerInput {
   String packageId;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is RemoveTravellerInput &&
-    other.type == type &&
-    other.travellerId == travellerId &&
-    other.packageId == packageId;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RemoveTravellerInput &&
+          other.type == type &&
+          other.travellerId == travellerId &&
+          other.packageId == packageId;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (travellerId.hashCode) +
-    (packageId.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) + (travellerId.hashCode) + (packageId.hashCode);
 
   @override
-  String toString() => 'RemoveTravellerInput[type=$type, travellerId=$travellerId, packageId=$packageId]';
+  String toString() =>
+      'RemoveTravellerInput[type=$type, travellerId=$travellerId, packageId=$packageId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'travellerId'] = this.travellerId;
-      json[r'packageId'] = this.packageId;
+    json[r'type'] = this.type;
+    json[r'travellerId'] = this.travellerId;
+    json[r'packageId'] = this.packageId;
     return json;
   }
 
@@ -62,8 +63,10 @@ class RemoveTravellerInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "RemoveTravellerInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "RemoveTravellerInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "RemoveTravellerInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "RemoveTravellerInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -77,7 +80,10 @@ class RemoveTravellerInput {
     return null;
   }
 
-  static List<RemoveTravellerInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<RemoveTravellerInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <RemoveTravellerInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -105,13 +111,19 @@ class RemoveTravellerInput {
   }
 
   // maps a json object with a list of RemoveTravellerInput-objects as value to a dart map
-  static Map<String, List<RemoveTravellerInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<RemoveTravellerInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<RemoveTravellerInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RemoveTravellerInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = RemoveTravellerInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -124,4 +136,3 @@ class RemoveTravellerInput {
     'packageId',
   };
 }
-

@@ -19,20 +19,22 @@ class ConfClasses {
   List<String> conformsTo;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ConfClasses &&
-    _deepEquality.equals(other.conformsTo, conformsTo);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ConfClasses &&
+          _deepEquality.equals(other.conformsTo, conformsTo);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (conformsTo.hashCode);
+      // ignore: unnecessary_parenthesis
+      (conformsTo.hashCode);
 
   @override
   String toString() => 'ConfClasses[conformsTo=$conformsTo]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'conformsTo'] = this.conformsTo;
+    json[r'conformsTo'] = this.conformsTo;
     return json;
   }
 
@@ -48,22 +50,29 @@ class ConfClasses {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ConfClasses[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ConfClasses[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ConfClasses[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ConfClasses[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return ConfClasses(
         conformsTo: json[r'conformsTo'] is Iterable
-            ? (json[r'conformsTo'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'conformsTo'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
       );
     }
     return null;
   }
 
-  static List<ConfClasses> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ConfClasses> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ConfClasses>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -91,13 +100,19 @@ class ConfClasses {
   }
 
   // maps a json object with a list of ConfClasses-objects as value to a dart map
-  static Map<String, List<ConfClasses>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ConfClasses>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ConfClasses>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ConfClasses.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ConfClasses.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -108,4 +123,3 @@ class ConfClasses {
     'conformsTo',
   };
 }
-

@@ -78,7 +78,10 @@ class Mode {
 
   static Mode? fromJson(dynamic value) => ModeTypeTransformer().decode(value);
 
-  static List<Mode> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Mode> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Mode>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -112,30 +115,54 @@ class ModeTypeTransformer {
   Mode? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'AIR': return Mode.AIR;
-        case r'BUS': return Mode.BUS;
-        case r'TROLLEYBUS': return Mode.TROLLEYBUS;
-        case r'TRAM': return Mode.TRAM;
-        case r'COACH': return Mode.COACH;
-        case r'RAIL': return Mode.RAIL;
-        case r'INTERCITYRAIL': return Mode.INTERCITYRAIL;
-        case r'URBANRAIL': return Mode.URBANRAIL;
-        case r'METRO': return Mode.METRO;
-        case r'WATER': return Mode.WATER;
-        case r'CABLEWAY': return Mode.CABLEWAY;
-        case r'FUNICULAR': return Mode.FUNICULAR;
-        case r'TAXI': return Mode.TAXI;
-        case r'SELFDRIVE': return Mode.SELFDRIVE;
-        case r'FOOT': return Mode.FOOT;
-        case r'BICYCLE': return Mode.BICYCLE;
-        case r'MOTORCYCLE': return Mode.MOTORCYCLE;
-        case r'CAR': return Mode.CAR;
-        case r'SHUTTLE': return Mode.SHUTTLE;
-        case r'OTHER': return Mode.OTHER;
-        case r'PARKING': return Mode.PARKING;
-        case r'MOPED': return Mode.MOPED;
-        case r'STEP': return Mode.STEP;
-        case r'FERRY': return Mode.FERRY;
+        case r'AIR':
+          return Mode.AIR;
+        case r'BUS':
+          return Mode.BUS;
+        case r'TROLLEYBUS':
+          return Mode.TROLLEYBUS;
+        case r'TRAM':
+          return Mode.TRAM;
+        case r'COACH':
+          return Mode.COACH;
+        case r'RAIL':
+          return Mode.RAIL;
+        case r'INTERCITYRAIL':
+          return Mode.INTERCITYRAIL;
+        case r'URBANRAIL':
+          return Mode.URBANRAIL;
+        case r'METRO':
+          return Mode.METRO;
+        case r'WATER':
+          return Mode.WATER;
+        case r'CABLEWAY':
+          return Mode.CABLEWAY;
+        case r'FUNICULAR':
+          return Mode.FUNICULAR;
+        case r'TAXI':
+          return Mode.TAXI;
+        case r'SELFDRIVE':
+          return Mode.SELFDRIVE;
+        case r'FOOT':
+          return Mode.FOOT;
+        case r'BICYCLE':
+          return Mode.BICYCLE;
+        case r'MOTORCYCLE':
+          return Mode.MOTORCYCLE;
+        case r'CAR':
+          return Mode.CAR;
+        case r'SHUTTLE':
+          return Mode.SHUTTLE;
+        case r'OTHER':
+          return Mode.OTHER;
+        case r'PARKING':
+          return Mode.PARKING;
+        case r'MOPED':
+          return Mode.MOPED;
+        case r'STEP':
+          return Mode.STEP;
+        case r'FERRY':
+          return Mode.FERRY;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -148,4 +175,3 @@ class ModeTypeTransformer {
   /// Singleton [ModeTypeTransformer] instance.
   static ModeTypeTransformer? _instance;
 }
-

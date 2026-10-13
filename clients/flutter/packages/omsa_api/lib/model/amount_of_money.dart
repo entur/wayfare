@@ -52,26 +52,29 @@ class AmountOfMoney {
   String? vatCountryCode;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is AmountOfMoney &&
-    other.amount == amount &&
-    other.taxPercentageUsed == taxPercentageUsed &&
-    other.currencyCode == currencyCode &&
-    other.vatCountryCode == vatCountryCode;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AmountOfMoney &&
+          other.amount == amount &&
+          other.taxPercentageUsed == taxPercentageUsed &&
+          other.currencyCode == currencyCode &&
+          other.vatCountryCode == vatCountryCode;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (amount.hashCode) +
-    (taxPercentageUsed == null ? 0 : taxPercentageUsed!.hashCode) +
-    (currencyCode == null ? 0 : currencyCode!.hashCode) +
-    (vatCountryCode == null ? 0 : vatCountryCode!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (amount.hashCode) +
+      (taxPercentageUsed == null ? 0 : taxPercentageUsed!.hashCode) +
+      (currencyCode == null ? 0 : currencyCode!.hashCode) +
+      (vatCountryCode == null ? 0 : vatCountryCode!.hashCode);
 
   @override
-  String toString() => 'AmountOfMoney[amount=$amount, taxPercentageUsed=$taxPercentageUsed, currencyCode=$currencyCode, vatCountryCode=$vatCountryCode]';
+  String toString() =>
+      'AmountOfMoney[amount=$amount, taxPercentageUsed=$taxPercentageUsed, currencyCode=$currencyCode, vatCountryCode=$vatCountryCode]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'amount'] = this.amount;
+    json[r'amount'] = this.amount;
     if (this.taxPercentageUsed != null) {
       json[r'taxPercentageUsed'] = this.taxPercentageUsed;
     } else {
@@ -102,8 +105,10 @@ class AmountOfMoney {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "AmountOfMoney[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "AmountOfMoney[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "AmountOfMoney[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "AmountOfMoney[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -118,7 +123,10 @@ class AmountOfMoney {
     return null;
   }
 
-  static List<AmountOfMoney> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<AmountOfMoney> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <AmountOfMoney>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -146,13 +154,19 @@ class AmountOfMoney {
   }
 
   // maps a json object with a list of AmountOfMoney-objects as value to a dart map
-  static Map<String, List<AmountOfMoney>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<AmountOfMoney>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<AmountOfMoney>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = AmountOfMoney.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = AmountOfMoney.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -163,4 +177,3 @@ class AmountOfMoney {
     'amount',
   };
 }
-

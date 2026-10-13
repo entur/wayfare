@@ -37,7 +37,6 @@ class PurchaseFlowService {
     _logger.i('Initiating purchase for offer: ${offer.id}');
     final response = await OmsaApiService.purchaseOffer(
       offerId: offer.id,
-      timestamp: DateTime.now(),
     );
 
     final details = PurchaseInitiation.fromMap(
@@ -205,7 +204,6 @@ class PurchaseFlowService {
   }) async {
     final response = await OmsaApiService.confirmPackage(
       packageId: purchase.packageId,
-      timestamp: DateTime.now(),
     );
 
     final confirmation = ConfirmedPackage.fromMap(response);

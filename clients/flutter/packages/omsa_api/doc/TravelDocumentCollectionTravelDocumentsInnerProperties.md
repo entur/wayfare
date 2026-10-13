@@ -10,8 +10,9 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **startvalidity** | [**DateTime**](DateTime.md) | https://www.rfc-editor.org/rfc/rfc3339#section-5.6, date-time (2019-10-12T07:20:50.52Z) | 
 **endvalidity** | [**DateTime**](DateTime.md) | https://www.rfc-editor.org/rfc/rfc3339#section-5.6, date-time (2019-10-12T07:20:50.52Z) | 
-**travelDocumentType** | [**TypeOfTravelDocument**](TypeOfTravelDocument.md) |  | 
-**type** | **String** |  | [optional] 
+**format** | [**TravelDocumentFormat**](TravelDocumentFormat.md) |  | 
+**status** | [**TravelDocumentStatus**](TravelDocumentStatus.md) |  | [optional] 
+**type** | **String** |  | 
 **contentType** | **String** | the media type (IANA) | 
 **base64** | **String** | long string, memos etc (length 0-10.000) | 
 **version** | **String** | real short string, codes (length 0-10) | [optional] 

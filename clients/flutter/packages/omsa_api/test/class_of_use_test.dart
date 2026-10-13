@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for ClassOfUse
 void main() {
-
-  group('test ClassOfUse', () {
-
-  });
-
+  group('test ClassOfUse', () {});
 }

@@ -41,26 +41,29 @@ class NetworkParameter {
   List<ZoneReference> zones;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is NetworkParameter &&
-    other.type == type &&
-    other.location == location &&
-    other.line == line &&
-    _deepEquality.equals(other.zones, zones);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NetworkParameter &&
+          other.type == type &&
+          other.location == location &&
+          other.line == line &&
+          _deepEquality.equals(other.zones, zones);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (location == null ? 0 : location!.hashCode) +
-    (line == null ? 0 : line!.hashCode) +
-    (zones.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (location == null ? 0 : location!.hashCode) +
+      (line == null ? 0 : line!.hashCode) +
+      (zones.hashCode);
 
   @override
-  String toString() => 'NetworkParameter[type=$type, location=$location, line=$line, zones=$zones]';
+  String toString() =>
+      'NetworkParameter[type=$type, location=$location, line=$line, zones=$zones]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.location != null) {
       json[r'location'] = this.location;
     } else {
@@ -71,7 +74,7 @@ class NetworkParameter {
     } else {
       json[r'line'] = null;
     }
-      json[r'zones'] = this.zones;
+    json[r'zones'] = this.zones;
     return json;
   }
 
@@ -87,8 +90,10 @@ class NetworkParameter {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "NetworkParameter[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "NetworkParameter[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "NetworkParameter[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "NetworkParameter[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -103,7 +108,10 @@ class NetworkParameter {
     return null;
   }
 
-  static List<NetworkParameter> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<NetworkParameter> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <NetworkParameter>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -131,13 +139,19 @@ class NetworkParameter {
   }
 
   // maps a json object with a list of NetworkParameter-objects as value to a dart map
-  static Map<String, List<NetworkParameter>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<NetworkParameter>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<NetworkParameter>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = NetworkParameter.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = NetworkParameter.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -148,4 +162,3 @@ class NetworkParameter {
     'type',
   };
 }
-

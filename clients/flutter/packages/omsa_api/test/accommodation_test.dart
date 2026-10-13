@@ -52,8 +52,5 @@ void main() {
     test('to test the property `nuisanceFacility`', () async {
       // TODO
     });
-
-
   });
-
 }

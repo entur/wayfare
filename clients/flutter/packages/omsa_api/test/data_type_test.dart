@@ -15,8 +15,5 @@ import 'package:test/test.dart';
 void main() {
   // final instance = DataType();
 
-  group('test DataType', () {
-
-  });
-
+  group('test DataType', () {});
 }

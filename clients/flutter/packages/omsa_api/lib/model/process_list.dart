@@ -22,23 +22,24 @@ class ProcessList {
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ProcessList &&
-    _deepEquality.equals(other.processes, processes) &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ProcessList &&
+          _deepEquality.equals(other.processes, processes) &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (processes.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (processes.hashCode) + (links.hashCode);
 
   @override
   String toString() => 'ProcessList[processes=$processes, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'processes'] = this.processes;
-      json[r'links'] = this.links;
+    json[r'processes'] = this.processes;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -54,8 +55,10 @@ class ProcessList {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ProcessList[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ProcessList[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ProcessList[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ProcessList[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -68,7 +71,10 @@ class ProcessList {
     return null;
   }
 
-  static List<ProcessList> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ProcessList> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ProcessList>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -96,13 +102,19 @@ class ProcessList {
   }
 
   // maps a json object with a list of ProcessList-objects as value to a dart map
-  static Map<String, List<ProcessList>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ProcessList>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ProcessList>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ProcessList.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ProcessList.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -114,4 +126,3 @@ class ProcessList {
     'links',
   };
 }
-

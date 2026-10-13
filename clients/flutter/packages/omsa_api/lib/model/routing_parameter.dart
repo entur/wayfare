@@ -22,23 +22,25 @@ class RoutingParameter {
   List<String> journeyPattern;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is RoutingParameter &&
-    other.type == type &&
-    _deepEquality.equals(other.journeyPattern, journeyPattern);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RoutingParameter &&
+          other.type == type &&
+          _deepEquality.equals(other.journeyPattern, journeyPattern);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (journeyPattern.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) + (journeyPattern.hashCode);
 
   @override
-  String toString() => 'RoutingParameter[type=$type, journeyPattern=$journeyPattern]';
+  String toString() =>
+      'RoutingParameter[type=$type, journeyPattern=$journeyPattern]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'journeyPattern'] = this.journeyPattern;
+    json[r'type'] = this.type;
+    json[r'journeyPattern'] = this.journeyPattern;
     return json;
   }
 
@@ -54,8 +56,10 @@ class RoutingParameter {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "RoutingParameter[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "RoutingParameter[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "RoutingParameter[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "RoutingParameter[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -63,14 +67,19 @@ class RoutingParameter {
       return RoutingParameter(
         type: mapValueOfType<String>(json, r'type')!,
         journeyPattern: json[r'journeyPattern'] is Iterable
-            ? (json[r'journeyPattern'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'journeyPattern'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
       );
     }
     return null;
   }
 
-  static List<RoutingParameter> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<RoutingParameter> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <RoutingParameter>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -98,13 +107,19 @@ class RoutingParameter {
   }
 
   // maps a json object with a list of RoutingParameter-objects as value to a dart map
-  static Map<String, List<RoutingParameter>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<RoutingParameter>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<RoutingParameter>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RoutingParameter.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = RoutingParameter.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -116,4 +131,3 @@ class RoutingParameter {
     'journeyPattern',
   };
 }
-

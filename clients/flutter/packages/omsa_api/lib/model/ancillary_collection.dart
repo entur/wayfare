@@ -44,29 +44,32 @@ class AncillaryCollection {
   List<Link> links;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is AncillaryCollection &&
-    other.type == type &&
-    _deepEquality.equals(other.ancillaries, ancillaries) &&
-    other.numberMatched == numberMatched &&
-    other.numberReturned == numberReturned &&
-    _deepEquality.equals(other.links, links);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AncillaryCollection &&
+          other.type == type &&
+          _deepEquality.equals(other.ancillaries, ancillaries) &&
+          other.numberMatched == numberMatched &&
+          other.numberReturned == numberReturned &&
+          _deepEquality.equals(other.links, links);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (ancillaries.hashCode) +
-    (numberMatched == null ? 0 : numberMatched!.hashCode) +
-    (numberReturned == null ? 0 : numberReturned!.hashCode) +
-    (links.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (ancillaries.hashCode) +
+      (numberMatched == null ? 0 : numberMatched!.hashCode) +
+      (numberReturned == null ? 0 : numberReturned!.hashCode) +
+      (links.hashCode);
 
   @override
-  String toString() => 'AncillaryCollection[type=$type, ancillaries=$ancillaries, numberMatched=$numberMatched, numberReturned=$numberReturned, links=$links]';
+  String toString() =>
+      'AncillaryCollection[type=$type, ancillaries=$ancillaries, numberMatched=$numberMatched, numberReturned=$numberReturned, links=$links]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'ancillaries'] = this.ancillaries;
+    json[r'type'] = this.type;
+    json[r'ancillaries'] = this.ancillaries;
     if (this.numberMatched != null) {
       json[r'numberMatched'] = this.numberMatched;
     } else {
@@ -77,7 +80,7 @@ class AncillaryCollection {
     } else {
       json[r'numberReturned'] = null;
     }
-      json[r'links'] = this.links;
+    json[r'links'] = this.links;
     return json;
   }
 
@@ -93,15 +96,18 @@ class AncillaryCollection {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "AncillaryCollection[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "AncillaryCollection[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "AncillaryCollection[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "AncillaryCollection[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return AncillaryCollection(
         type: mapValueOfType<String>(json, r'type')!,
-        ancillaries: AncillaryCollectionAncillariesInner.listFromJson(json[r'ancillaries']),
+        ancillaries: AncillaryCollectionAncillariesInner.listFromJson(
+            json[r'ancillaries']),
         numberMatched: mapValueOfType<int>(json, r'numberMatched'),
         numberReturned: mapValueOfType<int>(json, r'numberReturned'),
         links: Link.listFromJson(json[r'links']),
@@ -110,7 +116,10 @@ class AncillaryCollection {
     return null;
   }
 
-  static List<AncillaryCollection> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<AncillaryCollection> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <AncillaryCollection>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -138,13 +147,19 @@ class AncillaryCollection {
   }
 
   // maps a json object with a list of AncillaryCollection-objects as value to a dart map
-  static Map<String, List<AncillaryCollection>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<AncillaryCollection>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<AncillaryCollection>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = AncillaryCollection.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = AncillaryCollection.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -155,4 +170,3 @@ class AncillaryCollection {
     'type',
   };
 }
-

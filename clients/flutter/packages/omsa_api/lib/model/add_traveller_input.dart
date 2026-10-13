@@ -50,29 +50,32 @@ class AddTravellerInput {
   TravellingAsset? travellingAsset;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is AddTravellerInput &&
-    other.type == type &&
-    other.packageId == packageId &&
-    other.individualTraveller == individualTraveller &&
-    other.userProfile == userProfile &&
-    other.travellingAsset == travellingAsset;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AddTravellerInput &&
+          other.type == type &&
+          other.packageId == packageId &&
+          other.individualTraveller == individualTraveller &&
+          other.userProfile == userProfile &&
+          other.travellingAsset == travellingAsset;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (packageId.hashCode) +
-    (individualTraveller == null ? 0 : individualTraveller!.hashCode) +
-    (userProfile == null ? 0 : userProfile!.hashCode) +
-    (travellingAsset == null ? 0 : travellingAsset!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (packageId.hashCode) +
+      (individualTraveller == null ? 0 : individualTraveller!.hashCode) +
+      (userProfile == null ? 0 : userProfile!.hashCode) +
+      (travellingAsset == null ? 0 : travellingAsset!.hashCode);
 
   @override
-  String toString() => 'AddTravellerInput[type=$type, packageId=$packageId, individualTraveller=$individualTraveller, userProfile=$userProfile, travellingAsset=$travellingAsset]';
+  String toString() =>
+      'AddTravellerInput[type=$type, packageId=$packageId, individualTraveller=$individualTraveller, userProfile=$userProfile, travellingAsset=$travellingAsset]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
-      json[r'packageId'] = this.packageId;
+    json[r'type'] = this.type;
+    json[r'packageId'] = this.packageId;
     if (this.individualTraveller != null) {
       json[r'individualTraveller'] = this.individualTraveller;
     } else {
@@ -103,8 +106,10 @@ class AddTravellerInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "AddTravellerInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "AddTravellerInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "AddTravellerInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "AddTravellerInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -112,7 +117,8 @@ class AddTravellerInput {
       return AddTravellerInput(
         type: mapValueOfType<String>(json, r'type')!,
         packageId: mapValueOfType<String>(json, r'packageId')!,
-        individualTraveller: IndividualTraveller.fromJson(json[r'individualTraveller']),
+        individualTraveller:
+            IndividualTraveller.fromJson(json[r'individualTraveller']),
         userProfile: UserProfile.fromJson(json[r'userProfile']),
         travellingAsset: TravellingAsset.fromJson(json[r'travellingAsset']),
       );
@@ -120,7 +126,10 @@ class AddTravellerInput {
     return null;
   }
 
-  static List<AddTravellerInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<AddTravellerInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <AddTravellerInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -148,13 +157,19 @@ class AddTravellerInput {
   }
 
   // maps a json object with a list of AddTravellerInput-objects as value to a dart map
-  static Map<String, List<AddTravellerInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<AddTravellerInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<AddTravellerInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = AddTravellerInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = AddTravellerInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -166,4 +181,3 @@ class AddTravellerInput {
     'packageId',
   };
 }
-

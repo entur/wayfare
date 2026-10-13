@@ -142,44 +142,47 @@ class Seat {
   bool? hasLight;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Seat &&
-    other.type == type &&
-    other.id == id &&
-    other.deck == deck &&
-    other.space == space &&
-    other.row == row &&
-    other.seatNumber == seatNumber &&
-    other.facing == facing &&
-    other.byWindow == byWindow &&
-    other.legSpace == legSpace &&
-    other.byAisle == byAisle &&
-    other.hasArmRest == hasArmRest &&
-    other.hasTray == hasTray &&
-    other.hasAirco == hasAirco &&
-    other.hasEnergySupply == hasEnergySupply &&
-    other.hasLight == hasLight;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Seat &&
+          other.type == type &&
+          other.id == id &&
+          other.deck == deck &&
+          other.space == space &&
+          other.row == row &&
+          other.seatNumber == seatNumber &&
+          other.facing == facing &&
+          other.byWindow == byWindow &&
+          other.legSpace == legSpace &&
+          other.byAisle == byAisle &&
+          other.hasArmRest == hasArmRest &&
+          other.hasTray == hasTray &&
+          other.hasAirco == hasAirco &&
+          other.hasEnergySupply == hasEnergySupply &&
+          other.hasLight == hasLight;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type == null ? 0 : type!.hashCode) +
-    (id == null ? 0 : id!.hashCode) +
-    (deck == null ? 0 : deck!.hashCode) +
-    (space == null ? 0 : space!.hashCode) +
-    (row.hashCode) +
-    (seatNumber.hashCode) +
-    (facing == null ? 0 : facing!.hashCode) +
-    (byWindow == null ? 0 : byWindow!.hashCode) +
-    (legSpace.hashCode) +
-    (byAisle == null ? 0 : byAisle!.hashCode) +
-    (hasArmRest == null ? 0 : hasArmRest!.hashCode) +
-    (hasTray == null ? 0 : hasTray!.hashCode) +
-    (hasAirco == null ? 0 : hasAirco!.hashCode) +
-    (hasEnergySupply == null ? 0 : hasEnergySupply!.hashCode) +
-    (hasLight == null ? 0 : hasLight!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type == null ? 0 : type!.hashCode) +
+      (id == null ? 0 : id!.hashCode) +
+      (deck == null ? 0 : deck!.hashCode) +
+      (space == null ? 0 : space!.hashCode) +
+      (row.hashCode) +
+      (seatNumber.hashCode) +
+      (facing == null ? 0 : facing!.hashCode) +
+      (byWindow == null ? 0 : byWindow!.hashCode) +
+      (legSpace.hashCode) +
+      (byAisle == null ? 0 : byAisle!.hashCode) +
+      (hasArmRest == null ? 0 : hasArmRest!.hashCode) +
+      (hasTray == null ? 0 : hasTray!.hashCode) +
+      (hasAirco == null ? 0 : hasAirco!.hashCode) +
+      (hasEnergySupply == null ? 0 : hasEnergySupply!.hashCode) +
+      (hasLight == null ? 0 : hasLight!.hashCode);
 
   @override
-  String toString() => 'Seat[type=$type, id=$id, deck=$deck, space=$space, row=$row, seatNumber=$seatNumber, facing=$facing, byWindow=$byWindow, legSpace=$legSpace, byAisle=$byAisle, hasArmRest=$hasArmRest, hasTray=$hasTray, hasAirco=$hasAirco, hasEnergySupply=$hasEnergySupply, hasLight=$hasLight]';
+  String toString() =>
+      'Seat[type=$type, id=$id, deck=$deck, space=$space, row=$row, seatNumber=$seatNumber, facing=$facing, byWindow=$byWindow, legSpace=$legSpace, byAisle=$byAisle, hasArmRest=$hasArmRest, hasTray=$hasTray, hasAirco=$hasAirco, hasEnergySupply=$hasEnergySupply, hasLight=$hasLight]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -203,8 +206,8 @@ class Seat {
     } else {
       json[r'space'] = null;
     }
-      json[r'row'] = this.row;
-      json[r'seatNumber'] = this.seatNumber;
+    json[r'row'] = this.row;
+    json[r'seatNumber'] = this.seatNumber;
     if (this.facing != null) {
       json[r'facing'] = this.facing;
     } else {
@@ -215,7 +218,7 @@ class Seat {
     } else {
       json[r'byWindow'] = null;
     }
-      json[r'legSpace'] = this.legSpace;
+    json[r'legSpace'] = this.legSpace;
     if (this.byAisle != null) {
       json[r'byAisle'] = this.byAisle;
     } else {
@@ -261,8 +264,10 @@ class Seat {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Seat[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Seat[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Seat[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Seat[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -288,7 +293,10 @@ class Seat {
     return null;
   }
 
-  static List<Seat> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Seat> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Seat>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -316,23 +324,27 @@ class Seat {
   }
 
   // maps a json object with a list of Seat-objects as value to a dart map
-  static Map<String, List<Seat>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Seat>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Seat>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Seat.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Seat.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
   }
 
   /// The list of required keys that must be present in a JSON.
-  static const requiredKeys = <String>{
-  };
+  static const requiredKeys = <String>{};
 }
-
 
 class SeatFacingEnum {
   /// Instantiate a new enum with the provided [value].
@@ -361,9 +373,13 @@ class SeatFacingEnum {
     OTHER,
   ];
 
-  static SeatFacingEnum? fromJson(dynamic value) => SeatFacingEnumTypeTransformer().decode(value);
+  static SeatFacingEnum? fromJson(dynamic value) =>
+      SeatFacingEnumTypeTransformer().decode(value);
 
-  static List<SeatFacingEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<SeatFacingEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <SeatFacingEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -380,7 +396,8 @@ class SeatFacingEnum {
 /// Transformation class that can [encode] an instance of [SeatFacingEnum] to String,
 /// and [decode] dynamic data back to [SeatFacingEnum].
 class SeatFacingEnumTypeTransformer {
-  factory SeatFacingEnumTypeTransformer() => _instance ??= const SeatFacingEnumTypeTransformer._();
+  factory SeatFacingEnumTypeTransformer() =>
+      _instance ??= const SeatFacingEnumTypeTransformer._();
 
   const SeatFacingEnumTypeTransformer._();
 
@@ -397,11 +414,16 @@ class SeatFacingEnumTypeTransformer {
   SeatFacingEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'FRONT': return SeatFacingEnum.FRONT;
-        case r'REAR': return SeatFacingEnum.REAR;
-        case r'LEFT': return SeatFacingEnum.LEFT;
-        case r'RIGHT': return SeatFacingEnum.RIGHT;
-        case r'OTHER': return SeatFacingEnum.OTHER;
+        case r'FRONT':
+          return SeatFacingEnum.FRONT;
+        case r'REAR':
+          return SeatFacingEnum.REAR;
+        case r'LEFT':
+          return SeatFacingEnum.LEFT;
+        case r'RIGHT':
+          return SeatFacingEnum.RIGHT;
+        case r'OTHER':
+          return SeatFacingEnum.OTHER;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -414,5 +436,3 @@ class SeatFacingEnumTypeTransformer {
   /// Singleton [SeatFacingEnumTypeTransformer] instance.
   static SeatFacingEnumTypeTransformer? _instance;
 }
-
-

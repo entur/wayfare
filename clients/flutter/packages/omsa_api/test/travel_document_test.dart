@@ -32,8 +32,5 @@ void main() {
     test('to test the property `travelDocumentType`', () async {
       // TODO
     });
-
-
   });
-
 }

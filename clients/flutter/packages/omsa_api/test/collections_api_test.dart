@@ -11,7 +11,6 @@
 import 'package:omsa_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for CollectionsApi
 void main() {
   // final instance = CollectionsApi();
@@ -76,6 +75,5 @@ void main() {
     test('test traveldocumentsCollectionHandler', () async {
       // TODO
     });
-
   });
 }

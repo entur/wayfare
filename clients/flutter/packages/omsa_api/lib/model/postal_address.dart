@@ -120,38 +120,41 @@ class PostalAddress {
   String? additionalInfo;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PostalAddress &&
-    other.placeId == placeId &&
-    other.addressLine1 == addressLine1 &&
-    other.addressLine2 == addressLine2 &&
-    other.street == street &&
-    other.houseNumber == houseNumber &&
-    other.houseNumberAddition == houseNumberAddition &&
-    other.postalCode == postalCode &&
-    other.city == city &&
-    other.province == province &&
-    other.state == state &&
-    other.country == country &&
-    other.additionalInfo == additionalInfo;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PostalAddress &&
+          other.placeId == placeId &&
+          other.addressLine1 == addressLine1 &&
+          other.addressLine2 == addressLine2 &&
+          other.street == street &&
+          other.houseNumber == houseNumber &&
+          other.houseNumberAddition == houseNumberAddition &&
+          other.postalCode == postalCode &&
+          other.city == city &&
+          other.province == province &&
+          other.state == state &&
+          other.country == country &&
+          other.additionalInfo == additionalInfo;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (placeId == null ? 0 : placeId!.hashCode) +
-    (addressLine1.hashCode) +
-    (addressLine2.hashCode) +
-    (street == null ? 0 : street!.hashCode) +
-    (houseNumber.hashCode) +
-    (houseNumberAddition == null ? 0 : houseNumberAddition!.hashCode) +
-    (postalCode == null ? 0 : postalCode!.hashCode) +
-    (city == null ? 0 : city!.hashCode) +
-    (province == null ? 0 : province!.hashCode) +
-    (state == null ? 0 : state!.hashCode) +
-    (country == null ? 0 : country!.hashCode) +
-    (additionalInfo == null ? 0 : additionalInfo!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (placeId == null ? 0 : placeId!.hashCode) +
+      (addressLine1.hashCode) +
+      (addressLine2.hashCode) +
+      (street == null ? 0 : street!.hashCode) +
+      (houseNumber.hashCode) +
+      (houseNumberAddition == null ? 0 : houseNumberAddition!.hashCode) +
+      (postalCode == null ? 0 : postalCode!.hashCode) +
+      (city == null ? 0 : city!.hashCode) +
+      (province == null ? 0 : province!.hashCode) +
+      (state == null ? 0 : state!.hashCode) +
+      (country == null ? 0 : country!.hashCode) +
+      (additionalInfo == null ? 0 : additionalInfo!.hashCode);
 
   @override
-  String toString() => 'PostalAddress[placeId=$placeId, addressLine1=$addressLine1, addressLine2=$addressLine2, street=$street, houseNumber=$houseNumber, houseNumberAddition=$houseNumberAddition, postalCode=$postalCode, city=$city, province=$province, state=$state, country=$country, additionalInfo=$additionalInfo]';
+  String toString() =>
+      'PostalAddress[placeId=$placeId, addressLine1=$addressLine1, addressLine2=$addressLine2, street=$street, houseNumber=$houseNumber, houseNumberAddition=$houseNumberAddition, postalCode=$postalCode, city=$city, province=$province, state=$state, country=$country, additionalInfo=$additionalInfo]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -160,14 +163,14 @@ class PostalAddress {
     } else {
       json[r'placeId'] = null;
     }
-      json[r'addressLine1'] = this.addressLine1;
-      json[r'addressLine2'] = this.addressLine2;
+    json[r'addressLine1'] = this.addressLine1;
+    json[r'addressLine2'] = this.addressLine2;
     if (this.street != null) {
       json[r'street'] = this.street;
     } else {
       json[r'street'] = null;
     }
-      json[r'houseNumber'] = this.houseNumber;
+    json[r'houseNumber'] = this.houseNumber;
     if (this.houseNumberAddition != null) {
       json[r'houseNumberAddition'] = this.houseNumberAddition;
     } else {
@@ -218,8 +221,10 @@ class PostalAddress {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PostalAddress[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PostalAddress[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PostalAddress[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PostalAddress[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -230,7 +235,8 @@ class PostalAddress {
         addressLine2: mapValueOfType<String>(json, r'addressLine2')!,
         street: mapValueOfType<String>(json, r'street'),
         houseNumber: mapValueOfType<int>(json, r'houseNumber') ?? 0,
-        houseNumberAddition: mapValueOfType<String>(json, r'houseNumberAddition'),
+        houseNumberAddition:
+            mapValueOfType<String>(json, r'houseNumberAddition'),
         postalCode: mapValueOfType<String>(json, r'postalCode'),
         city: mapValueOfType<String>(json, r'city'),
         province: mapValueOfType<String>(json, r'province'),
@@ -242,7 +248,10 @@ class PostalAddress {
     return null;
   }
 
-  static List<PostalAddress> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PostalAddress> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PostalAddress>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -270,13 +279,19 @@ class PostalAddress {
   }
 
   // maps a json object with a list of PostalAddress-objects as value to a dart map
-  static Map<String, List<PostalAddress>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PostalAddress>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PostalAddress>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PostalAddress.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PostalAddress.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -288,4 +303,3 @@ class PostalAddress {
     'addressLine2',
   };
 }
-

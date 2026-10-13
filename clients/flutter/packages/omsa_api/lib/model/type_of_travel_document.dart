@@ -48,9 +48,13 @@ class TypeOfTravelDocument {
     OTHER,
   ];
 
-  static TypeOfTravelDocument? fromJson(dynamic value) => TypeOfTravelDocumentTypeTransformer().decode(value);
+  static TypeOfTravelDocument? fromJson(dynamic value) =>
+      TypeOfTravelDocumentTypeTransformer().decode(value);
 
-  static List<TypeOfTravelDocument> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TypeOfTravelDocument> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TypeOfTravelDocument>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -67,7 +71,8 @@ class TypeOfTravelDocument {
 /// Transformation class that can [encode] an instance of [TypeOfTravelDocument] to String,
 /// and [decode] dynamic data back to [TypeOfTravelDocument].
 class TypeOfTravelDocumentTypeTransformer {
-  factory TypeOfTravelDocumentTypeTransformer() => _instance ??= const TypeOfTravelDocumentTypeTransformer._();
+  factory TypeOfTravelDocumentTypeTransformer() =>
+      _instance ??= const TypeOfTravelDocumentTypeTransformer._();
 
   const TypeOfTravelDocumentTypeTransformer._();
 
@@ -84,16 +89,26 @@ class TypeOfTravelDocumentTypeTransformer {
   TypeOfTravelDocument? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'LINK': return TypeOfTravelDocument.LINK;
-        case r'BARCODE': return TypeOfTravelDocument.BARCODE;
-        case r'QRCODE': return TypeOfTravelDocument.QRCODE;
-        case r'AZTECCODE': return TypeOfTravelDocument.AZTECCODE;
-        case r'AXA_EKEY_OTP': return TypeOfTravelDocument.AXA_EKEY_OTP;
-        case r'BLUETOOTH': return TypeOfTravelDocument.BLUETOOTH;
-        case r'NFC': return TypeOfTravelDocument.NFC;
-        case r'PHYSICAL_KEY': return TypeOfTravelDocument.PHYSICAL_KEY;
-        case r'EXTERNAL_CARD': return TypeOfTravelDocument.EXTERNAL_CARD;
-        case r'OTHER': return TypeOfTravelDocument.OTHER;
+        case r'LINK':
+          return TypeOfTravelDocument.LINK;
+        case r'BARCODE':
+          return TypeOfTravelDocument.BARCODE;
+        case r'QRCODE':
+          return TypeOfTravelDocument.QRCODE;
+        case r'AZTECCODE':
+          return TypeOfTravelDocument.AZTECCODE;
+        case r'AXA_EKEY_OTP':
+          return TypeOfTravelDocument.AXA_EKEY_OTP;
+        case r'BLUETOOTH':
+          return TypeOfTravelDocument.BLUETOOTH;
+        case r'NFC':
+          return TypeOfTravelDocument.NFC;
+        case r'PHYSICAL_KEY':
+          return TypeOfTravelDocument.PHYSICAL_KEY;
+        case r'EXTERNAL_CARD':
+          return TypeOfTravelDocument.EXTERNAL_CARD;
+        case r'OTHER':
+          return TypeOfTravelDocument.OTHER;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -106,4 +121,3 @@ class TypeOfTravelDocumentTypeTransformer {
   /// Singleton [TypeOfTravelDocumentTypeTransformer] instance.
   static TypeOfTravelDocumentTypeTransformer? _instance;
 }
-

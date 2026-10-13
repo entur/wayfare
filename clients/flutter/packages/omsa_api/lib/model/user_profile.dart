@@ -104,44 +104,47 @@ class UserProfile {
   bool? genderLimitation;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is UserProfile &&
-    other.type == type &&
-    other.entitlements == entitlements &&
-    other.requirements == requirements &&
-    other.id == id &&
-    other.count == count &&
-    other.minimumAge == minimumAge &&
-    other.maximumAge == maximumAge &&
-    other.monthDayOnWhichAgeApplies == monthDayOnWhichAgeApplies &&
-    other.ageGroup == ageGroup &&
-    other.minimumHeight == minimumHeight &&
-    other.maximumHeight == maximumHeight &&
-    other.localResident == localResident &&
-    other.genderLimitation == genderLimitation;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UserProfile &&
+          other.type == type &&
+          other.entitlements == entitlements &&
+          other.requirements == requirements &&
+          other.id == id &&
+          other.count == count &&
+          other.minimumAge == minimumAge &&
+          other.maximumAge == maximumAge &&
+          other.monthDayOnWhichAgeApplies == monthDayOnWhichAgeApplies &&
+          other.ageGroup == ageGroup &&
+          other.minimumHeight == minimumHeight &&
+          other.maximumHeight == maximumHeight &&
+          other.localResident == localResident &&
+          other.genderLimitation == genderLimitation;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (type.hashCode) +
-    (entitlements == null ? 0 : entitlements!.hashCode) +
-    (requirements == null ? 0 : requirements!.hashCode) +
-    (id.hashCode) +
-    (count.hashCode) +
-    (minimumAge.hashCode) +
-    (maximumAge.hashCode) +
-    (monthDayOnWhichAgeApplies.hashCode) +
-    (ageGroup == null ? 0 : ageGroup!.hashCode) +
-    (minimumHeight.hashCode) +
-    (maximumHeight.hashCode) +
-    (localResident == null ? 0 : localResident!.hashCode) +
-    (genderLimitation == null ? 0 : genderLimitation!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (type.hashCode) +
+      (entitlements == null ? 0 : entitlements!.hashCode) +
+      (requirements == null ? 0 : requirements!.hashCode) +
+      (id.hashCode) +
+      (count.hashCode) +
+      (minimumAge.hashCode) +
+      (maximumAge.hashCode) +
+      (monthDayOnWhichAgeApplies.hashCode) +
+      (ageGroup == null ? 0 : ageGroup!.hashCode) +
+      (minimumHeight.hashCode) +
+      (maximumHeight.hashCode) +
+      (localResident == null ? 0 : localResident!.hashCode) +
+      (genderLimitation == null ? 0 : genderLimitation!.hashCode);
 
   @override
-  String toString() => 'UserProfile[type=$type, entitlements=$entitlements, requirements=$requirements, id=$id, count=$count, minimumAge=$minimumAge, maximumAge=$maximumAge, monthDayOnWhichAgeApplies=$monthDayOnWhichAgeApplies, ageGroup=$ageGroup, minimumHeight=$minimumHeight, maximumHeight=$maximumHeight, localResident=$localResident, genderLimitation=$genderLimitation]';
+  String toString() =>
+      'UserProfile[type=$type, entitlements=$entitlements, requirements=$requirements, id=$id, count=$count, minimumAge=$minimumAge, maximumAge=$maximumAge, monthDayOnWhichAgeApplies=$monthDayOnWhichAgeApplies, ageGroup=$ageGroup, minimumHeight=$minimumHeight, maximumHeight=$maximumHeight, localResident=$localResident, genderLimitation=$genderLimitation]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     if (this.entitlements != null) {
       json[r'entitlements'] = this.entitlements;
     } else {
@@ -152,18 +155,18 @@ class UserProfile {
     } else {
       json[r'requirements'] = null;
     }
-      json[r'id'] = this.id;
-      json[r'count'] = this.count;
-      json[r'minimumAge'] = this.minimumAge;
-      json[r'maximumAge'] = this.maximumAge;
-      json[r'monthDayOnWhichAgeApplies'] = this.monthDayOnWhichAgeApplies;
+    json[r'id'] = this.id;
+    json[r'count'] = this.count;
+    json[r'minimumAge'] = this.minimumAge;
+    json[r'maximumAge'] = this.maximumAge;
+    json[r'monthDayOnWhichAgeApplies'] = this.monthDayOnWhichAgeApplies;
     if (this.ageGroup != null) {
       json[r'ageGroup'] = this.ageGroup;
     } else {
       json[r'ageGroup'] = null;
     }
-      json[r'minimumHeight'] = this.minimumHeight;
-      json[r'maximumHeight'] = this.maximumHeight;
+    json[r'minimumHeight'] = this.minimumHeight;
+    json[r'maximumHeight'] = this.maximumHeight;
     if (this.localResident != null) {
       json[r'localResident'] = this.localResident;
     } else {
@@ -189,8 +192,10 @@ class UserProfile {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "UserProfile[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "UserProfile[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "UserProfile[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "UserProfile[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -203,7 +208,8 @@ class UserProfile {
         count: mapValueOfType<int>(json, r'count') ?? 0,
         minimumAge: mapValueOfType<int>(json, r'minimumAge') ?? 0,
         maximumAge: mapValueOfType<int>(json, r'maximumAge') ?? 0,
-        monthDayOnWhichAgeApplies: mapValueOfType<int>(json, r'monthDayOnWhichAgeApplies') ?? 0,
+        monthDayOnWhichAgeApplies:
+            mapValueOfType<int>(json, r'monthDayOnWhichAgeApplies') ?? 0,
         ageGroup: UserProfileAgeGroupEnum.fromJson(json[r'ageGroup']),
         minimumHeight: mapValueOfType<int>(json, r'minimumHeight') ?? 0,
         maximumHeight: mapValueOfType<int>(json, r'maximumHeight') ?? 0,
@@ -214,7 +220,10 @@ class UserProfile {
     return null;
   }
 
-  static List<UserProfile> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<UserProfile> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <UserProfile>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -242,13 +251,19 @@ class UserProfile {
   }
 
   // maps a json object with a list of UserProfile-objects as value to a dart map
-  static Map<String, List<UserProfile>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<UserProfile>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<UserProfile>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = UserProfile.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = UserProfile.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -260,7 +275,6 @@ class UserProfile {
     'id',
   };
 }
-
 
 class UserProfileAgeGroupEnum {
   /// Instantiate a new enum with the provided [value].
@@ -291,9 +305,13 @@ class UserProfileAgeGroupEnum {
     SENIOR,
   ];
 
-  static UserProfileAgeGroupEnum? fromJson(dynamic value) => UserProfileAgeGroupEnumTypeTransformer().decode(value);
+  static UserProfileAgeGroupEnum? fromJson(dynamic value) =>
+      UserProfileAgeGroupEnumTypeTransformer().decode(value);
 
-  static List<UserProfileAgeGroupEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<UserProfileAgeGroupEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <UserProfileAgeGroupEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -310,7 +328,8 @@ class UserProfileAgeGroupEnum {
 /// Transformation class that can [encode] an instance of [UserProfileAgeGroupEnum] to String,
 /// and [decode] dynamic data back to [UserProfileAgeGroupEnum].
 class UserProfileAgeGroupEnumTypeTransformer {
-  factory UserProfileAgeGroupEnumTypeTransformer() => _instance ??= const UserProfileAgeGroupEnumTypeTransformer._();
+  factory UserProfileAgeGroupEnumTypeTransformer() =>
+      _instance ??= const UserProfileAgeGroupEnumTypeTransformer._();
 
   const UserProfileAgeGroupEnumTypeTransformer._();
 
@@ -327,12 +346,18 @@ class UserProfileAgeGroupEnumTypeTransformer {
   UserProfileAgeGroupEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'ANYONE': return UserProfileAgeGroupEnum.ANYONE;
-        case r'INFANT': return UserProfileAgeGroupEnum.INFANT;
-        case r'CHILD': return UserProfileAgeGroupEnum.CHILD;
-        case r'YOUTH': return UserProfileAgeGroupEnum.YOUTH;
-        case r'ADULT': return UserProfileAgeGroupEnum.ADULT;
-        case r'SENIOR': return UserProfileAgeGroupEnum.SENIOR;
+        case r'ANYONE':
+          return UserProfileAgeGroupEnum.ANYONE;
+        case r'INFANT':
+          return UserProfileAgeGroupEnum.INFANT;
+        case r'CHILD':
+          return UserProfileAgeGroupEnum.CHILD;
+        case r'YOUTH':
+          return UserProfileAgeGroupEnum.YOUTH;
+        case r'ADULT':
+          return UserProfileAgeGroupEnum.ADULT;
+        case r'SENIOR':
+          return UserProfileAgeGroupEnum.SENIOR;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -345,5 +370,3 @@ class UserProfileAgeGroupEnumTypeTransformer {
   /// Singleton [UserProfileAgeGroupEnumTypeTransformer] instance.
   static UserProfileAgeGroupEnumTypeTransformer? _instance;
 }
-
-

@@ -21,8 +21,11 @@ Name | Type | Description | Notes
 **price** | [**AmountOfMoney**](AmountOfMoney.md) |  | [optional] 
 **products** | **List<String>** | a reference to a product in the 'products' collection of the offer | [optional] [default to const []]
 **ancillaries** | **List<String>** | additional products that can be assigned to this leg, references to 'ancillaries' collection | [optional] [default to const []]
+**usageValidityPeriods** | **List<String>** | References to usage validity periods in the offer's usageValidityPeriods collection. | [optional] [default to const []]
+**frequenciesOfUse** | **List<String>** | References to frequency-of-use parameters in the offer's frequenciesOfUse collection. | [optional] [default to const []]
 **mode** | [**Mode**](Mode.md) |  | [optional] 
 **assets** | **List<String>** | The physical asset(s) used for the execution of the leg | [optional] [default to const []]
+**reservationRequirement** | [**ReservationRequirement**](ReservationRequirement.md) |  | [optional] 
 **operator_** | [**OrganisationReference**](OrganisationReference.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

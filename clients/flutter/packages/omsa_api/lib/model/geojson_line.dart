@@ -19,20 +19,22 @@ class GeojsonLine {
   List<List<double>> coordinates;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is GeojsonLine &&
-    _deepEquality.equals(other.coordinates, coordinates);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GeojsonLine &&
+          _deepEquality.equals(other.coordinates, coordinates);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (coordinates.hashCode);
+      // ignore: unnecessary_parenthesis
+      (coordinates.hashCode);
 
   @override
   String toString() => 'GeojsonLine[coordinates=$coordinates]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'coordinates'] = this.coordinates;
+    json[r'coordinates'] = this.coordinates;
     return json;
   }
 
@@ -48,24 +50,30 @@ class GeojsonLine {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "GeojsonLine[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "GeojsonLine[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "GeojsonLine[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "GeojsonLine[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return GeojsonLine(
         coordinates: json[r'coordinates'] is List
-          ? (json[r'coordinates'] as List).map((e) =>
-              e == null ? const  <double>[] : (e as List).cast<double>()
-            ).toList()
-          :  const [],
+            ? (json[r'coordinates'] as List)
+                .map((e) =>
+                    e == null ? const <double>[] : (e as List).cast<double>())
+                .toList()
+            : const [],
       );
     }
     return null;
   }
 
-  static List<GeojsonLine> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<GeojsonLine> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <GeojsonLine>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -93,13 +101,19 @@ class GeojsonLine {
   }
 
   // maps a json object with a list of GeojsonLine-objects as value to a dart map
-  static Map<String, List<GeojsonLine>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<GeojsonLine>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<GeojsonLine>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = GeojsonLine.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = GeojsonLine.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -110,4 +124,3 @@ class GeojsonLine {
     'coordinates',
   };
 }
-

@@ -12,7 +12,7 @@ Name | Type | Description | Notes
 **spotType** | **String** |  | 
 **deck** | **String** | default string, full names etc (length 0-200) | [optional] 
 **space** | **String** | default string, full names etc (length 0-200) | [optional] 
-**spot** | **String** | default string, full names etc (length 0-200) | 
+**spot** | **String** | For LUGGAGE_SPOT and VEHICLE_SPOT, supported values are: HANDBAG, HAND_LUGGAGE, SMALL_SUITCASE, SUITCASE, TRUNK, OVERSIZE_ITEM, BICYCLE, SPORTING_EQUIPMENT, SKIS, MUSICAL_INSTRUMENT, PUSH_CHAIR, MOTORIZED_WHEELCHAIR, LARGE_MOTORIZED_WHEELCHAIR, WHEELCHAIR, SMALL_ANIMAL, ANIMAL, GAME, MOTORCYCLE, OTHER, GUIDE_DOG. Unknown values are ignored. Use VEHICLE_SPOT for vehicles transported as cargo (e.g. motorcycle on a ferry). For PASSENGER_SPOT, the value is an operator-specific seat identifier and is not used for requirement mapping.  | 
 **width** | **num** |  | [optional] 
 **length** | **num** |  | [optional] 
 **height** | **num** |  | [optional] 

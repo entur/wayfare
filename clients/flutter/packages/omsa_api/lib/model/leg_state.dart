@@ -46,9 +46,13 @@ class LegState {
     ABENDED,
   ];
 
-  static LegState? fromJson(dynamic value) => LegStateTypeTransformer().decode(value);
+  static LegState? fromJson(dynamic value) =>
+      LegStateTypeTransformer().decode(value);
 
-  static List<LegState> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<LegState> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <LegState>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -65,7 +69,8 @@ class LegState {
 /// Transformation class that can [encode] an instance of [LegState] to String,
 /// and [decode] dynamic data back to [LegState].
 class LegStateTypeTransformer {
-  factory LegStateTypeTransformer() => _instance ??= const LegStateTypeTransformer._();
+  factory LegStateTypeTransformer() =>
+      _instance ??= const LegStateTypeTransformer._();
 
   const LegStateTypeTransformer._();
 
@@ -82,15 +87,24 @@ class LegStateTypeTransformer {
   LegState? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'NOT_STARTED': return LegState.NOT_STARTED;
-        case r'PREPARING': return LegState.PREPARING;
-        case r'PREPARED': return LegState.PREPARED;
-        case r'IN_USE': return LegState.IN_USE;
-        case r'PAUSED': return LegState.PAUSED;
-        case r'ENDED': return LegState.ENDED;
-        case r'ISSUE_REPORTED': return LegState.ISSUE_REPORTED;
-        case r'CANCELLED': return LegState.CANCELLED;
-        case r'ABENDED': return LegState.ABENDED;
+        case r'NOT_STARTED':
+          return LegState.NOT_STARTED;
+        case r'PREPARING':
+          return LegState.PREPARING;
+        case r'PREPARED':
+          return LegState.PREPARED;
+        case r'IN_USE':
+          return LegState.IN_USE;
+        case r'PAUSED':
+          return LegState.PAUSED;
+        case r'ENDED':
+          return LegState.ENDED;
+        case r'ISSUE_REPORTED':
+          return LegState.ISSUE_REPORTED;
+        case r'CANCELLED':
+          return LegState.CANCELLED;
+        case r'ABENDED':
+          return LegState.ABENDED;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -103,4 +117,3 @@ class LegStateTypeTransformer {
   /// Singleton [LegStateTypeTransformer] instance.
   static LegStateTypeTransformer? _instance;
 }
-
