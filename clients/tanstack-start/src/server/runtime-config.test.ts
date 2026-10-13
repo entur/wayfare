@@ -56,6 +56,7 @@ describe("getRuntimeConfig — mode defaults", () => {
 			"https://partner.dev.entur.org/oauth/token",
 		);
 		expect(config.auth0Audience).toBe("https://api.dev.entur.io");
+		expect(config.omsaBaseUrl).toBe("https://api.dev.entur.io/sales/v2");
 		expect(config.salesBaseUrl).toBe("https://api.dev.entur.io/sales/v1");
 		expect(config.journeyPlannerUrl).toBe(
 			"https://api.dev.entur.io/journey-planner/v3/graphql",
@@ -72,6 +73,7 @@ describe("getRuntimeConfig — mode defaults", () => {
 			"https://partner.staging.entur.org/oauth/token",
 		);
 		expect(config.auth0Audience).toBe("https://api.staging.entur.io");
+		expect(config.omsaBaseUrl).toBe("https://api.staging.entur.io/sales/v2");
 		expect(config.salesBaseUrl).toBe("https://api.staging.entur.io/sales/v1");
 		expect(config.journeyPlannerUrl).toBe(
 			"https://api.staging.entur.io/journey-planner/v3/graphql",

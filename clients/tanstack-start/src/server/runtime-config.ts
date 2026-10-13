@@ -72,11 +72,11 @@ const STAGING_ENVIRONMENT_DEFAULTS: EnvironmentDefaults = {
 
 const MODE_DEFAULTS: Record<OmsaRuntimeMode, ModeDefaults> = {
 	dev: {
-		omsaBaseUrl: "https://api.dev.entur.io/omsa/v1",
+		omsaBaseUrl: "https://api.dev.entur.io/sales/v2",
 		...DEV_ENVIRONMENT_DEFAULTS,
 	},
 	staging: {
-		omsaBaseUrl: "https://api.staging.entur.io/omsa/v1",
+		omsaBaseUrl: "https://api.staging.entur.io/sales/v2",
 		...STAGING_ENVIRONMENT_DEFAULTS,
 	},
 	"local-dev": {

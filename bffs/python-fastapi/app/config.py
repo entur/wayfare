@@ -14,7 +14,7 @@ class Settings(BaseSettings):
         default="remote", alias="OMSA_MODE"
     )
     omsa_remote_base_url: str = Field(
-        default="https://api.dev.entur.io/omsa/v1", alias="OMSA_REMOTE_BASE_URL"
+        default="https://api.dev.entur.io/sales/v2", alias="OMSA_REMOTE_BASE_URL"
     )
     omsa_local_base_url: str = Field(
         default="http://localhost:8080", alias="OMSA_LOCAL_BASE_URL"
