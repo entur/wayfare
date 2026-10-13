@@ -21,8 +21,4 @@ class SearchOfferRequest(BaseModel):
     def cache_payload(self) -> dict:
         """Payload used to compute cache keys."""
 
-        payload = self.model_dump(by_alias=True, exclude_none=True, mode="json")
-        # Timestamp should not influence caching, because the server sets current time
-        if "timestamp" in payload.get("inputs", {}):
-            payload["inputs"].pop("timestamp", None)
-        return payload
+        return self.model_dump(by_alias=True, exclude_none=True, mode="json")
