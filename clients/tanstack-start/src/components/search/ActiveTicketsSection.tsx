@@ -1,15 +1,12 @@
 import { QRIcon } from "@entur/icons";
 import { useQueries } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useDevConfig } from "../../context/dev-config";
 import { useProfile } from "../../context/profile";
 import {
 	pendingDocumentPollMs,
 	useCustomerPackages,
 } from "../../hooks/use-documents";
-import { isPackageNotFound } from "../../lib/omsa-error";
-import { getPackages } from "../../lib/ticket-storage";
+import { useStoredPackages } from "../../hooks/use-stored-packages";
 import {
 	groupProperties,
 	groupTravelDocuments,
@@ -41,18 +38,11 @@ function remainingValidity(end: number, now: number): string {
 }
 
 export default function ActiveTicketsSection() {
-	const { clientFingerprint } = useDevConfig();
 	const { customer } = useProfile();
 	const customerId = customer?.id ?? null;
 	const customerKey = customerId ?? customer?.customerNumber ?? null;
-	const [stored, setStored] = useState<StoredPackage[]>([]);
+	const [stored] = useStoredPackages(customerKey);
 	const customerPackages = useCustomerPackages(customerId);
-
-	// Local tickets belong to the active client and customer storage bucket.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: customerKey changes the storage key used by getPackages()
-	useEffect(() => {
-		if (clientFingerprint !== undefined) setStored(getPackages());
-	}, [clientFingerprint, customerKey]);
 
 	const storedById = new Map(stored.map((pkg) => [pkg.packageId, pkg]));
 	const serverPackages = customerPackages.data?.packages ?? [];
@@ -73,9 +63,7 @@ export default function ActiveTicketsSection() {
 						...(local?.route ? { route: local.route } : {}),
 					};
 				})
-		: clientFingerprint === undefined
-			? []
-			: stored;
+		: stored;
 
 	const serverItemById = new Map(serverPackages.map((item) => [item.id, item]));
 	const itemQueries = useQueries({
@@ -84,20 +72,25 @@ export default function ActiveTicketsSection() {
 			queryFn: () => getPackageItem({ data: pkg.packageId }),
 			initialData: serverItemById.get(pkg.packageId),
 			staleTime: 60_000,
-			retry: (count: number, error: Error) =>
-				!isPackageNotFound(error) && count < 3,
 		})),
 	});
+	const isConfirmed = (pkg: StoredPackage, i: number) => {
+		const data = itemQueries[i]?.data;
+		return (
+			!!data &&
+			(data.status ?? data.properties?.status ?? pkg.status) === "CONFIRMED"
+		);
+	};
+	// Only confirmed packages can be active, so skip the documents call for the rest.
 	const docQueries = useQueries({
-		queries: packages.map((pkg) => ({
+		queries: packages.map((pkg, i) => ({
 			queryKey: ["travel-documents", pkg.packageId],
 			queryFn: () => getTravelDocuments({ data: pkg.packageId }),
+			enabled: isConfirmed(pkg, i),
 			staleTime: 60_000,
 			refetchInterval: (query: {
 				state: { data?: TravelDocumentCollection };
 			}) => pendingDocumentPollMs(query.state.data),
-			retry: (count: number, error: Error) =>
-				!isPackageNotFound(error) && count < 3,
 		})),
 	});
 
@@ -106,10 +99,8 @@ export default function ActiveTicketsSection() {
 		.flatMap((pkg, i) => {
 			const item = itemQueries[i];
 			const documents = docQueries[i];
-			if (!item?.data || !documents?.data) return [];
+			if (!item?.data || !documents?.data || !isConfirmed(pkg, i)) return [];
 			const props = item.data.properties;
-			if ((item.data.status ?? props?.status ?? pkg.status) !== "CONFIRMED")
-				return [];
 			const docs = documents.data.travelDocuments ?? [];
 			const validDocuments = groupTravelDocuments(docs).flatMap((group) => {
 				const validity = groupProperties(group);
