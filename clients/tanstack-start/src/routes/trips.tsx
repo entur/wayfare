@@ -2,6 +2,7 @@ import { BackArrowIcon, RouteIcon } from "@entur/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { JourneyStepper } from "../components/layout/JourneyStepper";
 import PageShell from "../components/layout/PageShell";
 import DateTimePicker from "../components/search/DateTimePicker";
 import FavoriteToggle from "../components/search/FavoriteToggle";
@@ -273,7 +274,7 @@ function TripsPage() {
 		!isDefaultFilters(filters, defaultModes);
 
 	return (
-		<PageShell>
+		<PageShell stepper={<JourneyStepper />}>
 			<Button
 				variant="secondary"
 				className="mb-6"

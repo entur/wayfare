@@ -5,6 +5,7 @@ import BundleCard, {
 	buildBundles,
 	type OfferBundle,
 } from "../components/checkout/BundleCard";
+import { JourneyStepper } from "../components/layout/JourneyStepper";
 import PageShell from "../components/layout/PageShell";
 import FavoriteToggle from "../components/search/FavoriteToggle";
 import Illustration from "../components/shared/Illustration";
@@ -13,6 +14,9 @@ import { PurchaseFlowProvider } from "../context/purchase-flow";
 import { formatPrice } from "../lib/format-price";
 import { cheapestCompleteBundles } from "../lib/offer-coverage";
 import { groupBundlesByDuration } from "../lib/offer-durations";
+import { useSelectOffers } from "../hooks/use-purchase";
+import { writePackageSession } from "../lib/package-session";
+import { clearPurchaseOptionsSession } from "../lib/purchase-options-session";
 import {
 	type LegInfo,
 	readSearchSession,
@@ -138,6 +142,8 @@ function OffersScreen() {
 	const [hydrated, setHydrated] = useState(false);
 	const [collection, setCollection] = useState<OfferCollection | null>(null);
 	const [context, setContext] = useState<SearchContext | null>(null);
+	const [continueError, setContinueError] = useState<string | null>(null);
+	const selectOffersMutation = useSelectOffers();
 	const [durationKey, setDurationKey] = useState<string | null>(null);
 	const returnTo = context?.origin === "trips" ? "/trips" : "/";
 	const returnLabel =
@@ -264,18 +270,35 @@ function OffersScreen() {
 		selectCheapest(group);
 	}
 
-	function handleContinue() {
+	async function handleContinue() {
 		const offerIds = bundles
 			.filter((b) => selectedKeys.has(b.groupKey))
 			.flatMap((b) =>
 				b.offers.map((o) => o.id).filter((id): id is string => Boolean(id)),
 			);
 		if (offerIds.length === 0) return;
-		navigate({
-			to: "/checkout/$offerId",
-			params: { offerId: offerIds.join(",") },
-			search: { pendingCardId: undefined },
-		});
+		setContinueError(null);
+		clearPurchaseOptionsSession();
+		try {
+			const selectedPackage = await selectOffersMutation.mutateAsync({
+				inputs: {
+					type: "select_offers",
+					offerIds,
+				},
+			});
+			writePackageSession({ package: selectedPackage, offerIds });
+			navigate({
+				to: "/checkout/$offerId",
+				params: { offerId: offerIds.join(",") },
+				search: { pendingCardId: undefined },
+			});
+		} catch (error) {
+			setContinueError(
+				error instanceof Error
+					? error.message
+					: "Could not prepare checkout. Please try again.",
+			);
+		}
 	}
 
 	const formattedDate = context?.travelDate
@@ -345,6 +368,7 @@ function OffersScreen() {
 						: `${visibleBundles.length} option${visibleBundles.length !== 1 ? "s" : ""} found`
 			}
 			contentClassName="mx-auto max-w-xl"
+			stepper={<JourneyStepper />}
 		>
 			<Button
 				variant="secondary"
@@ -489,10 +513,16 @@ function OffersScreen() {
 								Still needed: {uncoveredParties.map(partyLabel).join(", ")}
 							</p>
 						)}
+					{continueError && (
+						<p className="text-center text-xs text-wayfare-primary">
+							{continueError}
+						</p>
+					)}
 					<Button
 						variant="primary"
 						className="w-full"
-						disabled={!canContinue}
+						disabled={!canContinue || selectOffersMutation.isPending}
+						loading={selectOffersMutation.isPending}
 						onClick={handleContinue}
 					>
 						{hasMissingLegs
