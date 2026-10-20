@@ -1,14 +1,14 @@
 import { ValidTicketIcon } from "@entur/icons";
 import { useQueries } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import PageShell from "../../components/layout/PageShell";
 import TicketCard from "../../components/tickets/TicketCard";
-import { useDevConfig } from "../../context/dev-config";
 import { useProfile } from "../../context/profile";
 import { useCustomerPackages } from "../../hooks/use-documents";
+import { useStoredPackages } from "../../hooks/use-stored-packages";
 import { isPackageNotFound } from "../../lib/omsa-error";
-import { getPackages, removePackage } from "../../lib/ticket-storage";
+import { removePackage } from "../../lib/ticket-storage";
 import {
 	getPackageItem,
 	getTravelDocuments,
@@ -51,21 +51,10 @@ function fromServerPackage(
 }
 
 function TicketsPage() {
-	const { clientFingerprint } = useDevConfig();
 	const { customer } = useProfile();
 	const customerId = customer?.id ?? null;
 	const customerKey = customerId ?? customer?.customerNumber ?? null;
-	const [stored, setStored] = useState<StoredPackage[]>([]);
-
-	// Gate the localStorage read until the active client's fingerprint is known,
-	// so we read from the correct (credential- and customer-scoped) key and
-	// re-read when the active client or signed-in profile changes. customerKey
-	// feeds the storage key inside getPackages(), so it must stay a dependency.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: customerKey scopes getPackages() via storage key
-	useEffect(() => {
-		if (clientFingerprint === undefined) return;
-		setStored(getPackages());
-	}, [clientFingerprint, customerKey]);
+	const [stored, reloadStored] = useStoredPackages(customerKey);
 
 	// Signed in: the server is the source of truth for which packages are the
 	// customer's. Anonymous: fall back to the locally stored packageId list.
@@ -90,8 +79,6 @@ function TicketsPage() {
 			queryFn: () => getPackageItem({ data: pkg.packageId }),
 			staleTime: 60_000,
 			initialData: serverItemById.get(pkg.packageId),
-			retry: (count: number, error: Error) =>
-				!isPackageNotFound(error) && count < 3,
 		})),
 	});
 
@@ -100,8 +87,6 @@ function TicketsPage() {
 			queryKey: ["travel-documents", pkg.packageId],
 			queryFn: () => getTravelDocuments({ data: pkg.packageId }),
 			staleTime: 60_000,
-			retry: (count: number, error: Error) =>
-				!isPackageNotFound(error) && count < 3,
 		})),
 	});
 
@@ -118,8 +103,8 @@ function TicketsPage() {
 		for (const id of notFoundKey.split(",")) {
 			removePackage(id);
 		}
-		setStored(getPackages());
-	}, [notFoundKey]);
+		reloadStored();
+	}, [notFoundKey, reloadStored]);
 
 	const now = new Date();
 	const active: StoredPackage[] = [];
