@@ -36,7 +36,7 @@ jobs:
           version: 11.13.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.15.0
+          node-version: 24.22.1
           cache: pnpm
           cache-dependency-path: bffs/fastify/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
@@ -59,7 +59,7 @@ jobs:
           version: 11.13.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.15.0
+          node-version: 24.22.1
           cache: pnpm
           cache-dependency-path: clients/react-native/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
