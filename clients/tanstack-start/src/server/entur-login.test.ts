@@ -10,6 +10,7 @@ const auth0 = vi.hoisted(() => {
 	};
 	return {
 		client,
+		// biome-ignore lint/correctness/noComponentHookFactories: mock constructor, not a React component
 		ServerClient: vi.fn(function ServerClient() {
 			return client;
 		}),
