@@ -29,7 +29,7 @@
     "@entur/tokens": "4.2.0",
     "@entur/tooltip": "6.0.7",
     "@entur/travel": "8.0.7",
-    "@entur/typography": "3.0.7",
+    "@entur/typography": "3.2.0",
     "@tailwindcss/vite": "4.3.3",
     "@tanstack/react-query": "5.105.0",
     "@tanstack/react-router": "1.170.46",
