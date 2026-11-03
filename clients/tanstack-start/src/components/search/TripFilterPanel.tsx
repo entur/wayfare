@@ -61,6 +61,28 @@ function PreferenceSwitch({
 	);
 }
 
+function FilterChip({
+	label,
+	onRemove,
+}: {
+	label: string;
+	onRemove: () => void;
+}) {
+	return (
+		<span className="inline-flex items-center gap-1 rounded-full border border-wayfare-primary bg-wayfare-accent-soft py-1 pl-3 pr-1.5 text-sm font-medium text-wayfare-primary">
+			{label}
+			<button
+				type="button"
+				onClick={onRemove}
+				aria-label={`Remove ${label} filter`}
+				className="inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-lg leading-none hover:bg-wayfare-primary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wayfare-primary"
+			>
+				<span aria-hidden="true">×</span>
+			</button>
+		</span>
+	);
+}
+
 export default function TripFilterPanel({
 	filters,
 	onChange,
@@ -88,28 +110,6 @@ export default function TripFilterPanel({
 				(candidate) => filters.modes.includes(candidate) || candidate === group,
 			),
 		});
-	}
-
-	function FilterChip({
-		label,
-		onRemove,
-	}: {
-		label: string;
-		onRemove: () => void;
-	}) {
-		return (
-			<span className="inline-flex items-center gap-1 rounded-full border border-wayfare-primary bg-wayfare-accent-soft py-1 pl-3 pr-1.5 text-sm font-medium text-wayfare-primary">
-				{label}
-				<button
-					type="button"
-					onClick={onRemove}
-					aria-label={`Remove ${label} filter`}
-					className="inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-lg leading-none hover:bg-wayfare-primary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-wayfare-primary"
-				>
-					<span aria-hidden="true">×</span>
-				</button>
-			</span>
-		);
 	}
 
 	return (
