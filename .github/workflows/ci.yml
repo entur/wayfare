@@ -25,7 +25,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
         run: |
-          mapfile -t files < <(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[] | .filename, (.previous_filename // empty)')
+          # Plain assignment so an API failure fails the step; process
+          # substitution would hide it and skip every area.
+          out=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[] | .filename, (.previous_filename // empty)')
+          mapfile -t files <<<"$out"
           # Each argument is a directory or an exact file path. Changes to
           # ci.yml itself run every area.
           check() {
