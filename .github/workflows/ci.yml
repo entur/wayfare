@@ -1,0 +1,84 @@
+name: ci
+
+# Single required check for PRs. Area workflows are called only when their
+# paths change, and ci-ok summarizes them so rulesets can require one check.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      mobile: ${{ steps.filter.outputs.mobile }}
+      python-fastapi: ${{ steps.filter.outputs.python-fastapi }}
+      tanstack-start: ${{ steps.filter.outputs.tanstack-start }}
+    steps:
+      - id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          # Plain assignment so an API failure fails the step; process
+          # substitution would hide it and skip every area.
+          out=$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[] | .filename, (.previous_filename // empty)')
+          mapfile -t files <<<"$out"
+          # Each argument is a directory or an exact file path. Changes to
+          # ci.yml itself run every area.
+          check() {
+            local name=$1; shift
+            local result=false
+            for f in "${files[@]}"; do
+              for p in "$@" .github/workflows/ci.yml; do
+                if [[ $f == "$p" || $f == "$p"/* ]]; then result=true; break 2; fi
+              done
+            done
+            echo "$name=$result" | tee -a "$GITHUB_OUTPUT"
+          }
+          check mobile bffs/fastify clients/react-native .github/workflows/mobile.yml
+          check python-fastapi bffs/python-fastapi .github/workflows/python-fastapi.yml
+          check tanstack-start clients/tanstack-start .github/workflows/tanstack-start-security.yml
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+
+  mobile:
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    uses: ./.github/workflows/mobile.yml
+
+  python-fastapi:
+    needs: changes
+    if: needs.changes.outputs.python-fastapi == 'true'
+    uses: ./.github/workflows/python-fastapi.yml
+
+  tanstack-start:
+    needs: changes
+    if: needs.changes.outputs.tanstack-start == 'true'
+    permissions:
+      actions: read
+      contents: write
+      id-token: write
+      issues: write
+      pull-requests: write
+      security-events: write
+    uses: ./.github/workflows/tanstack-start-security.yml
+    secrets: inherit
+
+  ci-ok:
+    needs: [changes, dependency-review, mobile, python-fastapi, tanstack-start]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
+      - run: echo "All required jobs passed or were skipped"
