@@ -19,22 +19,22 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fastify/swagger": "^9.9.2",
+    "@fastify/swagger": "^9.9.3",
     "@fastify/type-provider-typebox": "^6.3.0",
     "@sinclair/typebox": "^0.34.52",
-    "fastify": "^5.12.7",
+    "fastify": "^5.12.8",
     "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.6",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "openapi-typescript": "^7.13.0",
     "prettier": "^3.9.10",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.0"
   },
   "packageManager": "pnpm@11.13.1",
   "engines": {
